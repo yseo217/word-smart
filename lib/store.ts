@@ -15,7 +15,10 @@ export type Word = {
   knownStreak: number; // 연속 "안다" 횟수
 };
 
-export type Log = { wordId: string; at: string; answer: Answer };
+// 그때 예문이 있었는지: VOA 문장, 사전 예문, 없음. 예문 제공률 통계에 쓴다 (PRD 3번·5번 ②).
+export type ExampleKind = "voa" | "dictionary" | "none";
+
+export type Log = { wordId: string; at: string; answer: Answer; example?: ExampleKind };
 
 export type HardItem = { wordId: string; savedAt: string };
 
@@ -35,10 +38,16 @@ export type Store = {
   logs: Log[];
   hard: HardItem[];
   progress: Progress;
+  firstUsedAt?: string; // 앱을 처음 쓴 날(첫 저장 시각). 기억률의 "4주 뒤" 기준 (PRD 5번 ②)
 };
 
 export function emptyStore(): Store {
   return { version: 1, words: [], logs: [], hard: [], progress: { date: "", completed: 0 } };
+}
+
+// 처음 저장할 때 첫 사용 시각을 남긴다. 이미 있으면 그대로.
+export function withFirstUse(store: Store, now: Date = new Date()): Store {
+  return store.firstUsedAt ? store : { ...store, firstUsedAt: now.toISOString() };
 }
 
 // 보안 연결(https)이 아닌 곳(예: 같은 와이파이의 http 주소)에서는 crypto.randomUUID가 없을 수 있다.
@@ -77,16 +86,15 @@ export function parseStore(raw: string): { store: Store; corrupt: boolean } {
     }
     const base = emptyStore();
     const progress = isRecord(data.progress) ? (data.progress as Progress) : base.progress;
-    return {
-      store: {
-        version: 1,
-        words: data.words.map(toWord).filter((w): w is Word => w !== null),
-        logs: Array.isArray(data.logs) ? (data.logs as Log[]) : [],
-        hard: Array.isArray(data.hard) ? (data.hard as HardItem[]) : [],
-        progress,
-      },
-      corrupt: false,
+    const store: Store = {
+      version: 1,
+      words: data.words.map(toWord).filter((w): w is Word => w !== null),
+      logs: Array.isArray(data.logs) ? (data.logs as Log[]) : [],
+      hard: Array.isArray(data.hard) ? (data.hard as HardItem[]) : [],
+      progress,
     };
+    if (typeof data.firstUsedAt === "string") store.firstUsedAt = data.firstUsedAt;
+    return { store, corrupt: false };
   } catch {
     return { store: emptyStore(), corrupt: true };
   }

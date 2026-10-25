@@ -23,6 +23,16 @@ const corpus: VoaCorpus = {
 
 const first = () => 0;
 
+test("findVoaCandidates skips sentences where the word is only a proper noun", () => {
+  const c: VoaCorpus = {
+    articles: [{ url: "u", title: "t", sentences: ["The team welcomed Mark Lee.", "They mark the spot with a flag."] }],
+  };
+  assert.deepEqual(
+    findVoaCandidates(c, "mark").map((x) => x.index),
+    [1],
+  );
+});
+
 test("findVoaCandidates matches inflected forms across articles", () => {
   assert.equal(findVoaCandidates(corpus, "reluctant").length, 1);
   assert.equal(findVoaCandidates(corpus, "run").length, 1); // "ran"

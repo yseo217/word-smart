@@ -1,33 +1,48 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Oswald, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import TabBar from "./tab-bar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// 글꼴 (DESIGN.md 2장): 제목은 Playfair Display, 본문·버튼은 Inter, 숫자·스코어는 Oswald
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["700", "900"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
+  weight: ["500", "600"],
 });
 
 export const metadata: Metadata = {
   title: "Word Smart",
   description: "Review the English words in your list five times a day.",
+  // 홈 화면에 추가 (아이폰은 apple-touch-icon과 아래 설정을 본다)
+  icons: { apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Word Smart", statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0c2340",
+  viewportFit: "cover", // 아이폰 홈 바 영역까지 쓰고, 탭 바는 safe-area만큼 띄운다
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${playfair.variable} ${inter.variable} ${oswald.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <div className="band">
-          <p className="mx-auto w-full max-w-md px-4 py-3 text-center text-sm font-semibold uppercase tracking-[0.3em]">Word Smart</p>
+          <p className="mx-auto w-full max-w-md px-4 py-3 text-center font-display text-base font-black uppercase tracking-[0.3em]">Word Smart</p>
         </div>
         {children}
+        <TabBar />
       </body>
     </html>
   );

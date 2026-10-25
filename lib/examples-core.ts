@@ -1,5 +1,5 @@
 // 예문 고르기의 순수 로직 (DESIGN.md 6장). 파일 읽기와 네트워크는 examples.ts가 맡는다.
-import { containsForm, formsPattern } from "./forms.ts";
+import { containsFormAsCommonWord, formsPattern } from "./forms.ts";
 import { levelAllows, type FrequencyMap } from "./level.ts";
 
 export const MAX_EXAMPLE_CHARS = 300;
@@ -26,13 +26,12 @@ export const NO_EXAMPLE: ExampleResult = { ok: false };
 
 type Candidate = { id: string; article: VoaArticle; index: number };
 
-// 모음에서 단어(변화형 포함)가 든 문장을 모두 찾는다.
+// 모음에서 단어(변화형 포함)가 든 문장을 모두 찾는다. 고유명사로만 쓰인 문장은 뺀다 (PRD 5번 ②).
 export function findVoaCandidates(corpus: VoaCorpus, word: string): Candidate[] {
-  const re = new RegExp(formsPattern(word), "i");
   const out: Candidate[] = [];
   corpus.articles.forEach((article, a) => {
     article.sentences.forEach((s, i) => {
-      if (re.test(s)) out.push({ id: `voa:${a}:${i}`, article, index: i });
+      if (containsFormAsCommonWord(s, word)) out.push({ id: `voa:${a}:${i}`, article, index: i });
     });
   });
   return out;
@@ -106,7 +105,7 @@ export function pickDictionaryExample(
     );
   });
   const usable = examples.filter(
-    (x) => !skip.includes(x.id) && containsForm(x.text, word) && x.text.length <= MAX_EXAMPLE_CHARS && levelAllows(x.text, word, freq),
+    (x) => !skip.includes(x.id) && containsFormAsCommonWord(x.text, word) && x.text.length <= MAX_EXAMPLE_CHARS && levelAllows(x.text, word, freq),
   );
   if (usable.length === 0) return NO_EXAMPLE;
   const x = usable[Math.floor(rng() * usable.length)];

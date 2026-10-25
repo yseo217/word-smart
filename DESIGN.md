@@ -35,7 +35,11 @@
 - 스마트폰 세로 화면(가로 360px)을 기준으로 만들고, 가로 스크롤이 생기지 않게 한다.
 - **앱 화면의 문구는 모두 영어로 쓴다** (2026-10-25 결정). 문서(PRD, DESIGN)와 코드 주석은 한국어다.
 - **디자인은 핀 스트라이프 유니폼 느낌**이다 (2026-10-25 결정): 네이비(`#0c2340`)와 흰색, 바탕에 가는 세로 줄무늬, 상단에 네이비 띠, 글은 흰 패널 위에. 색과 줄무늬는 `app/globals.css` 한 곳에서 정한다. 구단 로고·이름 같은 상표는 쓰지 않는다.
+- **글꼴** (2026-10-25 결정, 모두 Google Fonts, `app/layout.tsx`에서 `next/font/google`로 불러옴): 제목·헤더는 **Playfair Display**(복습 화면의 단어 자체는 Inter 그대로)(700·900, 하이컨트라스트 세리프), 본문·버튼·라벨은 **Inter**(없으면 시스템 글꼴), 숫자·스코어·통계는 **Oswald**(500·600, 스코어보드 느낌). Tailwind 클래스는 `font-display`, `font-sans`, `font-score`.
 - must는 `/`, `/words`, `/review` 세 화면이다. 나머지는 must를 먼저 끝낸 뒤에 만든다.
+- **하단 탭 바** (2026-10-25 결정, `app/tab-bar.tsx`): Today(`/`, 복습 화면 `/review` 포함) · Word List(`/words`) · Still Learning(`/hard`, 어려운 단어 목록) 세 탭. 모든 화면에 고정으로 붙고, 누르면 바로 이동한다.
+
+**홈 화면 추가(PWA)**: `app/manifest.ts`(이름, 전체화면 `standalone`, 색), `public/icon-192.png`·`icon-512.png`·`apple-touch-icon.png`(`scripts/make-icons.mjs`가 만드는 네이비 핀 스트라이프 아이콘), 레이아웃의 `appleWebApp`·`viewportFit: cover`. 서비스 워커(오프라인 캐시)는 두지 않는다. 오프라인이면 예문 카드에 "Offline – examples need an internet connection."을 보여준다.
 
 ## 3. 단어장
 
@@ -46,7 +50,7 @@
 2. 영문자, 하이픈(-), 아포스트로피(')만 남아 있는지 본다. 숫자와 중간 공백이 있으면 거부한다.
 3. 길이가 1~30자인지 본다.
 4. 소문자로 바꾼 값이 이미 있는지 본다. 있으면 저장하지 않고 "이미 단어장에 있는 단어입니다"를 보여준다.
-5. 통과하면 저장하고 목록 맨 위에 추가한다.
+5. 통과하면 저장한다. 저장 순서는 입력 순서이지만, 화면 목록은 알파벳 순으로 정렬해 보여준다 (2026-10-25 결정). 목록 위의 검색 칸에 글자를 넣으면 그 글자가 들어 있는 단어만 바로 걸러 보여준다(저장과 무관한 화면 상태).
 
 **여러 단어를 한꺼번에**: 입력칸은 여러 줄이다. 줄바꿈, 쉼표, 세미콜론으로 나눈 조각마다 위 검사를 차례로 하고, 통과한 것만 입력한 순서대로 목록 맨 위에 추가한다. 같은 입력 안의 중복도 걸러낸다. 건너뛴 조각은 이유와 함께 보여주고 입력칸에 남겨서 바로 고칠 수 있게 한다. 띄어쓰기로는 나누지 않는다(`ice cream`이 조용히 두 단어가 되는 것을 막기 위해). 구현은 `addWords`(`lib/store.ts`), 나누는 함수는 `splitInput`(`lib/words.ts`).
 
@@ -71,7 +75,8 @@ type Word = {
   knownStreak: number;   // 연속 "안다" 횟수
 };
 
-type Log = { wordId: string; at: string; answer: Answer };
+type ExampleKind = "voa" | "dictionary" | "none";
+type Log = { wordId: string; at: string; answer: Answer; example?: ExampleKind };  // example: 답할 때 예문이 있었는지 (예문 제공률 통계용)
 
 type HardItem = { wordId: string; savedAt: string };  // 누적 횟수는 Word.missTotal을 본다
 
@@ -85,7 +90,10 @@ type Progress = {
   };
 };
 
-type Store = { version: 1; words: Word[]; logs: Log[]; hard: HardItem[]; progress: Progress };
+type Store = {
+  version: 1; words: Word[]; logs: Log[]; hard: HardItem[]; progress: Progress;
+  firstUsedAt?: string;  // 앱을 처음 쓴 시각. 처음 저장할 때 use-store가 채운다 (기억률 "4주 뒤" 기준)
+};
 ```
 
 ## 5. 복습 동작
@@ -98,7 +106,7 @@ type Store = { version: 1; words: Word[]; logs: Log[]; hard: HardItem[]; progres
 5. 아니면 3단어를 뽑아 `current`에 저장한다.
 
 ### 5.2 단어 뽑기
-- 단어마다 가중치를 준다. `lastAnswer`가 `unknown`이면 2, 아니면 1.
+- 단어마다 가중치를 준다. `lastAnswer`가 `unknown`이거나 어려운 단어 목록(`hard`)에 있으면 2, 아니면 1 (둘 다여도 2).
 - 가중치에 따른 무작위로 하나를 뽑고, 뽑힌 단어는 빼고 다시 뽑는다. 이걸 3번 하면 한 회차에 같은 단어가 두 번 나오지 않는다.
 - 단어가 3개보다 적으면 있는 만큼만 뽑는다.
 
@@ -119,12 +127,13 @@ type Store = { version: 1; words: Word[]; logs: Log[]; hard: HardItem[]; progres
 - 자정을 넘겨 끝난 회차는 시작한 날로 센다: 회차의 `startedAt`이 오늘(KST)이 아니면 오늘 `completed`에 더하지 않는다.
 - 회차에 있던 단어가 지워졌으면 그 회차는 버리고 새로 뽑는다.
 - 회차를 끝내면 결과(오늘 횟수, 어려운 단어 목록 추가·제외)를 보여주고, '한 회차 더'를 누를 때까지 다음 회차를 시작하지 않는다.
+- 'Look it up'을 누르면 응답은 즉시 기록하되 화면은 그 단어에 머문다(`lookedUp` 상태). 예문을 다시 볼 수 있고 'Open Google' 링크(새 탭)와 'Next' 버튼이 보인다. 그 응답으로 회차가 끝났으면 요약은 'Next'를 누른 뒤에 보여준다. 'I remember'는 바로 다음 단어로 넘어간다.
 
 ### 5.4 구글 검색 연결
 `https://www.google.com/search?q=<단어>+meaning+pronunciation`을 새 탭(`target="_blank"`, `rel="noopener noreferrer"`)으로 연다. 뜻은 앱이 만들지 않는다.
 
-### 5.5 발음 듣기 (nice)
-브라우저 기본 음성(`speechSynthesis`)으로 영어(`en-US`)로 읽어준다. 음성 파일은 가져오지 않는다.
+### 5.5 발음 듣기 (nice) — 구현됨
+복습 화면의 단어 옆 스피커 버튼(`app/review/speak-button.tsx`). 누를 때만 브라우저 기본 음성(`speechSynthesis`)으로 영어(`en-US`, 속도 0.9)를 읽어준다. 음성 파일은 가져오지 않고, `speechSynthesis`가 없는 브라우저에서는 버튼을 그리지 않는다. 음성 목록은 기기마다 달라서 미국식 영어 음성이 없으면 다른 영어 음성을 쓴다.
 
 ## 6. 예문 가져오기
 
@@ -153,7 +162,7 @@ type Store = { version: 1; words: Word[]; logs: Log[]; hard: HardItem[]; progres
 { ok: false }                                                      // 예문 없음
 ```
 잘못된 단어(단어장 규칙 위반)는 400으로 거부한다. 화면은 회차가 시작되면 3단어의 예문을 한꺼번에 요청해 캐시(`app/review/example-cache.ts`)에 두고, 회차가 끝나면 비운다.
-`skip`은 '다른 예문 보기'를 눌렀을 때 이미 본 예문을 빼기 위한 값이다.
+`skip`은 '다른 예문 보기'를 눌렀을 때 이미 본 예문을 빼기 위한 값이다. 더 찾았는데 없으면(`ok: false`) 화면은 마지막 예문을 그대로 두고 "No more examples"만 표시한다(`example-cache`의 `exhausted`). 한 단어당 '다른 예문 보기'는 5번까지(`MAX_ANOTHER`)이며, 넘으면 요청하지 않고 같은 표시를 한다.
 
 ### 6.3 서버가 하는 일 (순서대로)
 1. `word`를 단어장 입력 검사(3번)와 같은 규칙으로 검사한다. 맞지 않으면 거부한다.
@@ -249,6 +258,7 @@ type VoaSentence = { id: string; text: string; prev?: string; next?: string; url
 - 원형: `run`
 - 규칙 변화: `-s`, `-es`, `-ed`, `-d`, `-ing`, 자음 겹침(`running`), 끝 `e` 탈락(`making`), `y→ies/ied`
 - 불규칙형: 자주 쓰는 불규칙 동사 표(`run → ran`, `go → went` 등)를 코드에 넣어 둔다. (표의 범위는 10번 참고)
+- 고유명사 제외(PRD 5번 ②, `containsFormAsCommonWord`): 문장 중간에서 대문자로 시작하는 형태만 있는 문장은 후보에서 뺀다. 문장 첫머리의 대문자는 인정하므로 "Apple released…" 같은 경우는 걸러지지 않는다(한계, '다른 예문 보기'로 넘긴다).
 
 ## 8. 통계와 백업
 

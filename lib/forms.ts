@@ -190,3 +190,15 @@ export function formsRegExp(base: string): RegExp {
 export function containsForm(text: string, base: string): boolean {
   return new RegExp(formsPattern(base), "i").test(text);
 }
+
+// 예문 후보 판정: 단어가 들어 있되, 문장 중간에서 대문자로 시작하는 형태(사람 이름 Mark 등)만 있는 문장은 고유명사로 보고 뺀다.
+// 문장 첫머리(앞이 따옴표나 공백뿐)의 대문자는 평범한 문장 시작이므로 인정한다.
+export function containsFormAsCommonWord(text: string, base: string): boolean {
+  for (const m of text.matchAll(formsRegExp(base))) {
+    const start = m.index ?? 0;
+    const capitalized = /^[A-Z]/.test(m[0]);
+    const atSentenceStart = /^["“‘'(\s]*$/.test(text.slice(0, start));
+    if (!capitalized || atSentenceStart) return true;
+  }
+  return false;
+}

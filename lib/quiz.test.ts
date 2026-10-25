@@ -7,6 +7,7 @@ import {
   currentWord,
   googleSearchUrl,
   pickWords,
+  removeFromHard,
   startRound,
   weightOf,
 } from "./quiz.ts";
@@ -34,11 +35,22 @@ test("pickWords never repeats a word and takes only what exists", () => {
   assert.equal(pickWords([], 3).length, 0);
 });
 
-test("a word last answered 'unknown' has double weight", () => {
+test("a word last answered 'unknown' or on the hard list has double weight", () => {
   const w = withWords("a").words[0];
   assert.equal(weightOf(w), 1);
   assert.equal(weightOf({ ...w, lastAnswer: "unknown" }), 2);
   assert.equal(weightOf({ ...w, lastAnswer: "known" }), 1);
+  assert.equal(weightOf({ ...w, lastAnswer: "known" }, new Set([w.id])), 2); // Still Learning에 있으면 2배
+  assert.equal(weightOf({ ...w, lastAnswer: "unknown" }, new Set([w.id])), 2); // 둘 다여도 2배
+});
+
+test("startRound gives hard-list words double weight", () => {
+  const base = withWords("a", "b");
+  const [a, b] = base.words;
+  const store = { ...base, hard: [{ wordId: b.id, savedAt: NOW.toISOString() }] };
+  // 가중치 a=1, b=2 → r in [0,1) a, [1,3) b
+  assert.equal(startRound(store, NOW, () => 0.5).store.progress.current?.wordIds[0], b.id);
+  assert.equal(startRound(store, NOW, () => 0.1).store.progress.current?.wordIds[0], a.id);
 });
 
 test("weights shift the random pick toward 'unknown' words", () => {
@@ -104,10 +116,19 @@ test("answering advances the round and finishes after the last word", () => {
   store = answerCurrent(store, "unknown", NOW).store;
   const r3 = answerCurrent(store, "known", NOW);
   assert.equal(r3.result.ok && r3.result.roundFinished, true);
+  assert.equal(r3.result.ok && r3.result.countedToday, true);
   assert.equal(r3.store.progress.current, undefined);
   assert.equal(r3.store.progress.completed, 1);
   assert.equal(r3.store.logs.length, 3);
   assert.equal(answerCurrent(r3.store, "known", NOW).result.ok, false);
+});
+
+test("answers can record which kind of example was shown", () => {
+  const store = startRound(withWords("a"), NOW, first).store;
+  const withKind = answerCurrent(store, "known", NOW, "voa").store;
+  assert.equal(withKind.logs[0].example, "voa");
+  const withoutKind = answerCurrent(store, "known", NOW).store;
+  assert.equal("example" in withoutKind.logs[0], false);
 });
 
 test("answers update the word's counters and first/last answer", () => {
@@ -161,6 +182,16 @@ test("three 'known' in a row removes the word from the hard list and resets coun
   assert.equal(third.store.words[0].knownStreak, 0);
 });
 
+test("removeFromHard drops the entry and resets the word's counters", () => {
+  const store = answerTimes(withWords("a"), "unknown", 3);
+  assert.equal(store.hard.length, 1);
+  const after = removeFromHard(store, store.words[0].id);
+  assert.equal(after.hard.length, 0);
+  assert.equal(after.words[0].missTotal, 0);
+  assert.equal(after.words[0].knownStreak, 0);
+  assert.equal(removeFromHard(after, store.words[0].id), after); // 목록에 없으면 그대로
+});
+
 test("an 'unknown' answer breaks the known streak", () => {
   let store = answerTimes(withWords("a"), "known", 2);
   store = answerTimes(store, "unknown", 1);
@@ -174,6 +205,7 @@ test("a round started yesterday that finishes today counts for yesterday, not to
   assert.equal(store.progress.date, "2026-10-24");
   const finished = answerCurrent(store, "known", afterMidnight);
   assert.equal(finished.result.ok && finished.result.roundFinished, true);
+  assert.equal(finished.result.ok && finished.result.countedToday, false);
   assert.equal(finished.store.progress.date, "2026-10-25");
   assert.equal(finished.store.progress.completed, 0);
   store = finished.store;

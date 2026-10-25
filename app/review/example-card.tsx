@@ -16,7 +16,11 @@ export default function ExampleCard({ state, onAnother }: { state: ExampleState 
   }
   const { result } = state;
   if (!result.ok) {
-    return <div className={`${box} border-dashed text-sm text-zinc-600 dark:text-zinc-400`}>No example found for this word.</div>;
+    return (
+      <div className={`${box} border-dashed text-sm text-zinc-600 dark:text-zinc-400`}>
+        {state.offline ? "Offline – examples need an internet connection." : "No example found for this word."}
+      </div>
+    );
   }
   return (
     <figure className={`${box} flex flex-col gap-3`}>
@@ -33,9 +37,13 @@ export default function ExampleCard({ state, onAnother }: { state: ExampleState 
           </a>
           {result.source.license && ` · ${result.source.license}`}
         </span>
-        <button type="button" onClick={onAnother} className="min-h-9 rounded-md border border-zinc-300 px-3 dark:border-zinc-700">
-          Another example
-        </button>
+        {state.exhausted ? (
+          <span className="min-h-9 content-center px-1">No more examples</span>
+        ) : (
+          <button type="button" onClick={onAnother} className="min-h-9 rounded-md border border-zinc-300 px-3 dark:border-zinc-700">
+            Another example
+          </button>
+        )}
       </figcaption>
     </figure>
   );

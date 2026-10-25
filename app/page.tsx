@@ -1,4 +1,3 @@
-import Link from "next/link";
 import TodayProgress from "./today-progress";
 
 export default function Home() {
@@ -10,12 +9,6 @@ export default function Home() {
       </header>
 
       <TodayProgress />
-
-      <nav className="flex flex-col gap-3" aria-label="Menu">
-        <Link href="/words" className="flex min-h-12 items-center justify-center rounded-lg border border-zinc-300 px-4 text-base dark:border-zinc-700">
-          Word list
-        </Link>
-      </nav>
     </main>
   );
 }

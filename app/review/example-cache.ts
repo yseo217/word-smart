@@ -2,7 +2,15 @@
 // 회차의 3단어를 한꺼번에 요청해 두고 도착하는 대로 보여준다 (DESIGN.md 6.5).
 import type { ExampleResult } from "@/lib/examples-core";
 
-export type ExampleState = { status: "loading" } | { status: "done"; result: ExampleResult; seen: string[] };
+export type ExampleState =
+  | { status: "loading" }
+  | {
+      status: "done";
+      result: ExampleResult;
+      seen: string[];
+      offline?: boolean; // 인터넷이 없어서 못 가져옴
+      exhausted?: boolean; // '다른 예문 보기'로 더 찾았지만 없음. 마지막 예문은 그대로 보여준다 (PRD 5번 ②)
+    };
 
 const states = new Map<string, ExampleState>();
 const listeners = new Set<() => void>();
@@ -32,9 +40,19 @@ export function clearExamples() {
   emit();
 }
 
+// 한 단어당 '다른 예문 보기'는 5번까지 (외부 사전 API를 연타하지 않기 위해, PRD 5번 ②).
+export const MAX_ANOTHER = 5;
+
 // seen: '다른 예문 보기'로 이미 본 예문 id들. 서버가 그것들을 빼고 고른다.
 export async function requestExample(wordId: string, text: string, seen: string[]) {
-  if (states.get(wordId)?.status === "loading") return;
+  const previous = states.get(wordId);
+  if (previous?.status === "loading") return;
+  if (previous?.status === "done" && previous.result.ok && seen.length > MAX_ANOTHER) {
+    // 처음 예문 1개 + 다른 예문 5개를 봤으면 더 요청하지 않는다.
+    states.set(wordId, { ...previous, exhausted: true });
+    emit();
+    return;
+  }
   states.set(wordId, { status: "loading" });
   emit();
   let next: ExampleState;
@@ -43,10 +61,23 @@ export async function requestExample(wordId: string, text: string, seen: string[
     if (seen.length) params.set("skip", seen.join(","));
     const res = await fetch(`/api/example?${params}`);
     const result: ExampleResult = res.ok ? await res.json() : { ok: false };
-    next = { status: "done", result, seen: result.ok ? [...seen, result.id] : seen };
+    if (!result.ok && previous?.status === "done" && previous.result.ok) {
+      // 더 찾았지만 없다: 마지막 예문은 그대로 두고 "더 없음"만 표시한다.
+      next = { ...previous, exhausted: true };
+    } else {
+      next = { status: "done", result, seen: result.ok ? [...seen, result.id] : seen };
+    }
   } catch {
-    next = { status: "done", result: { ok: false }, seen };
+    // 요청 자체가 실패했고 브라우저가 오프라인이라고 하면, 그 이유를 화면에 알려준다.
+    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    next = previous?.status === "done" && previous.result.ok ? { ...previous, exhausted: true } : { status: "done", result: { ok: false }, seen, offline };
   }
   states.set(wordId, next);
   emit();
+}
+
+// 답할 때 기록할 예문 종류. 아직 불러오는 중이면 undefined.
+export function exampleKindOf(state: ExampleState | undefined): "voa" | "dictionary" | "none" | undefined {
+  if (!state || state.status !== "done") return undefined;
+  return state.result.ok ? state.result.kind : "none";
 }

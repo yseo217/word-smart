@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addWord, addWords, emptyStore, newId, parseStore, removeWord, type Store } from "./store.ts";
+import { addWord, addWords, emptyStore, newId, parseStore, removeWord, withFirstUse, type Store } from "./store.ts";
 
 const NOW = new Date("2026-10-25T00:00:00.000Z");
 
@@ -194,6 +194,15 @@ test("parseStore skips broken word entries and fills missing numbers", () => {
   assert.equal(store.words[0].knownStreak, 0);
   assert.deepEqual(store.logs, []);
   assert.equal(store.progress.completed, 0);
+});
+
+test("withFirstUse stamps the first-use time once and parseStore keeps it", () => {
+  const first = withFirstUse(emptyStore(), NOW);
+  assert.equal(first.firstUsedAt, NOW.toISOString());
+  const later = withFirstUse(first, new Date("2026-11-01T00:00:00.000Z"));
+  assert.equal(later, first);
+  assert.equal(parseStore(JSON.stringify(first)).store.firstUsedAt, NOW.toISOString());
+  assert.equal(parseStore(JSON.stringify(emptyStore())).store.firstUsedAt, undefined);
 });
 
 test("newId gives different ids", () => {

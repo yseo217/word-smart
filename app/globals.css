@@ -26,8 +26,10 @@
   --color-zinc-800: #1f3049;
   --color-zinc-900: #142a45;
   --color-zinc-950: #0c2340;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* 글꼴: 본문 Inter(없으면 시스템 글꼴), 제목 Playfair Display, 숫자·스코어 Oswald */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-score: var(--font-oswald), "Arial Narrow", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -43,7 +45,18 @@ body {
   background-color: var(--background);
   background-image: repeating-linear-gradient(90deg, transparent 0 9px, var(--stripe) 9px 10px);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* 화면 제목은 하이컨트라스트 세리프 (next/font가 html에 넣어 주는 변수를 직접 쓴다) */
+h1 {
+  font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+/* 하단 탭 바 높이만큼 본문 아래를 비운다 */
+main {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 
 /* 상단 네이비 띠 */

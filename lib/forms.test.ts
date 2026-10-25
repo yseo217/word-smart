@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { containsForm, formsRegExp, wordForms } from "./forms.ts";
+import { containsForm, containsFormAsCommonWord, formsRegExp, wordForms } from "./forms.ts";
 
 const has = (base: string, ...forms: string[]) => {
   const all = wordForms(base);
@@ -54,6 +54,14 @@ test("matching is case-insensitive and respects word boundaries", () => {
 test("regexp prefers the longest form so highlighting covers the whole word", () => {
   const m = "They were running late.".match(formsRegExp("run"));
   assert.deepEqual(m, ["running"]);
+});
+
+test("a capitalised match mid-sentence is treated as a proper noun", () => {
+  assert.equal(containsFormAsCommonWord("She asked Mark to wait.", "mark"), false);
+  assert.equal(containsFormAsCommonWord("Mark the date on the calendar.", "mark"), true); // 문장 첫머리
+  assert.equal(containsFormAsCommonWord("“Mark it,” she said.", "mark"), true); // 따옴표 뒤 첫머리
+  assert.equal(containsFormAsCommonWord("She asked Mark to mark the box.", "mark"), true); // 소문자 형태도 있음
+  assert.equal(containsFormAsCommonWord("Apple released a new phone.", "apple"), true); // 첫머리는 인정 (한계)
 });
 
 test("apostrophes and hyphens in the base word are handled", () => {

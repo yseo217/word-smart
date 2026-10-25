@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
-import { emptyStore, parseStore, STORAGE_KEY, type Store } from "./store.ts";
+import { emptyStore, parseStore, STORAGE_KEY, withFirstUse, type Store } from "./store.ts";
 
 // 브라우저의 localStorage에 저장한다. 학습 기록은 서버로 보내지 않는다 (PRD 7번).
 // 저장이 막힌 브라우저(예: 일부 시크릿 모드)에서는 이 탭이 열려 있는 동안만 메모리에 둔다.
@@ -48,8 +48,9 @@ export function useStore() {
     <T,>(fn: (current: Store) => { store: Store; result: T }): UpdateOutcome<T> => {
       const currentRaw = readRaw();
       const { store: current, corrupt } = parseStore(currentRaw);
-      const { store: next, result } = fn(current);
-      if (next === current) return { result, saved: true };
+      const { store: changed, result } = fn(current);
+      if (changed === current) return { result, saved: true };
+      const next = withFirstUse(changed);
 
       // 읽을 수 없던 옛 데이터는 덮어쓰기 전에 다른 이름으로 남겨 둔다.
       if (corrupt && currentRaw) {

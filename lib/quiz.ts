@@ -1,6 +1,6 @@
 // 복습 회차: 단어 뽑기, 응답 처리, 어려운 단어 규칙 (DESIGN.md 5장). 브라우저 API는 쓰지 않는다.
 import { kstDate } from "./kst.ts";
-import type { Answer, HardItem, Progress, Store, Word } from "./store.ts";
+import type { Answer, ExampleKind, HardItem, Log, Progress, Store, Word } from "./store.ts";
 
 export const ROUNDS_PER_DAY = 5;
 export const WORDS_PER_ROUND = 3;
@@ -18,20 +18,26 @@ function withProgress(store: Store, progress: Progress): Store {
   return progress === store.progress ? store : { ...store, progress };
 }
 
-export function weightOf(word: Word): number {
-  return word.lastAnswer === "unknown" ? 2 : 1;
+// 가장 최근 응답이 "모른다"이거나 어려운 단어 목록(Still Learning)에 있으면 2배, 아니면 1배 (둘 다여도 2배).
+export function weightOf(word: Word, hardIds: ReadonlySet<string> = new Set()): number {
+  return word.lastAnswer === "unknown" || hardIds.has(word.id) ? 2 : 1;
 }
 
 // 가중치에 따라 무작위로 n개를 뽑는다. 뽑힌 단어는 빼고 다시 뽑으므로 같은 단어가 두 번 나오지 않는다.
-export function pickWords(words: readonly Word[], n: number, rng: () => number = Math.random): Word[] {
+export function pickWords(
+  words: readonly Word[],
+  n: number,
+  rng: () => number = Math.random,
+  hardIds: ReadonlySet<string> = new Set(),
+): Word[] {
   const pool = [...words];
   const picked: Word[] = [];
   while (picked.length < n && pool.length > 0) {
-    const total = pool.reduce((sum, w) => sum + weightOf(w), 0);
+    const total = pool.reduce((sum, w) => sum + weightOf(w, hardIds), 0);
     let r = rng() * total;
     let index = pool.length - 1;
     for (let i = 0; i < pool.length; i++) {
-      r -= weightOf(pool[i]);
+      r -= weightOf(pool[i], hardIds);
       if (r < 0) {
         index = i;
         break;
@@ -65,7 +71,8 @@ export function startRound(
     return { store: withProgress(store, cleared), result: "done_for_today" };
   }
 
-  const wordIds = pickWords(store.words, WORDS_PER_ROUND, rng).map((w) => w.id);
+  const hardIds = new Set(store.hard.map((h) => h.wordId));
+  const wordIds = pickWords(store.words, WORDS_PER_ROUND, rng, hardIds).map((w) => w.id);
   return {
     store: {
       ...store,
@@ -88,15 +95,18 @@ export type AnswerOutcome =
       ok: true;
       word: Word;
       roundFinished: boolean;
+      countedToday: boolean; // 회차가 끝났을 때, 오늘 횟수에 더해졌는지 (자정을 넘긴 회차는 어제로 센다)
       addedToHard: boolean;
       removedFromHard: boolean;
     }
   | { ok: false };
 
+// example: 답할 때 화면에 예문이 있었는지. 모르면(아직 불러오는 중) 생략한다.
 export function answerCurrent(
   store: Store,
   answer: Answer,
   now: Date = new Date(),
+  example?: ExampleKind,
 ): { store: Store; result: AnswerOutcome } {
   const progress = normalizeProgress(store.progress, now);
   const current = progress.current;
@@ -147,11 +157,21 @@ export function answerCurrent(
     store: {
       ...store,
       words: store.words.map((w) => (w.id === word.id ? updated : w)),
-      logs: [...store.logs, { wordId: word.id, at: now.toISOString(), answer }],
+      logs: [...store.logs, { wordId: word.id, at: now.toISOString(), answer, ...(example ? { example } : {}) } satisfies Log],
       hard,
       progress: nextProgress,
     },
-    result: { ok: true, word: updated, roundFinished, addedToHard, removedFromHard },
+    result: { ok: true, word: updated, roundFinished, countedToday: countsToday, addedToHard, removedFromHard },
+  };
+}
+
+// 어려운 단어 목록 화면에서 직접 뺀다. 목록에서 빠진 단어는 "모른다" 누적 횟수를 0으로 되돌린다 (PRD 5번 ②).
+export function removeFromHard(store: Store, wordId: string): Store {
+  if (!store.hard.some((h) => h.wordId === wordId)) return store;
+  return {
+    ...store,
+    hard: store.hard.filter((h) => h.wordId !== wordId),
+    words: store.words.map((w) => (w.id === wordId ? { ...w, missTotal: 0, knownStreak: 0 } : w)),
   };
 }
 

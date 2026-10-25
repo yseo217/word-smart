@@ -18,7 +18,17 @@ export default function TodayProgress() {
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{ready ? `Today's reviews ${completed}/${ROUNDS_PER_DAY}` : "Loading…"}</p>
+      <p className="flex items-baseline justify-between text-sm text-zinc-600 dark:text-zinc-400">
+        <span>Today&apos;s reviews</span>
+        {ready ? (
+          <span className="font-score text-2xl font-semibold text-foreground">
+            {completed}
+            <span className="text-zinc-400">/{ROUNDS_PER_DAY}</span>
+          </span>
+        ) : (
+          <span>Loading…</span>
+        )}
+      </p>
       {!ready && <span className={`${primary} opacity-50`}>Start review</span>}
       {ready && !hasWords && (
         <Link href="/words" className={primary}>

@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { addWords, removeWord, type SkippedItem } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
+
+// 건너뛴 단어가 많을 때 화면에 보여주는 개수 (나머지는 "… and N more"로 접는다, PRD 5번 ①)
+const MAX_SKIPPED_SHOWN = 10;
 
 export default function WordsPage() {
   const { ready, store, corrupt, update } = useStore();
@@ -14,6 +16,12 @@ export default function WordsPage() {
   const [saveFailed, setSaveFailed] = useState(false);
   const [skipped, setSkipped] = useState<SkippedItem[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // 목록은 알파벳 순으로 보여주고, 검색 칸에 적은 글자가 들어 있는 단어만 남긴다 (저장 순서는 입력 순서 그대로).
+  const [query, setQuery] = useState("");
+  const sortedWords = useMemo(() => [...store.words].sort((a, b) => a.text.localeCompare(b.text, "en")), [store.words]);
+  const needle = query.trim().toLowerCase();
+  const visibleWords = needle ? sortedWords.filter((w) => w.text.includes(needle)) : sortedWords;
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -48,11 +56,8 @@ export default function WordsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
-      <header className="flex items-center justify-between">
+      <header>
         <h1 className="text-2xl font-semibold">Word list</h1>
-        <Link href="/" className="min-h-11 content-center text-sm text-zinc-600 underline dark:text-zinc-400">
-          Home
-        </Link>
       </header>
 
       {saveFailed && (
@@ -103,19 +108,43 @@ export default function WordsPage() {
         </p>
         {skipped.length > 0 && (
           <ul className="flex flex-col gap-1 text-sm text-red-600 dark:text-red-400">
-            {skipped.map((s, i) => (
+            {skipped.slice(0, MAX_SKIPPED_SHOWN).map((s, i) => (
               <li key={`${s.input}-${i}`}>
                 <span className="font-medium break-all">{s.input || "(empty)"}</span> — {s.message}
               </li>
             ))}
+            {skipped.length > MAX_SKIPPED_SHOWN && (
+              <li className="text-zinc-600 dark:text-zinc-400">… and {skipped.length - MAX_SKIPPED_SHOWN} more (all of them are still in the box above)</li>
+            )}
           </ul>
         )}
       </form>
 
       <section aria-labelledby="list-title" className="flex flex-col gap-2">
-        <h2 id="list-title" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-          {ready ? `Your words (${store.words.length})` : "Loading…"}
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="list-title" className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            {ready ? (
+              <>
+                Your words <span className="font-score text-lg font-medium text-foreground">{store.words.length}</span>
+              </>
+            ) : (
+              "Loading…"
+            )}
+          </h2>
+          {ready && store.words.length > 0 && (
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search"
+              aria-label="Search your words"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              className="min-h-10 w-36 rounded-lg border border-zinc-300 bg-transparent px-3 text-sm dark:border-zinc-700"
+            />
+          )}
+        </div>
 
         {ready && store.words.length === 0 && (
           <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
@@ -123,8 +152,14 @@ export default function WordsPage() {
           </p>
         )}
 
+        {ready && store.words.length > 0 && visibleWords.length === 0 && (
+          <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+            No words match &lsquo;{query.trim()}&rsquo;.
+          </p>
+        )}
+
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
-          {store.words.map((word) => (
+          {visibleWords.map((word) => (
             <li key={word.id} className="flex items-center justify-between gap-3 px-3">
               <span lang="en" className="min-w-0 break-words py-3 text-lg">
                 {word.text}
