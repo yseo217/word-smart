@@ -42,3 +42,6 @@ next-env.d.ts
 
 # bkit plugin runtime state (local only)
 .bkit/
+
+# files moved aside instead of deleted (see CLAUDE.md)
+trash-can/

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import TodayProgress from "./today-progress";
 
 export default function Home() {
@@ -11,15 +10,7 @@ export default function Home() {
 
       <TodayProgress />
 
-      {/* 통계 화면은 탭 대신 여기 링크로 간다 (PRD 4번 홈). 백업은 Word List 화면에 있다. */}
-      <nav aria-label="More" className="flex flex-col gap-2">
-        <Link href="/stats" className="flex min-h-12 items-center justify-between rounded-lg border border-zinc-300 px-4 text-base dark:border-zinc-700">
-          <span>Stats</span>
-          <span aria-hidden="true" className="text-zinc-400">
-            →
-          </span>
-        </Link>
-      </nav>
+      {/* 백업은 Word List 화면에, 통계는 Still Learning 화면에 링크가 있다 (PRD 4번). */}
     </main>
   );
 }

@@ -29,7 +29,12 @@ export default function StillLearningPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">Still Learning</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold">Still Learning</h1>
+          <Link href="/stats" className="min-h-11 content-center rounded-lg border border-zinc-300 px-3 text-sm dark:border-zinc-700">
+            Stats
+          </Link>
+        </div>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Words you looked up {MISS_LIMIT} times. They leave the list after {KNOWN_STREAK_TO_CLEAR} remembers in a row, or when you remove them here.
         </p>

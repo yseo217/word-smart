@@ -264,7 +264,7 @@ type VoaSentence = { id: string; text: string; prev?: string; next?: string; url
 
 ## 8. 통계와 백업
 
-**통계 화면** (`lib/stats.ts`, `app/stats/page.tsx`, 홈의 Stats 링크) — 구현됨
+**통계 화면** (`lib/stats.ts`, `app/stats/page.tsx`, Still Learning 화면 제목 옆의 Stats 링크) — 구현됨
 - 끝낸 회차는 `store.rounds`에 `{ at, date }`로 쌓는다(`date`는 시작한 날의 KST 날짜). 회차 기록을 남기기 전 데이터를 위해 오늘 횟수는 `progress.completed`와 기록 중 큰 쪽을 쓴다.
 - 이번 주 복습 횟수: 월~일(`kstWeekStart`) 안의 회차 수. 목표 20(하루 4회 × 5일).
 - 최근 4주 복습한 날 수: 오늘 포함 28일 중 회차가 1회 이상 있는 날. 목표 20.
