@@ -9,6 +9,8 @@ export default function Home() {
       </header>
 
       <TodayProgress />
+
+      {/* 통계(Stats) 링크는 그 화면을 만들 때 여기에 추가한다 (PRD 4번 홈). 백업은 Word List 화면에 있다. */}
     </main>
   );
 }

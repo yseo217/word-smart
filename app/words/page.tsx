@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { addWords, removeWord, type SkippedItem } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
+import BackupNotice from "../backup-notice";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
@@ -56,9 +58,14 @@ export default function WordsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
-      <header>
+      <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Word list</h1>
+        <Link href="/backup" className="min-h-11 content-center rounded-lg border border-zinc-300 px-3 text-sm dark:border-zinc-700">
+          Backup
+        </Link>
       </header>
+
+      <BackupNotice />
 
       {saveFailed && (
         <p role="alert" className="rounded-lg border border-amber-500 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">

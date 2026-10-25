@@ -76,10 +76,26 @@ export function useStore() {
     [],
   );
 
+  // 백업 가져오기: 저장본 전체를 파일의 것으로 바꾼다 (PRD 5번 nice).
+  const replace = useCallback((next: Store): boolean => update(() => ({ store: next, result: null })).saved, [update]);
+
+  // 전체 데이터 초기화: 저장된 것을 모두 지운다 (첫 사용일, 백업 시각 포함).
+  const reset = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // 저장소에 손댈 수 없으면 메모리만 비운다.
+    }
+    memoryRaw = null;
+    emit();
+  }, []);
+
   return {
     ready: parsed !== null,
     store: parsed?.store ?? emptyStore(),
     corrupt: parsed?.corrupt ?? false,
     update,
+    replace,
+    reset,
   };
 }

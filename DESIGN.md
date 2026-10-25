@@ -264,9 +264,11 @@ type VoaSentence = { id: string; text: string; prev?: string; next?: string; url
 
 **기억률(통계 화면)**: `firstAnswer`가 "모른다"였던 단어 중 `lastAnswer`가 "안다"인 단어의 비율. 3번 목표(70%)와 같은 계산이다. 이 외에 오늘 횟수, 최근 4주 동안 복습한 날 수를 같이 보여준다.
 
-**백업 파일**: `{ app: "word-smart", version: 1, exportedAt, data: Store }` 형태의 JSON 파일.
-- 내보내기: 파일로 내려받는다.
-- 가져오기: 파일 형식과 `version`을 검사하고, 맞지 않으면 거부한다. 맞으면 "기존 데이터가 모두 지워집니다" 확인 창을 띄운 뒤 덮어쓴다.
+**백업 파일**: `{ app: "word-smart", version: 1, exportedAt, data: Store }` 형태의 JSON 파일. 이름은 `word-smart-backup-<KST 날짜>.json` (`lib/backup.ts`, 화면은 `app/backup/page.tsx`). — 구현됨
+- 내보내기: `navigator.canShare({files})`가 되면 공유 시트, 아니면(또는 공유 실패) `<a download>`로 다운로드. 사용자가 공유를 취소하면(AbortError) 백업 시각을 남기지 않는다. 성공하면 `lastBackupAt`을 기록하고 미룸을 푼다.
+- 가져오기: `parseBackup`이 JSON → `app === "word-smart"` → `version`(앱보다 크면 거부, 작으면 `migrate`로 변환) → `parseStore` 순으로 검사한다. 통과하면 단어 수와 내보낸 시각을 보여주는 확인 창을 거친 뒤 저장본 전체를 바꾼다(`useStore().replace`). 오늘의 진행 상태도 파일 것으로 바뀐다고 알린다.
+- 백업 안내(Word List 화면, `app/backup-notice.tsx`; Backup 링크도 그 화면 제목 옆): `needsBackupReminder` = 단어 50개 초과 ∧ (백업 기록 없음 ∨ 14일 경과) ∧ 미룸 기간 아님. '7일 뒤에 다시'는 `backupSnoozedUntil`에 저장.
+- 전체 초기화(백업 화면 맨 아래): 확인 창 → `prompt`에 `DELETE` 입력 → `useStore().reset()`이 저장소 키를 지운다.
 
 ## 9. 폴더 구조
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 // 단어 발음 듣기 (PRD 5번 nice): 브라우저 기본 음성(speechSynthesis)으로 영어(미국식)를 누를 때만 읽어준다.
 // 음성 파일은 가져오지 않고, 브라우저가 지원하지 않으면 버튼을 숨긴다.
@@ -10,6 +10,14 @@ const notOnServer = () => false;
 
 export default function SpeakButton({ text }: { text: string }) {
   const canSpeak = useSyncExternalStore(noop, supported, notOnServer);
+
+  // 단어가 바뀌거나 화면을 나가면 읽던 것을 멈춘다 (PRD 5번 nice).
+  useEffect(() => {
+    return () => {
+      if (supported()) window.speechSynthesis.cancel();
+    };
+  }, [text]);
+
   if (!canSpeak) return null;
 
   function speak() {

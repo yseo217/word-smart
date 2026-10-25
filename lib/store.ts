@@ -39,6 +39,8 @@ export type Store = {
   hard: HardItem[];
   progress: Progress;
   firstUsedAt?: string; // 앱을 처음 쓴 날(첫 저장 시각). 기억률의 "4주 뒤" 기준 (PRD 5번 ②)
+  lastBackupAt?: string; // 마지막으로 내보내기를 실행한 시각 (백업 안내 조건)
+  backupSnoozedUntil?: string; // 백업 안내를 '7일 뒤에 다시'로 미룬 경우, 다시 보여줄 시각
 };
 
 export function emptyStore(): Store {
@@ -94,6 +96,8 @@ export function parseStore(raw: string): { store: Store; corrupt: boolean } {
       progress,
     };
     if (typeof data.firstUsedAt === "string") store.firstUsedAt = data.firstUsedAt;
+    if (typeof data.lastBackupAt === "string") store.lastBackupAt = data.lastBackupAt;
+    if (typeof data.backupSnoozedUntil === "string") store.backupSnoozedUntil = data.backupSnoozedUntil;
     return { store, corrupt: false };
   } catch {
     return { store: emptyStore(), corrupt: true };
