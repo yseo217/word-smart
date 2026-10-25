@@ -1,0 +1,11 @@
+{
+  "builtAt": "2026-10-25T14:18:35.904Z",
+  "source": "hermitdave/FrequencyWords (OpenSubtitles 2018, en_50k.txt)",
+  "sourceUrl": "https://github.com/hermitdave/FrequencyWords/blob/master/content/2018/en/en_50k.txt",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "inputFile": "en_50k.txt",
+  "inputLines": 50000,
+  "words": 20000,
+  "rule": "letters-only words (single letters: a, i only), re-ranked from 1 in source order, top 20000"
+}
