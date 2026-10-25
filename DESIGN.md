@@ -92,7 +92,9 @@ type Progress = {
 
 type Store = {
   version: 1; words: Word[]; logs: Log[]; hard: HardItem[]; progress: Progress;
+  rounds?: { at: string; date: string }[];  // 끝낸 회차 기록 (통계용, date = 시작한 날의 KST 날짜)
   firstUsedAt?: string;  // 앱을 처음 쓴 시각. 처음 저장할 때 use-store가 채운다 (기억률 "4주 뒤" 기준)
+  lastBackupAt?: string; backupSnoozedUntil?: string;  // 백업 안내용
 };
 ```
 
@@ -262,7 +264,13 @@ type VoaSentence = { id: string; text: string; prev?: string; next?: string; url
 
 ## 8. 통계와 백업
 
-**기억률(통계 화면)**: `firstAnswer`가 "모른다"였던 단어 중 `lastAnswer`가 "안다"인 단어의 비율. 3번 목표(70%)와 같은 계산이다. 이 외에 오늘 횟수, 최근 4주 동안 복습한 날 수를 같이 보여준다.
+**통계 화면** (`lib/stats.ts`, `app/stats/page.tsx`, 홈의 Stats 링크) — 구현됨
+- 끝낸 회차는 `store.rounds`에 `{ at, date }`로 쌓는다(`date`는 시작한 날의 KST 날짜). 회차 기록을 남기기 전 데이터를 위해 오늘 횟수는 `progress.completed`와 기록 중 큰 쪽을 쓴다.
+- 이번 주 복습 횟수: 월~일(`kstWeekStart`) 안의 회차 수. 목표 20(하루 4회 × 5일).
+- 최근 4주 복습한 날 수: 오늘 포함 28일 중 회차가 1회 이상 있는 날. 목표 20.
+- 기억률: `firstAnswer === "unknown"`인 단어 중 `lastAnswer === "known"`인 비율. 대상이 없으면 "–".
+- 예문 제공률: `example`이 기록된 최근 100건 중 `none`이 아닌 비율. 20건 미만이면 "Not enough data yet".
+- 첫 사용일로부터 며칠째인지(`Day N`)를 머리말에 보여준다.
 
 **백업 파일**: `{ app: "word-smart", version: 1, exportedAt, data: Store }` 형태의 JSON 파일. 이름은 `word-smart-backup-<KST 날짜>.json` (`lib/backup.ts`, 화면은 `app/backup/page.tsx`). — 구현됨
 - 내보내기: `navigator.canShare({files})`가 되면 공유 시트, 아니면(또는 공유 실패) `<a download>`로 다운로드. 사용자가 공유를 취소하면(AbortError) 백업 시각을 남기지 않는다. 성공하면 `lastBackupAt`을 기록하고 미룸을 푼다.

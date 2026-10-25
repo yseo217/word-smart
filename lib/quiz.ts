@@ -148,10 +148,13 @@ export function answerCurrent(
   const answered = current.answered + 1;
   const roundFinished = answered >= current.wordIds.length;
   // 자정을 넘겨 끝난 회차는 시작한 날로 센다. 오늘 시작한 회차만 오늘 횟수에 더한다.
-  const countsToday = kstDate(new Date(current.startedAt)) === progress.date;
+  const startedDate = kstDate(new Date(current.startedAt));
+  const countsToday = startedDate === progress.date;
   const nextProgress: Progress = roundFinished
     ? { ...progress, completed: progress.completed + (countsToday ? 1 : 0), current: undefined }
     : { ...progress, current: { ...current, answered } };
+  // 끝낸 회차는 시작한 날짜로 기록해 둔다 (통계용)
+  const rounds = roundFinished ? [...(store.rounds ?? []), { at: now.toISOString(), date: startedDate }] : store.rounds;
 
   return {
     store: {
@@ -160,6 +163,7 @@ export function answerCurrent(
       logs: [...store.logs, { wordId: word.id, at: now.toISOString(), answer, ...(example ? { example } : {}) } satisfies Log],
       hard,
       progress: nextProgress,
+      ...(rounds ? { rounds } : {}),
     },
     result: { ok: true, word: updated, roundFinished, countedToday: countsToday, addedToHard, removedFromHard },
   };

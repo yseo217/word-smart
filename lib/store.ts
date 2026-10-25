@@ -22,6 +22,9 @@ export type Log = { wordId: string; at: string; answer: Answer; example?: Exampl
 
 export type HardItem = { wordId: string; savedAt: string };
 
+// 끝낸 회차 하나. date는 그 회차가 속한 KST 날짜(시작한 날). 통계의 주간 횟수·복습한 날 수에 쓴다.
+export type RoundRecord = { at: string; date: string };
+
 export type Progress = {
   date: string; // 한국 시간 기준 YYYY-MM-DD
   completed: number; // 오늘 끝낸 회차 수 (최대 5)
@@ -38,6 +41,7 @@ export type Store = {
   logs: Log[];
   hard: HardItem[];
   progress: Progress;
+  rounds?: RoundRecord[]; // 끝낸 회차 기록 (없으면 빈 것으로 본다)
   firstUsedAt?: string; // 앱을 처음 쓴 날(첫 저장 시각). 기억률의 "4주 뒤" 기준 (PRD 5번 ②)
   lastBackupAt?: string; // 마지막으로 내보내기를 실행한 시각 (백업 안내 조건)
   backupSnoozedUntil?: string; // 백업 안내를 '7일 뒤에 다시'로 미룬 경우, 다시 보여줄 시각
@@ -95,6 +99,7 @@ export function parseStore(raw: string): { store: Store; corrupt: boolean } {
       hard: Array.isArray(data.hard) ? (data.hard as HardItem[]) : [],
       progress,
     };
+    if (Array.isArray(data.rounds)) store.rounds = data.rounds as RoundRecord[];
     if (typeof data.firstUsedAt === "string") store.firstUsedAt = data.firstUsedAt;
     if (typeof data.lastBackupAt === "string") store.lastBackupAt = data.lastBackupAt;
     if (typeof data.backupSnoozedUntil === "string") store.backupSnoozedUntil = data.backupSnoozedUntil;
