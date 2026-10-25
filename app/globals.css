@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
+/* 핀 스트라이프 유니폼 느낌: 네이비 + 흰색, 가는 세로 줄무늬. (구단 로고·이름 같은 상표는 쓰지 않는다) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #0c2340;
+  --background: #f3f3ee; /* 줄무늬가 깔리는 바깥 바탕 */
+  --panel: #ffffff; /* 글이 놓이는 흰 패널 */
+  --foreground: var(--navy);
+  --stripe: rgba(12, 35, 64, 0.18);
+  --band-stripe: rgba(255, 255, 255, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-background: var(--panel);
   --color-foreground: var(--foreground);
+  --color-navy: var(--navy);
+  /* 회색을 네이비 기운이 도는 색으로 바꾼다 (페이지의 zinc-* 클래스가 이 값을 쓴다) */
+  --color-zinc-50: #f6f7f9;
+  --color-zinc-100: #eceff3;
+  --color-zinc-200: #d5dbe4;
+  --color-zinc-300: #b8c2d0;
+  --color-zinc-400: #8d9bb0;
+  --color-zinc-500: #677892;
+  --color-zinc-600: #4a5b74;
+  --color-zinc-700: #33435c;
+  --color-zinc-800: #1f3049;
+  --color-zinc-900: #142a45;
+  --color-zinc-950: #0c2340;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #061527;
+    --panel: #0c2340;
+    --foreground: #f6f6f1;
+    --stripe: rgba(255, 255, 255, 0.09);
   }
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: repeating-linear-gradient(90deg, transparent 0 9px, var(--stripe) 9px 10px);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* 상단 네이비 띠 */
+.band {
+  background-color: var(--navy);
+  background-image: repeating-linear-gradient(90deg, transparent 0 9px, var(--band-stripe) 9px 10px);
+  color: #ffffff;
+}
+
+/* 각 화면의 본문 패널 */
+main {
+  background-color: var(--panel);
+  box-shadow: 0 0 0 1px var(--stripe);
 }
