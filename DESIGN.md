@@ -178,7 +178,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 - must는 `/`, `/words`, `/review` 세 화면이고, nice 화면(`/hard`, `/stats`, `/backup`)까지 모두 구현됐다.
 - **하단 탭 바** (2026-10-25 결정, `app/tab-bar.tsx`): Today(`/`, 복습 화면 `/review` 포함) · Word List(`/words`) · Still Learning(`/hard`, 어려운 단어 목록) 세 탭. 모든 화면에 고정으로 붙고, 누르면 바로 이동한다.
 
-**홈 화면 추가(PWA)**: `app/manifest.ts`(이름, 전체화면 `standalone`, 색), `public/icon-192.png`·`icon-512.png`·`apple-touch-icon.png`(`scripts/make-icons.mjs`가 만드는 아이콘: 흰 바탕에 가는 네이비 핀 스트라이프, 가운데 네이비 "W" 한 글자. 홈 유니폼 느낌이되 구단 로고·이름은 쓰지 않는다, 2026-10-26 사용자 결정), 레이아웃의 `appleWebApp`·`viewportFit: cover`. 오프라인 캐시용 서비스 워커는 두지 않고, `public/sw.js`는 푸시 알림만 다룬다(13장). 오프라인이면 예문 카드에 "Offline – examples need an internet connection."을 보여준다.
+**홈 화면 추가(PWA)**: `app/manifest.ts`(이름, 전체화면 `standalone`, 색), `public/icon-192.png`·`icon-512.png`·`apple-touch-icon.png`(`scripts/make-icons.mjs`가 만드는 아이콘: 흰 바탕에 가는 네이비 핀 스트라이프, 가운데 네이비 "W" 한 글자. W는 상단 띠의 "WORD SMART"와 같은 글꼴(Playfair Display 900)의 글자 모양을 `scripts/fonts/PlayfairDisplay-Black.ttf`(SIL OFL 1.1)에서 읽어 그린다. 홈 유니폼 느낌이되 구단 로고·이름은 쓰지 않는다, 2026-10-26 사용자 결정), 레이아웃의 `appleWebApp`·`viewportFit: cover`. 오프라인 캐시용 서비스 워커는 두지 않고, `public/sw.js`는 푸시 알림만 다룬다(13장). 오프라인이면 예문 카드에 "Offline – examples need an internet connection."을 보여준다.
 
 ## 3. 단어장
 
@@ -470,6 +470,7 @@ lib/                    순수 로직. 파일마다 *.test.ts가 짝으로 있�
   backup.ts             백업 파일 만들기·검사·버전 변환
   stats.ts              통계 네 지표
 scripts/                개발 컴퓨터에서 직접 실행. 배포 서버에서는 돌리지 않는다
+  fonts/                아이콘용 글꼴 PlayfairDisplay-Black.ttf와 라이선스 OFL.txt (SIL OFL 1.1, Google Fonts에서 받음)
   build-voa-corpus.mjs  VOA 문장 모음 만들기
   build-word-freq.mjs   빈도 목록 변환 (내려받은 en_50k.txt 경로를 인수로)
   make-icons.mjs        PWA 아이콘 PNG 만들기
@@ -585,4 +586,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.5 | 2026-10-26 | 교차 검토 3회 반영: 깨진 데이터 사본 키와 초기화, 예문 제공률에서 빠지는 응답, 백업 파일의 백업 시각, 모음 걸러내기 규칙을 코드대로, 수집 시간 재계산, 색 규칙 범위, 글자 하나 이상 규칙, 10번 1-1 시점, 9장 public·README. 진행 상태 읽기 보호(NaN/5 방지), 테스트 101개 | Iron man |
 | 0.6 | 2026-10-26 | 푸시 알림 13장 추가(결정·알림 모양·흐름·비밀 값·설정 순서·한계), 0.2~0.4·2장·9장·12장 갱신, 테스트 106개 | Iron man |
 | 0.7 | 2026-10-26 | Reminders 카드: 켠 뒤 한 줄로 줄임 (0.2, 13.3). 알림 문구를 "Time for Nth round"로 (13.1, 13.2). 카드를 제목·시각 없는 한 줄 띠(종 아이콘 + 알약 버튼)로 | Iron man |
-| 0.8 | 2026-10-26 | 아이콘을 흰 바탕 핀 스트라이프 + W로 바꾸고 알림 배지 badge-96.png 추가 (2장, 9장, 13.2) | Iron man |
+| 0.8 | 2026-10-26 | 아이콘을 흰 바탕 핀 스트라이프 + W로 바꾸고 알림 배지 badge-96.png 추가 (2장, 9장, 13.2). W는 Playfair Display 900 글꼴 파일에서 읽어 그림(opentype.js, 개발용) | Iron man |
