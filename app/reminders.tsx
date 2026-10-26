@@ -130,7 +130,7 @@ export default function Reminders() {
   }
 
   const primary = "flex min-h-12 items-center justify-center rounded-lg bg-foreground px-4 text-base font-medium text-background disabled:opacity-50";
-  const secondary = "flex min-h-12 items-center justify-center rounded-lg border border-zinc-300 px-4 text-base disabled:opacity-50 dark:border-zinc-700";
+  const link = "min-h-11 font-medium underline underline-offset-4 disabled:opacity-50"; // 글자 버튼이지만 누르는 높이는 44px 유지
   const muted = "text-sm text-zinc-600 dark:text-zinc-400";
 
   return (
@@ -155,17 +155,18 @@ export default function Reminders() {
         </>
       )}
       {status.kind === "on" && (
-        <>
-          <p className={muted}>Reminders are on for this device (Korea time).</p>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" className={secondary} disabled={busy} onClick={() => sendTest(status.subscription)}>
+        // 켠 뒤에는 한 줄로 작게: 상태 글과 작은 글자 버튼 두 개 (Today 화면이 길어지지 않게)
+        <p className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-zinc-600 dark:text-zinc-400">On for this device.</span>
+          <span className="flex shrink-0 gap-4">
+            <button type="button" className={link} disabled={busy} onClick={() => sendTest(status.subscription)}>
               Send a test
             </button>
-            <button type="button" className={secondary} disabled={busy} onClick={() => turnOff(status.registration, status.subscription)}>
+            <button type="button" className={link} disabled={busy} onClick={() => turnOff(status.registration, status.subscription)}>
               Turn off
             </button>
-          </div>
-        </>
+          </span>
+        </p>
       )}
       {notice && (
         <p role="status" className="text-sm text-zinc-700 dark:text-zinc-300">
