@@ -46,7 +46,7 @@
 
 | 탭 / 주소 | 위에서 아래로 보이는 것 | 파일 |
 |---|---|---|
-| **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 카드[Reminders (시각은 표시하지 않음, 2026-10-26 사용자 요청), 상태별로 Turn on reminders 버튼 / 켠 뒤에는 한 줄 "On for this device." + 작은 글자 버튼 Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
+| **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
 | **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼 · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I remember / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `speak-button.tsx`, `example-cache.ts` |
 | **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내 · [Add] · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 알파벳 순 목록(각 줄: 단어, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
@@ -539,7 +539,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 ### 13.3 흐름과 파일
 
-- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 안내, 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면 구독을 되돌린다. 켠 뒤에는 카드가 한 줄로 줄어든다("On for this device." + 작은 글자 버튼 Send a test·Turn off, 2026-10-26 사용자 요청). 카드 자체는 어느 상태에서도 사라지지 않는다.
+- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 안내, 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면 구독을 되돌린다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남는다. 띠 자체는 어느 상태에서도 사라지지 않는다.
 - **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(https 주소, 키 2개), 같은 기기는 하나만 둔다.
 - **보내기** (`app/api/push/send/route.ts` → `lib/push-send.ts`): `Authorization: Bearer <PUSH_CRON_SECRET>` 헤더가 맞을 때만 동작(주소에 비밀 값을 넣으면 로그에 남으므로 헤더만). 지금이 알림 시각(한국 시간 시 단위)이 아니면 보내지 않는다(`?force=1`이면 보낸다). 모든 구독에 `web-push`로 고정 문구를 보내고, 404·410(기기가 구독을 끊음)은 목록에서 지운다. TTL 1시간.
 - **시험** (`app/api/push/test/route.ts`): 카드의 "Send a test". 그 기기의 endpoint를 알아야만 보낼 수 있다.
@@ -584,4 +584,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.4 | 2026-10-26 | 교차 검토 2회 반영: 다크 모드 원칙, 사전 예문 처리를 코드대로, 예문 id 설명, 모음 걸러내기 규칙과 알려진 빈틈, 수준 규칙의 한계 두 가지 명시, 후보 수 차이 설명, 불규칙형 표 135개, 10번 1·1-2·6 갱신, .env 설명 | Iron man |
 | 0.5 | 2026-10-26 | 교차 검토 3회 반영: 깨진 데이터 사본 키와 초기화, 예문 제공률에서 빠지는 응답, 백업 파일의 백업 시각, 모음 걸러내기 규칙을 코드대로, 수집 시간 재계산, 색 규칙 범위, 글자 하나 이상 규칙, 10번 1-1 시점, 9장 public·README. 진행 상태 읽기 보호(NaN/5 방지), 테스트 101개 | Iron man |
 | 0.6 | 2026-10-26 | 푸시 알림 13장 추가(결정·알림 모양·흐름·비밀 값·설정 순서·한계), 0.2~0.4·2장·9장·12장 갱신, 테스트 106개 | Iron man |
-| 0.7 | 2026-10-26 | Reminders 카드: 켠 뒤 한 줄로 줄임 (0.2, 13.3). 알림 문구를 "Time for Nth round"로 (13.1, 13.2). 카드의 시각 표시 제거 | Iron man |
+| 0.7 | 2026-10-26 | Reminders 카드: 켠 뒤 한 줄로 줄임 (0.2, 13.3). 알림 문구를 "Time for Nth round"로 (13.1, 13.2). 카드를 제목·시각 없는 한 줄 띠(종 아이콘 + 알약 버튼)로 | Iron man |
