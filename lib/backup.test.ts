@@ -26,6 +26,8 @@ test("makeBackup wraps the store with app, version and time; parseBackup reads i
   assert.equal(file.app, "word-smart");
   assert.equal(file.version, 1);
   assert.equal(file.exportedAt, NOW.toISOString());
+  assert.equal(file.data.lastBackupAt, NOW.toISOString()); // 파일 속 저장본은 이번 백업 시각을 갖는다 (가져온 뒤 안내가 바로 뜨지 않도록)
+  assert.equal(store.lastBackupAt, undefined); // 원본은 바꾸지 않는다
   const r = parseBackup(JSON.stringify(file));
   assert.equal(r.ok, true);
   if (r.ok) {

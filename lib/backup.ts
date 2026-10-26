@@ -10,8 +10,9 @@ export const SNOOZE_DAYS = 7;
 
 export type BackupFile = { app: typeof BACKUP_APP; version: number; exportedAt: string; data: Store };
 
+// 파일 안의 저장본에는 이번 내보내기 시각을 마지막 백업 시각으로 넣는다. 그래야 다른 주소에서 가져온 직후 백업 안내가 바로 뜨지 않는다.
 export function makeBackup(store: Store, now: Date = new Date()): BackupFile {
-  return { app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: now.toISOString(), data: store };
+  return { app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: now.toISOString(), data: markBackedUp(store, now) };
 }
 
 export function backupFileName(now: Date = new Date()): string {

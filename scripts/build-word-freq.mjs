@@ -1,4 +1,4 @@
-// 영어 단어 빈도 순위 data/word-freq.json을 만든다 (PLAN 21번, DESIGN.md 6.5).
+// 영어 단어 빈도 순위 data/word-freq.json을 만든다 (PLAN 21번, DESIGN.md 6.6).
 // 개발 컴퓨터에서 직접 실행한다. 이 스크립트는 파일을 내려받지 않고, 미리 내려받은 목록 파일의 경로를 인수로 받는다:
 //   node scripts/build-word-freq.mjs <en_50k.txt 경로> [--limit 20000] [--out data/word-freq.json]
 //

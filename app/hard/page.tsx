@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { kstDate } from "@/lib/kst";
 import { KNOWN_STREAK_TO_CLEAR, MISS_LIMIT, removeFromHard } from "@/lib/quiz";
 import { useStore } from "@/lib/use-store";
 
@@ -83,7 +84,7 @@ export default function StillLearningPage() {
                   </p>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
                     Looked up <span className="font-score text-sm">{word!.missTotal}</span> times · remembered{" "}
-                    <span className="font-score text-sm">{word!.knownStreak}</span> in a row · since {savedAt.slice(0, 10)}
+                    <span className="font-score text-sm">{word!.knownStreak}</span> in a row · since {kstDate(new Date(savedAt))}
                   </p>
                 </div>
                 <button
