@@ -52,6 +52,9 @@ test("real data: common words are level 1 and rare words level 5", () => {
 
 test("real data: the level rule is on and filters hard sentences", () => {
   assert.equal(levelAllows("The cat is in the house.", "cat", REAL), true);
-  // 참고: "The cat sat on the mat."은 sat(2,095위)·mat(8,350위) 때문에 수준 1 단어 cat에는 막힌다 → PLAN 22(규칙 조정)에서 볼 것
+  // PLAN 22(2026-10-26) 조정 뒤: mat(8,350위, 수준 3) 하나는 '어려운 쪽 10%'로 빠져 수준 1 단어 cat에도 통과한다
+  assert.equal(levelAllows("The cat sat on the mat.", "cat", REAL), true);
+  // 둥근 아포스트로피의 don’t가 don + t로 쪼개지지 않는다
+  assert.equal(levelAllows("I really don’t like watching long games with my cat.", "cat", REAL), true);
   assert.equal(levelAllows("The ubiquitous serendipity of eradicating cats.", "cat", REAL), false);
 });
