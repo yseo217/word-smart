@@ -22,7 +22,7 @@ export default function StatsPage() {
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Stats</h1>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {ready ? (day ? `Day ${day} of Word Smart.` : "Nothing recorded yet.") : "Loading…"} Goals are set for the first four weeks.
+          {ready ? (day ? `Day ${day} of Word Smart.` : "Nothing recorded yet.") : "Loading…"} Goals: 20 rounds a week, 20 active days in 28, 70% remembered.
         </p>
       </header>
 

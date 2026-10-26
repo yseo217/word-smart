@@ -14,6 +14,7 @@ npx tsc --noEmit
 npm run build   # 프로덕션 빌드. 미리 그리기(prerender) 오류는 여기서만 잡힌다
 node scripts/build-voa-corpus.mjs --limit 300   # VOA 문장 모음 다시 만들기 (느림, 아래 예절 참고)
 node scripts/make-icons.mjs                     # PWA 아이콘 다시 만들기
+node scripts/build-word-freq.mjs <en_50k.txt 경로>   # 단어 빈도 목록 다시 만들기 (파일은 빈 폴더에 내려받아 경로만 넘긴다)
 ```
 
 Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 때는 테스트·린트·빌드를 모두 돌린다.
@@ -23,8 +24,8 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 - `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`).
 - `lib/` 순수 로직과 테스트. 브라우저 API는 `lib/use-store.ts`에만 있다.
   - `store.ts` 저장 데이터 모양·`parseStore`·단어 추가/삭제 · `words.ts` 입력 검사 · `quiz.ts` 회차·응답·어려운 단어 규칙 · `kst.ts` 한국 시간 날짜
-  - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `backup.ts` · `stats.ts`
-- `data/voa-sentences.json` VOA 문장 모음(퍼블릭 도메인, 스크립트가 만듦) · `data/word-freq.json` 단어 빈도 순위(지금은 비어 있음)
+  - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `word-freq.ts` 빈도 목록 변환 규칙 · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `backup.ts` · `stats.ts`
+- `data/voa-sentences.json` VOA 문장 모음(퍼블릭 도메인, 스크립트가 만듦) · `data/word-freq.json` 단어 빈도 순위 20,000개(OpenSubtitles 기반, CC BY-SA 4.0, 출처는 `data/word-freq.meta.json`)
 - `scripts/` 개발 컴퓨터에서 직접 실행하는 도구. 배포 서버에서는 돌리지 않는다.
 
 ## 작업 절차 (검증 루프)
@@ -60,7 +61,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 - `.env` 같은 비밀 정보 파일과 `node_modules/`는 `.gitignore`에 등록해 두고 절대 커밋하지 않는다.
 - 외부 서비스 인증이 필요하면 토큰 값을 사용자에게 묻거나 채팅에 출력하지 않고, `.env`에 있는 값을 읽어서 쓴다. 값은 코드나 CLI가 읽고, 채팅·로그·커밋에는 절대 나오지 않게 한다.
   - 예: Supabase를 쓸 상황이 생기면 Supabase CLI를 설치해 `.env`의 `SUPABASE_ACCESS_TOKEN`으로 작업한다.
-  - 예: Vercel 작업(배포 등)이 필요하면 Vercel CLI를 설치해 `.env`의 `VERCEL_TOKEN`으로 인증해 작업한다.
+  - 예: Vercel 프로덕션 배포는 사용자가 터미널에서 Vercel CLI로 직접 실행한다(PRD 9번 18, DESIGN 11장). 에이전트가 Vercel 작업을 해야 할 때는 `.env`의 `VERCEL_TOKEN`으로 인증하고, 값은 출력하지 않는다.
 - 지금 쓰는 예문 출처(VOA 문장 모음, Free Dictionary API)는 API 키가 필요 없다.
 
 **데이터와 개인정보**
@@ -93,7 +94,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 ## 기획서 바꾸기
 
 - 규칙을 더하거나 바꿀 때는 사용자와 합의한 내용만 `PRD.md`에 반영하고, 숫자(가중치·상한·기간)는 "제안값"인지 "확정"인지 적는다.
-- 아직 안 정한 것은 `DESIGN.md` 10번 "아직 정하지 못한 것"에 둔다. 지금 열려 있는 큰 항목: 단어 빈도 목록(출처·라이선스), VOA 모음 확대 여부.
+- 아직 안 정한 것은 `DESIGN.md` 10번 "아직 정하지 못한 것"에 둔다. 지금 열려 있는 큰 항목: VOA 모음 확대 여부(PLAN 23번), 통신사 규칙 검증(PLAN 24번).
 
 ## Git
 

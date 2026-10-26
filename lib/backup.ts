@@ -59,7 +59,7 @@ function migrate(data: unknown, fromVersion: number): unknown {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// 홈의 백업 안내를 보여줄지: 단어 50개 초과 + (백업 기록 없음 또는 14일 경과) + 미룸 기간 아님
+// Word List 화면의 백업 안내를 보여줄지: 단어 50개 초과 + (백업 기록 없음 또는 14일 경과) + 미룸 기간 아님
 export function needsBackupReminder(store: Store, now: Date = new Date()): boolean {
   if (store.words.length <= REMINDER_MIN_WORDS) return false;
   if (store.backupSnoozedUntil && new Date(store.backupSnoozedUntil).getTime() > now.getTime()) return false;
