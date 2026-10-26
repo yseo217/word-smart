@@ -196,6 +196,16 @@ test("parseStore skips broken word entries and fills missing numbers", () => {
   assert.equal(store.progress.completed, 0);
 });
 
+test("parseStore never yields a non-number progress count (no NaN/5 on screen)", () => {
+  const read = (progress: unknown) => parseStore(JSON.stringify({ version: 1, words: [], progress })).store.progress;
+  assert.deepEqual(read({ date: "2026-10-26", roundsDone: 2 }), { date: "2026-10-26", completed: 0 }); // 필드 이름이 다른 데이터
+  assert.deepEqual(read({ date: "2026-10-26", completed: "3" }), { date: "2026-10-26", completed: 0 }); // 글자로 저장된 숫자
+  assert.deepEqual(read({ completed: 2.7 }), { date: "", completed: 2 });
+  assert.deepEqual(read("nope"), { date: "", completed: 0 });
+  const withRound = read({ date: "2026-10-26", completed: 1, current: { startedAt: "x", wordIds: ["a"], answered: 0 } });
+  assert.deepEqual(withRound.current?.wordIds, ["a"]);
+});
+
 test("withFirstUse stamps the first-use time once and parseStore keeps it", () => {
   const first = withFirstUse(emptyStore(), NOW);
   assert.equal(first.firstUsedAt, NOW.toISOString());

@@ -82,6 +82,15 @@ function toWord(v: unknown): Word | null {
   return word;
 }
 
+// 오늘의 진행 상태를 읽는다. 숫자가 아닌 completed(옛 데이터·손으로 고친 백업)는 0으로 두어 화면에 "NaN/5"가 나오지 않게 한다.
+function toProgress(v: unknown, fallback: Progress): Progress {
+  if (!isRecord(v)) return fallback;
+  const completed = typeof v.completed === "number" && Number.isFinite(v.completed) ? Math.max(0, Math.floor(v.completed)) : 0;
+  const progress: Progress = { date: typeof v.date === "string" ? v.date : "", completed };
+  if (isRecord(v.current) && Array.isArray(v.current.wordIds)) progress.current = v.current as Progress["current"];
+  return progress;
+}
+
 // 저장된 글자를 읽는다. 비어 있으면 빈 단어장, 읽을 수 없으면 빈 단어장 + corrupt 표시.
 export function parseStore(raw: string): { store: Store; corrupt: boolean } {
   if (!raw) return { store: emptyStore(), corrupt: false };
@@ -91,7 +100,7 @@ export function parseStore(raw: string): { store: Store; corrupt: boolean } {
       return { store: emptyStore(), corrupt: true };
     }
     const base = emptyStore();
-    const progress = isRecord(data.progress) ? (data.progress as Progress) : base.progress;
+    const progress = toProgress(data.progress, base.progress);
     const store: Store = {
       version: 1,
       words: data.words.map(toWord).filter((w): w is Word => w !== null),
