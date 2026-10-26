@@ -1,3 +1,4 @@
+import Reminders from "./reminders";
 import TodayProgress from "./today-progress";
 
 export default function Home() {
@@ -9,6 +10,9 @@ export default function Home() {
       </header>
 
       <TodayProgress />
+
+      {/* 하루 5번 알림 켜기/끄기 (PRD 5번 nice, DESIGN.md 13장) */}
+      <Reminders />
 
       {/* 백업은 Word List 화면에, 통계는 Still Learning 화면에 링크가 있다 (PRD 4번). */}
     </main>
