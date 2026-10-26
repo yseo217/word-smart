@@ -10,8 +10,8 @@ self.addEventListener("push", (event) => {
   }
   const options = {
     body: data.body,
-    icon: "/icon-192.png",
-    badge: "/icon-192.png",
+    icon: "/icon-192.png", // 아이폰은 이 값 대신 홈 화면 아이콘을 쓴다
+    badge: "/badge-96.png", // 안드로이드 상태 표시줄용 단색 W (투명 배경)
     tag: data.tag,
     data: { url: data.url },
   };
