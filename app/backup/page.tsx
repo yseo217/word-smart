@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { backupFileName, makeBackup, markBackedUp, parseBackup } from "@/lib/backup";
 import { useStore } from "@/lib/use-store";
+import { turnOffPushOnThisDevice } from "../push-client";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
@@ -68,16 +69,26 @@ export default function BackupPage() {
     });
   }
 
-  function handleReset() {
-    const first = window.confirm("Delete ALL Word Smart data on this device?\nWords, history, Still Learning and progress will be gone. Back up first if you want to keep them.");
+  async function handleReset() {
+    const first = window.confirm("Delete ALL Word Smart data on this device?\nWords, history, Still Learning, progress and reminders will be gone. Back up first if you want to keep them.");
     if (!first) return;
     const typed = window.prompt("To confirm, type DELETE in capital letters.");
     if (typed !== "DELETE") {
       setNotice({ kind: "error", text: "Not deleted. You did not type DELETE." });
       return;
     }
+    // 알림 구독도 "새로 시작한 것과 같은 상태"에 포함한다 (PRD 5번 nice). 서버·브라우저 구독을 지운 뒤 저장소를 비운다.
+    let pushOff = true;
+    try {
+      await turnOffPushOnThisDevice();
+    } catch {
+      pushOff = false;
+    }
     reset();
-    setNotice({ kind: "ok", text: "All data deleted. The app is back to a fresh start." });
+    setNotice({
+      kind: pushOff ? "ok" : "error",
+      text: pushOff ? "All data deleted. The app is back to a fresh start." : "Data deleted, but reminders could not be turned off. Turn them off from Today.",
+    });
   }
 
   const primary = "flex min-h-12 items-center justify-center rounded-lg bg-foreground px-4 text-base font-medium text-background disabled:opacity-50";

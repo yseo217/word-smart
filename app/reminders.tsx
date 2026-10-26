@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { turnOffPushOnThisDevice } from "./push-client";
 
 // Today 화면의 알림(Reminders) 카드 (PRD 5번 nice, DESIGN.md 13장).
 // 켜면 브라우저에 알림 권한을 묻고 구독 정보를 서버에 보낸다. 서버는 하루 5번 정해진 시각에 알림을 보낸다.
@@ -90,16 +91,11 @@ export default function Reminders() {
     }
   }
 
-  async function turnOff(registration: ServiceWorkerRegistration, subscription: PushSubscription) {
+  async function turnOff(registration: ServiceWorkerRegistration) {
     setBusy(true);
     setNotice(null);
     try {
-      await fetch("/api/push/subscribe", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: subscription.endpoint }),
-      });
-      await subscription.unsubscribe();
+      await turnOffPushOnThisDevice();
       setStatus({ kind: "off", registration });
       setNotice("Reminders are off for this device.");
     } catch {
@@ -164,7 +160,7 @@ export default function Reminders() {
             <button type="button" className={pillOutline} disabled={busy} onClick={() => sendTest(status.subscription)}>
               Send a test
             </button>
-            <button type="button" className={pillOutline} disabled={busy} onClick={() => turnOff(status.registration, status.subscription)}>
+            <button type="button" className={pillOutline} disabled={busy} onClick={() => turnOff(status.registration)}>
               Turn off
             </button>
           </span>
