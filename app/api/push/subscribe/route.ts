@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { addSubscription, parseSubscription, removeSubscription } from "@/lib/push";
+import { addSubscription, canAddSubscription, parseSubscription, removeSubscription } from "@/lib/push";
 import { readSubscriptions, writeSubscriptions } from "@/lib/push-store";
 
 // 푸시 구독 등록·해제 (DESIGN.md 13장). 브라우저가 준 구독 정보(기기의 알림 주소와 키)만 저장하고, 학습 기록은 받지 않는다.
@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
   if (!sub) return Response.json({ ok: false, error: "invalid_subscription" }, { status: 400 });
 
   const list = await readSubscriptions();
+  if (!canAddSubscription(list, sub)) return Response.json({ ok: false, error: "too_many" }, { status: 409 }); // 상한 10개 (DESIGN 13.6)
   await writeSubscriptions(addSubscription(list, sub));
   return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -58,6 +58,14 @@ export function parseSubscription(v: unknown, now: Date = new Date()): PushSubsc
   return { endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth }, addedAt: now.toISOString() };
 }
 
+// 구독 목록 상한. 등록 API는 인증이 없어 누구나 부를 수 있으므로(혼자 쓰는 앱이라 감수), 저장 파일이 끝없이 커지는 것만 막는다 (DESIGN 13.6).
+export const MAX_SUBSCRIPTIONS = 10;
+
+// 새 기기를 더 받을 수 있나. 이미 있는 기기의 재등록은 상한과 상관없이 받는다.
+export function canAddSubscription(list: readonly PushSubscriptionRecord[], sub: PushSubscriptionRecord): boolean {
+  return list.some((s) => s.endpoint === sub.endpoint) || list.length < MAX_SUBSCRIPTIONS;
+}
+
 // 같은 기기(endpoint)는 하나만 둔다. 다시 구독하면 새 정보로 바꾼다.
 export function addSubscription(list: readonly PushSubscriptionRecord[], sub: PushSubscriptionRecord): PushSubscriptionRecord[] {
   return [...list.filter((s) => s.endpoint !== sub.endpoint), sub];
