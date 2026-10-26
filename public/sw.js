@@ -2,7 +2,7 @@
 // 오프라인 캐시는 하지 않는다. 받은 알림을 보여주고, 누르면 복습 화면을 연다.
 
 self.addEventListener("push", (event) => {
-  let data = { title: "Word Smart", body: "Time for a round.", url: "/review", tag: "wordsmart-round" };
+  let data = { title: "Word Smart", body: "Time for a round", url: "/review", tag: "wordsmart-round" };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {

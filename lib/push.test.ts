@@ -4,11 +4,13 @@ import {
   addSubscription,
   isReminderHour,
   kstHour,
+  ordinal,
   parseSubscription,
   parseSubscriptionList,
   REMINDER_HOURS_KST,
   reminderPayload,
   removeSubscription,
+  roundNumberAt,
 } from "./push.ts";
 
 const NOW = new Date("2026-10-26T00:00:00.000Z"); // 한국 시간 09:00
@@ -18,12 +20,24 @@ const SUB = {
   keys: { p256dh: "BPzK0_example-key_-", auth: "authkey_01" },
 };
 
-test("reminder payload carries no learning data and opens the review screen", () => {
-  const p = reminderPayload();
+test("reminder payload names the round by the hour and opens the review screen", () => {
+  const p = reminderPayload(NOW); // 09:00 KST
   assert.equal(p.title, "Word Smart");
+  assert.equal(p.body, "Time for 1st round");
   assert.equal(p.url, "/review");
   assert.equal(p.tag, "wordsmart-round");
-  assert.doesNotMatch(p.body, /\d+\/5|remembered|%/); // 횟수·기억률 같은 기록은 넣지 않는다
+  assert.equal(reminderPayload(new Date("2026-10-26T02:00:00.000Z")).body, "Time for 2nd round"); // 11시
+  assert.equal(reminderPayload(new Date("2026-10-26T04:00:00.000Z")).body, "Time for 3rd round"); // 13시
+  assert.equal(reminderPayload(new Date("2026-10-26T08:30:00.000Z")).body, "Time for 4th round"); // 17시 30분
+  assert.equal(reminderPayload(new Date("2026-10-26T10:00:00.000Z")).body, "Time for 5th round"); // 19시
+  assert.equal(reminderPayload(new Date("2026-10-26T06:00:00.000Z")).body, "Time for a round"); // 15시: 시험 알림
+  assert.doesNotMatch(p.body, /\/5|remembered|%/); // 횟수·기억률 같은 기록은 넣지 않는다 (회차 번호는 시각에서 나온다)
+});
+
+test("roundNumberAt and ordinal", () => {
+  assert.equal(roundNumberAt(NOW), 1);
+  assert.equal(roundNumberAt(new Date("2026-10-26T01:00:00.000Z")), null);
+  assert.deepEqual([1, 2, 3, 4, 5].map(ordinal), ["1st", "2nd", "3rd", "4th", "5th"]);
 });
 
 test("reminder hours are 9, 11, 13, 17, 19 in Korean time", () => {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { REMINDER_HOURS_KST } from "@/lib/push";
 
 // Today 화면의 알림(Reminders) 카드 (PRD 5번 nice, DESIGN.md 13장).
 // 켜면 브라우저에 알림 권한을 묻고 구독 정보를 서버에 보낸다. 서버는 하루 5번 정해진 시각에 알림을 보낸다.
@@ -38,8 +37,6 @@ async function detect(): Promise<Status> {
   const subscription = await registration.pushManager.getSubscription();
   return subscription ? { kind: "on", registration, subscription } : { kind: "off", registration };
 }
-
-const hoursText = REMINDER_HOURS_KST.map((h) => (h > 12 ? `${h - 12} pm` : `${h} am`)).join(", ");
 
 export default function Reminders() {
   const [status, setStatus] = useState<Status>({ kind: "loading" });
@@ -135,10 +132,7 @@ export default function Reminders() {
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-      <p className="flex items-baseline justify-between">
-        <span className="font-medium">Reminders</span>
-        <span className={muted}>{hoursText}</span>
-      </p>
+      <p className="font-medium">Reminders</p>
       {status.kind === "loading" && <p className={muted}>Loading…</p>}
       {status.kind === "not_configured" && <p className={muted}>Reminders are not set up on this server yet.</p>}
       {status.kind === "need_install" && (
