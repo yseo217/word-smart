@@ -21,12 +21,13 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 
 ## 구조
 
-- `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`).
+- `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API), `api/push/*`(푸시 구독·보내기·시험). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`, `reminders`).
 - `lib/` 순수 로직과 테스트. 브라우저 API는 `lib/use-store.ts`에만 있다.
   - `store.ts` 저장 데이터 모양·`parseStore`·단어 추가/삭제 · `words.ts` 입력 검사 · `quiz.ts` 회차·응답·어려운 단어 규칙 · `kst.ts` 한국 시간 날짜
-  - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `word-freq.ts` 빈도 목록 변환 규칙 · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `backup.ts` · `stats.ts`
+  - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `word-freq.ts` 빈도 목록 변환 규칙 · `push.ts` 알림 규칙(순수) · `push-store.ts`/`push-send.ts` 구독 저장·보내기(서버) · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `backup.ts` · `stats.ts`
 - `data/voa-sentences.json` VOA 문장 모음(퍼블릭 도메인, 스크립트가 만듦) · `data/word-freq.json` 단어 빈도 순위 20,000개(OpenSubtitles 기반, CC BY-SA 4.0, 출처는 `data/word-freq.meta.json`)
 - `scripts/` 개발 컴퓨터에서 직접 실행하는 도구. 배포 서버에서는 돌리지 않는다.
+- `public/sw.js` 서비스 워커. 푸시 알림만 다루고 오프라인 캐시는 하지 않는다 (DESIGN.md 13장).
 
 ## 작업 절차 (검증 루프)
 
@@ -63,9 +64,10 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
   - 예: Supabase를 쓸 상황이 생기면 Supabase CLI를 설치해 `.env`의 `SUPABASE_ACCESS_TOKEN`으로 작업한다.
   - 예: Vercel 프로덕션 배포는 사용자가 터미널에서 Vercel CLI로 직접 실행한다(PRD 9번 18, DESIGN 11장). 에이전트가 Vercel 작업을 해야 할 때는 `.env`의 `VERCEL_TOKEN`으로 인증하고, 값은 출력하지 않는다.
 - 지금 쓰는 예문 출처(VOA 문장 모음, Free Dictionary API)는 API 키가 필요 없다.
+- 푸시 알림의 비밀 값(`VAPID_PRIVATE_KEY`, `PUSH_CRON_SECRET`, `BLOB_READ_WRITE_TOKEN`)도 `.env`와 Vercel 환경 변수에만 둔다. `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개 키라 화면 코드에 들어가도 된다. `VAPID_SUBJECT`에는 이메일(`mailto:`)이 아니라 배포 주소(https)를 쓴다.
 
 **데이터와 개인정보**
-- 학습 기록은 브라우저 `localStorage`(`wordsmart:v1`)에만 둔다. 서버로 보내는 것은 예문 검색용 영어 단어뿐이고, 서버는 그 단어를 로그에 남기지 않는다.
+- 학습 기록은 브라우저 `localStorage`(`wordsmart:v1`)에만 둔다. 서버로 보내는 것은 예문 검색용 영어 단어와, 알림을 켰을 때의 푸시 구독 정보(기기 알림 주소와 키)뿐이고, 서버는 둘 다 로그에 남기지 않는다. 알림 문구에 학습 기록을 넣지 않는다.
 - 외부 요청의 `User-Agent`나 어디에도 사용자 이메일·개인 연락처를 넣지 않는다. 식별용 이름은 `WordSmart …/0.1 (personal learning project)` 꼴만 쓴다.
 
 **예문 출처**

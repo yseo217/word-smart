@@ -45,3 +45,6 @@ next-env.d.ts
 
 # files moved aside instead of deleted (see CLAUDE.md)
 trash-can/
+
+# 로컬 개발용 푸시 구독 저장 파일 (배포에서는 Vercel Blob을 쓴다)
+.local/
