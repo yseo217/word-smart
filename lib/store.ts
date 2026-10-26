@@ -42,7 +42,7 @@ export type Store = {
   hard: HardItem[];
   progress: Progress;
   rounds?: RoundRecord[]; // 끝낸 회차 기록 (없으면 빈 것으로 본다)
-  firstUsedAt?: string; // 앱을 처음 쓴 날(첫 저장 시각). 기억률의 "4주 뒤" 기준 (PRD 5번 ②)
+  firstUsedAt?: string; // 앱을 처음 쓴 날(첫 저장 시각). 통계의 "Day N" 표시용. 백업을 가져오면 옮겨 오므로 판정 기준일로는 쓰지 않는다 (PRD 3번)
   lastBackupAt?: string; // 마지막으로 내보내기를 실행한 시각 (백업 안내 조건)
   backupSnoozedUntil?: string; // 백업 안내를 '7일 뒤에 다시'로 미룬 경우, 다시 보여줄 시각
 };
