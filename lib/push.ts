@@ -4,12 +4,14 @@
 export const REMINDER_HOURS_KST = [9, 11, 13, 17, 19] as const;
 
 // 알림 하나의 내용. 학습 기록은 넣지 않는다 (서버는 단어장·기록을 모르고, 알아서도 안 된다 — PRD 7번).
+// "몇 번째 회차"는 기록이 아니라 시각으로 정한다: 9시 → 1st, 11시 → 2nd, 13시 → 3rd, 17시 → 4th, 19시 → 5th.
 export type ReminderPayload = { title: string; body: string; url: string; tag: string };
 
-export function reminderPayload(): ReminderPayload {
+export function reminderPayload(now: Date = new Date()): ReminderPayload {
+  const n = roundNumberAt(now);
   return {
     title: "Word Smart",
-    body: "Time for a round: 3 words, about a minute.",
+    body: n === null ? "Time for a round" : `Time for ${ordinal(n)} round`,
     url: "/review",
     tag: "wordsmart-round", // 같은 tag면 먼저 온 알림을 덮어써서 알림이 쌓이지 않는다
   };
@@ -21,7 +23,18 @@ export function kstHour(now: Date): number {
 }
 
 export function isReminderHour(now: Date): boolean {
-  return (REMINDER_HOURS_KST as readonly number[]).includes(kstHour(now));
+  return roundNumberAt(now) !== null;
+}
+
+// 이 시각이 하루 중 몇 번째 알림인가 (1~5). 알림 시각이 아니면 null (시험 알림 등).
+export function roundNumberAt(now: Date): number | null {
+  const i = (REMINDER_HOURS_KST as readonly number[]).indexOf(kstHour(now));
+  return i < 0 ? null : i + 1;
+}
+
+export function ordinal(n: number): string {
+  const suffix = n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th";
+  return `${n}${suffix}`;
 }
 
 // 브라우저가 준 구독 정보 중 서버가 보관하는 부분. endpoint는 이 기기로 알림을 보내는 주소다.
