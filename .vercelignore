@@ -1,0 +1,8 @@
+# Vercel CLI 배포 때 올리지 않을 것 (CLI는 .gitignore를 보지 않는다 — DESIGN.md 11장)
+.env*
+.local/
+trash-can/
+.bkit/
+.claude/
+.next/
+node_modules/

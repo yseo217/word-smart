@@ -46,7 +46,7 @@
 
 | 탭 / 주소 | 위에서 아래로 보이는 것 | 파일 |
 |---|---|---|
-| **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
+| **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
 | **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼 · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I remember / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `speak-button.tsx`, `example-cache.ts` |
 | **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내 · [Add] · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 알파벳 순 목록(각 줄: 단어, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
@@ -81,12 +81,13 @@
 ⑤ 백업
    내보내기: 저장본 전체 ─▶ makeBackup({app, version, exportedAt, data}) ─▶ 공유 시트 또는 .json 다운로드 ─▶ lastBackupAt 기록
    가져오기: 파일 ─▶ parseBackup(앱 확인·버전·내용 검사) ─▶ 확인 창 ─▶ 저장본 전체 교체
-   초기화: 확인 창 ─▶ "DELETE" 입력 ─▶ 저장소 키 삭제
+   초기화: 확인 창 ─▶ "DELETE" 입력 ─▶ 이 기기의 알림 구독 해제(⑥ 끄기와 같음) ─▶ 저장소 키 삭제
 
 ⑥ 알림 (13장)
-   켜기: Reminders 카드 ─▶ 브라우저 권한 묻기 ─▶ 서비스 워커(sw.js)로 구독 만들기 ─▶ POST /api/push/subscribe ─▶ 서버 저장소(Vercel Blob)에 구독 정보 저장
+   켜기: 알림 띠 ─▶ 브라우저 권한 묻기 ─▶ 서비스 워커(sw.js)로 구독 만들기 ─▶ POST /api/push/subscribe ─▶ 서버 저장소(Vercel Blob)에 구독 정보 저장
    보내기: cron-job.org(한국 시간 9·11·13·17·19시) ─▶ GET /api/push/send + 비밀 값 ─▶ 저장된 구독마다 web-push로 고정 문구 전송 ─▶ 폰의 sw.js가 알림 표시 ─▶ 누르면 /review
-   끄기: DELETE /api/push/subscribe ─▶ 브라우저 구독 해제
+   끄기: DELETE /api/push/subscribe ─▶ 브라우저 구독 해제 (app/push-client.ts. 전체 초기화 ⑤도 같은 함수를 부른다)
+   시험: "Send a test" ─▶ POST /api/push/test {endpoint} ─▶ 이 기기에만 "Time for a round"(알림 시각이면 Nth round)
 ```
 
 데이터가 기기 밖으로 나가는 지점은 ③(이 앱의 서버 → 필요하면 사전 API)과 ③-1(구글)이고, 나가는 것은 "영어 단어 한 개"뿐이다. 여기에 ⑥(알림)을 켰을 때만 푸시 구독 정보(기기의 알림 주소와 키 2개)가 이 앱의 서버 저장소(Vercel Blob)로 간다. ①②④⑤는 모두 브라우저 안에서 끝난다. 서버 코드는 단어를 로그에 쓰지 않지만, 주소(`?word=`)에 단어가 들어가므로 Vercel의 기본 요청 로그에는 남을 수 있다(PRD 7번).
@@ -141,7 +142,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | 단계 | 대상 | 방법 | 지금 상태 |
 |---|---|---|---|
 | L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 108개) | 자동 |
-| L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
+| L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401, 알림 시각이 아니면 `off_hours`로 안 보냄, 서버 설정 전이면 503 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404, 서버 설정 전 503 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
 | L2 화면 | 0.5 체크리스트 | 내장 브라우저에서 눌러 확인 | 수동 |
 | L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
 
@@ -429,7 +430,7 @@ type VoaCorpus = {
 - 내보내기: `navigator.canShare({files})`가 되면 공유 시트, 아니면(또는 공유 실패) `<a download>`로 다운로드. 사용자가 공유를 취소하면(AbortError) 백업 시각을 남기지 않는다. 성공하면 `lastBackupAt`을 기록하고 미룸을 푼다.
 - 가져오기: `parseBackup`이 JSON → `app === "word-smart"` → `version`(앱보다 크면 거부, 작으면 `migrate`로 변환) → `parseStore` 순으로 검사한다. 통과하면 단어 수와 내보낸 시각을 보여주는 확인 창을 거친 뒤 저장본 전체를 바꾼다(`useStore().replace`). 오늘의 진행 상태도 파일 것으로 바뀐다고 알린다.
 - 백업 안내(Word List 화면, `app/backup-notice.tsx`; Backup 링크도 그 화면 제목 옆): `needsBackupReminder` = 단어 50개 초과 ∧ (백업 기록 없음 ∨ 14일 경과) ∧ 미룸 기간 아님. '7일 뒤에 다시'는 `backupSnoozedUntil`에 저장.
-- 전체 초기화(백업 화면 맨 아래): 확인 창 → `prompt`에 `DELETE` 입력 → `useStore().reset()`이 저장소 키를 지운다.
+- 전체 초기화(백업 화면 맨 아래): 확인 창 → `prompt`에 `DELETE` 입력 → 이 기기의 알림 구독을 끄고(`app/push-client.ts`, 서버 목록에서 지우고 브라우저 구독 해제) → `useStore().reset()`이 저장소 키를 지운다. 알림을 못 끄면 데이터는 지우되 "Today에서 끄라"고 안내한다.
 
 ## 9. 폴더 구조
 
@@ -440,7 +441,8 @@ app/
   manifest.ts           홈 화면 추가용 매니페스트
   tab-bar.tsx           하단 탭 3개 (Today / Word List / Still Learning)
   today-progress.tsx    홈 카드: 오늘 횟수 N/5와 상태별 버튼
-  reminders.tsx         홈 카드: 알림 켜기/끄기, 시험 알림 (13장)
+  reminders.tsx         홈의 알림 띠: 켜기/끄기, 시험 알림 (13장)
+  push-client.ts        이 기기의 알림 끄기 (알림 띠와 전체 초기화가 같이 씀)
   backup-notice.tsx     백업 권유 안내 (Word List 화면)
   page.tsx              홈 (Today)
   words/page.tsx        단어장 (Word List)
@@ -485,6 +487,7 @@ public/                 아이콘 (icon-192.png, icon-512.png, apple-touch-icon.
 README.md               앱 소개, 명령, 자료 출처
 PRD.md · PLAN.md · DESIGN.md · CLAUDE.md   기획 · 계획 · 설계 · 작업 규칙
 .env                    `VERCEL_TOKEN` 등 외부 서비스 토큰과 푸시 알림 값 4개(13.4). 값은 코드·문서·채팅에 적지 않는다 (Git에 올리지 않음)
+.vercelignore           Vercel CLI 배포 때 올리지 않을 것: .env*, .local/, trash-can/, .bkit/, .claude/ (CLI는 .gitignore를 보지 않는다, 11장)
 ```
 
 Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/next/dist/docs/`)를 따른다. 예를 들어 예문 API는 `app/api/example/route.ts`에 `GET` 함수를 두는 방식이다.
@@ -505,7 +508,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 ## 11. 알아둘 점
 
-- **배포 주소**: (PLAN 18번을 마친 뒤 여기에 적는다) `https://________.vercel.app` · 배포 방식은 Vercel CLI로 `main`을 프로덕션 배포(사용자가 터미널에서 직접 실행, PRD 9번 18). GitHub 저장소 연동은 쓰지 않는다.
+- **배포 주소**: (PLAN 18번을 마친 뒤 여기에 적는다) `https://________.vercel.app` · 배포 방식은 Vercel CLI로 `main`을 프로덕션 배포(사용자가 터미널에서 직접 실행, PRD 9번 18). GitHub 저장소 연동은 쓰지 않는다. **CLI는 Git 커밋이 아니라 작업 폴더 전체를 올리고 `.gitignore`를 보지 않으므로**, `.vercelignore`로 `.env*`·`.local/`·`trash-can/`·`.bkit/`·`.claude/`를 뺀다(2026-10-26 추가). 배포 뒤 Vercel의 Source 화면에서 `.env`가 없는지 한 번 확인한다.
 - `localStorage`는 **주소마다 따로** 저장된다. 컴퓨터에서 띄운 `localhost` 주소와 Vercel에 배포한 주소는 서로 다른 단어장을 갖는다. 배포 주소를 바꾸면 기록이 사라지므로 백업 기능이 중요하다.
 - 사파리는 오래 쓰지 않은 사이트의 저장 데이터를 지울 수 있다. 홈 화면에 추가해서 쓰면 도움이 될 수 있다. (제가 아는 범위의 내용이라 만들 때 다시 확인한다.)
 - 지금 쓰는 예문 출처(VOA 모음, Free Dictionary API)는 API 키가 필요 없다. 나중에 키가 필요한 서비스를 추가하면 `.env`에 넣고 서버 코드에서만 읽는다. `NEXT_PUBLIC_`으로 시작하는 이름은 쓰지 않는다. 브라우저로 노출되기 때문이다. 단, 푸시 알림의 공개 키 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개해도 되는 값이라 예외다(13.4).
@@ -562,12 +565,12 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | `PUSH_CRON_SECRET` | 서버·cron-job.org | 예약 서비스가 `/api/push/send`를 부를 때의 비밀 값 |
 | `BLOB_READ_WRITE_TOKEN` | 서버 | Vercel Blob 저장소 토큰. Blob 저장소를 프로젝트에 연결하면 Vercel이 넣어 준다 |
 
-키 한 쌍과 비밀 값은 2026-10-26에 만들어 `.env`에 넣었다(`web-push`의 `generateVAPIDKeys`, 무작위 24바이트).
+키 한 쌍과 비밀 값은 2026-10-26에 만들어 `.env`에 넣었다(`web-push`의 `generateVAPIDKeys`, 무작위 24바이트). `VAPID_SUBJECT`에는 임시로 예상 배포 주소를 넣어 두어 개발 컴퓨터에서도 시험 알림이 503 없이 동작하며, 배포 주소가 정해지면 그 값으로 바꾼다(13.5 1단계).
 
 ### 13.5 배포 뒤 설정 순서 (PLAN 26)
 
 1. Vercel 프로젝트 설정 → Environment Variables에 `.env`의 푸시 값 4개를 등록한다(`VAPID_SUBJECT`는 배포 주소로).
-2. Vercel 프로젝트 → Storage → Blob 저장소를 하나 만들어 연결한다(`BLOB_READ_WRITE_TOKEN`이 자동 등록됨).
+2. Vercel 프로젝트 → Storage → Blob 저장소를 하나 만들어 연결한다(`BLOB_READ_WRITE_TOKEN`이 자동 등록됨). 만들 때 접근을 **Private**로 정한다. 접근 방식은 나중에 바꿀 수 없고, 코드가 `access: "private"`로 읽고 쓰므로 공개 저장소로 만들면 저장이 실패한다(Vercel 문서 확인, 2026-10-26. `@vercel/blob` 2.3 이상 필요, 지금 2.8).
 3. 다시 배포한다(환경 변수는 새 배포부터 적용). 환경 변수를 넣기 전에는 Today의 알림 띠가 "Reminders are not set up on this server yet."을 보인다.
 4. cron-job.org에 가입해 예약 5개를 만든다: 주소 `https://<배포 주소>/api/push/send`, 방식 GET, 시간대 Asia/Seoul, 시각 9·11·13·17·19시 00분, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`. 실패 알림 메일을 켠다.
 5. 아이폰: 사파리로 배포 주소를 열어 홈 화면에 추가 → 그 아이콘으로 열기 → Today의 "Turn on reminders" → 허용 → "Send a test"로 알림이 오는지 본다.
@@ -577,7 +580,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 - 아이폰은 홈 화면 아이콘으로 열었을 때만 켤 수 있고(iOS 16.4 이상), 사파리 탭에서는 "홈 화면에 추가" 안내만 보인다.
 - cron-job.org가 몇 분 늦게 부를 수 있다. 서버는 "그 시각(시 단위)"만 확인하므로 59분까지는 보낸다.
 - 알림을 끄지 않고 홈 화면 아이콘을 지우면 구독이 남는다. 다음 보내기 때 애플이 404·410을 돌려주면 서버가 지운다.
-- 구독 등록(`POST /api/push/subscribe`)은 인증 없이 누구나 부를 수 있다. 배포 주소를 아는 사람이 알림을 켜면 그 사람도 알림을 받는다. 혼자 쓰는 앱이라 감수하되, 목록 상한을 10개로 두어(넘으면 409) 저장 파일이 커지는 것은 막는다(2026-10-26).
+- 구독 등록(`POST /api/push/subscribe`)은 인증 없이 누구나 부를 수 있다. 배포 주소를 아는 사람이 알림을 켜면 그 사람도 알림을 받는다. 혼자 쓰는 앱이라 감수하되, 목록 상한을 10개(확정)로 두어(넘으면 409) 저장 파일이 커지는 것은 막는다(2026-10-26). 다른 사람이 10개를 채워 내 새 기기가 거부되면, Vercel 대시보드 → Storage → Blob에서 `push/subscriptions.json`을 지우고 내 기기에서 다시 켠다.
 - 개발 컴퓨터의 브라우저 창(Claude 미리보기)은 알림 권한이 막혀 있어 "Notifications are blocked" 상태까지만 확인했다. 실제 수신은 배포 뒤 폰에서 확인한다.
 
 ## 변경 이력
@@ -593,3 +596,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.7 | 2026-10-26 | Reminders 카드: 켠 뒤 한 줄로 줄임 (0.2, 13.3). 알림 문구를 "Time for Nth round"로 (13.1, 13.2). 카드를 제목·시각 없는 한 줄 띠(종 아이콘 + 알약 버튼)로 | Iron man |
 | 0.8 | 2026-10-26 | 아이콘을 흰 바탕 핀 스트라이프 + W로 바꾸고 알림 배지 badge-96.png 추가 (2장, 9장, 13.2). W는 Playfair Display 900 글꼴 파일에서 읽어 그림(opentype.js, 개발용) | Iron man |
 | 0.9 | 2026-10-26 | 교차 검토 4회 반영: 서버로 가는 데이터에 구독 정보 명시(0.1·0.3·1장), NEXT_PUBLIC_ 예외, 알림 띠 상태·안내 줄, 알림 시각 고정 확정, 구독 상한 10개(13.6), 배지·opentype.js 설명, 테스트 계획·체크리스트에 알림, 테스트 108개 | Iron man |
+| 1.0 | 2026-10-26 | 교차 검토 5회 반영: .vercelignore(11장·9장), 전체 초기화가 알림도 끔(0.3·8장), Blob은 Private로(13.5), 상한 찼을 때 푸는 방법(13.6), VAPID_SUBJECT 임시 값(13.4), 0.2 띠 상태, L1에 503·off_hours, ⑥에 시험 알림 | Iron man |

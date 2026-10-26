@@ -72,7 +72,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 15. ✅ 발음 듣기 — 스피커 버튼, 미지원 시 숨김
 16. ✅ 백업 — 내보내기·가져오기·초기화·안내
 17. ✅ 통계 — 회차 기록, 주간 횟수, 복습한 날, 기억률, 예문 제공률
-18. ⬜ 배포 — 사용자가 터미널에서 Vercel CLI로 `main`을 프로덕션 배포하고 주소 확보 (CLI 설치·토큰 확인 완료. PRD 9번 18, DESIGN 11장)
+18. ⬜ 배포 — 사용자가 터미널에서 Vercel CLI로 `main`을 프로덕션 배포하고 주소 확보 (CLI 설치·토큰 확인 완료. PRD 9번 18, DESIGN 11장). CLI는 작업 폴더를 올리므로 `.vercelignore`(2026-10-26 추가)가 `.env` 등을 뺀다. 배포 뒤 Vercel Source 화면에서 `.env`가 없는지 확인
 19. ⬜ 데이터 이전 — 배포 주소에서 백업 파일을 가져와 단어 438개를 확인하고, 그 자리에서 첫 회차 1회를 끝낸다 (그날이 판정 기준일, PRD 3번)
 20. ⬜ 폰 확인 — 홈 화면 추가, 375px 레이아웃, 공유 시트, 발음, 오프라인 안내를 아이폰에서 점검하고 문제는 작업 목록에 추가
 21. ✅ 단어 빈도 목록 — hermitdave/FrequencyWords(OpenSubtitles 2018, CC BY-SA 4.0) 상위 20,000단어 → `scripts/build-word-freq.mjs`로 `data/word-freq.json` 생성, 출처는 `data/word-freq.meta.json`, 테스트 6개 추가(총 98개). 수준 규칙 켜짐 (2026-10-25, `feature/word-freq`)
@@ -80,7 +80,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 23. ⬜ VOA 모음 확대 — 통계의 예문 제공률이 60% 미만이면 기사 1,000개로 다시 모으고 재배포
 24. ⬜ 예외 점검 — 통신사 제외 규칙(Reuters·AFP 표기, VOA 크레디트 문단 뒤에 오는 통신사 문단을 놓치는지: DESIGN 6.4 "알려진 빈틈") 검증, 백업 왕복, 자정 넘김 회차, 두 탭 동시 사용(PRD는 한 탭 전제이므로 "망가지지 않는지"만 본다)
 25. ⬜ 4주 뒤 판정 — 판정 기준일(19번 완료일): `____-__-__` · 판정일(기준일 + 28일): `____-__-__`. 판정일에 통계 화면으로 PRD 3번 기준(복습 지속·기억률·예문 제공률)을 확인하고, 1회 복습 시간은 직접 잰 값으로 판정한 뒤 숫자 조정 여부 결정. 통계 화면은 이번 주 값만 보여주므로 매주 일요일 밤 Rounds this week를 적는다 — 1주 `__`회 · 2주 `__`회 · 3주 `__`회 · 4주 `__`회 (첫 주·마지막 주가 반쪽이면 둘을 합쳐 한 주로 본다). 기준일 당일에 끝낸 회차 수 `__`회도 적어 Active days 보정에 쓴다
-26. ⬜ 푸시 알림 (PRD 23, 2026-10-26 추가) — 코드 완료: `public/sw.js`, `lib/push*.ts`, `/api/push/subscribe·send·test`, Today의 알림 띠, 구독 상한 10개, 테스트 7개(총 108개). 남은 것(18번 배포 뒤, DESIGN 13.5 순서대로): ① Vercel 환경 변수 4개 등록(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`=배포 주소·`PUSH_CRON_SECRET`) ② Vercel Blob 저장소 만들고 프로젝트에 연결(`BLOB_READ_WRITE_TOKEN`) ③ 재배포 ④ cron-job.org에 예약 5개(한국 시간 9·11·13·17·19시, `GET https://<배포 주소>/api/push/send`, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`) ⑤ 아이폰 홈 화면 아이콘으로 열어 Reminders 켜고 "Send a test"로 수신 확인
+26. ⬜ 푸시 알림 (PRD 23, 2026-10-26 추가) — 코드 완료: `public/sw.js`, `lib/push*.ts`, `/api/push/subscribe·send·test`, Today의 알림 띠, 구독 상한 10개, 테스트 7개(총 108개). 남은 것(18번 배포 뒤, DESIGN 13.5 순서대로): ① Vercel 환경 변수 4개 등록(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`=배포 주소·`PUSH_CRON_SECRET`) ② Vercel Blob 저장소를 **Private**로 만들고 프로젝트에 연결(`BLOB_READ_WRITE_TOKEN`. 접근 방식은 나중에 못 바꾼다) ③ 재배포 ④ cron-job.org에 예약 5개(한국 시간 9·11·13·17·19시, `GET https://<배포 주소>/api/push/send`, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`) ⑤ 아이폰 홈 화면 아이콘으로 열어 Reminders 켜고 "Send a test"로 수신 확인
 
 ## 위험과 대비
 
@@ -123,3 +123,4 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 | 0.5 | 2026-10-26 | 교차 검토 3회 반영: 18번 실행 주체, 19번 완료 조건에 첫 회차, 25번에 주별 기록 칸 | Iron man |
 | 0.6 | 2026-10-26 | 푸시 알림을 범위에 넣고 26번 추가(코드 완료, 배포 설정 남음), 성공 기준·위험·다음 단계 갱신 | Iron man |
 | 0.7 | 2026-10-26 | 교차 검토 4회 반영: 사이클 목표·SCOPE에 알림, 개발 단위 23개, 기술 결정에 알림 줄, 26번에 구독 상한, 테스트 108개 | Iron man |
+| 0.8 | 2026-10-26 | 교차 검토 5회 반영: 18번에 .vercelignore 확인, 26번 ②에 Blob Private | Iron man |
