@@ -22,3 +22,4 @@ node scripts/make-icons.mjs                          # PWA 아이콘 다시 만�
 - VOA Learning English 기사 문장 (`data/voa-sentences.json`): 퍼블릭 도메인. 통신사(AP·Reuters·AFP) 기사는 제외.
 - Free Dictionary API 예문: CC BY-SA 3.0 (Wiktionary).
 - 단어 빈도 목록 (`data/word-freq.json`): hermitdave/FrequencyWords의 OpenSubtitles 2018 영어 목록 상위 20,000단어, CC BY-SA 4.0. 출처 정보는 `data/word-freq.meta.json`.
+- 아이콘 글꼴 (`scripts/fonts/PlayfairDisplay-Black.ttf`): Playfair Display, SIL Open Font License 1.1 (`scripts/fonts/OFL.txt`). 아이콘의 W 글자를 그릴 때만 쓴다.
