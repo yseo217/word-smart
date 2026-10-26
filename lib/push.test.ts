@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   addSubscription,
+  canAddSubscription,
   isReminderHour,
+  MAX_SUBSCRIPTIONS,
   kstHour,
   ordinal,
   parseSubscription,
@@ -71,6 +73,15 @@ test("addSubscription keeps one record per endpoint; removeSubscription drops it
   assert.equal(list.length, 2);
   assert.equal(list.find((s) => s.endpoint === SUB.endpoint)?.keys.p256dh, "newkey");
   assert.deepEqual(removeSubscription(list, SUB.endpoint), [b]);
+});
+
+test("canAddSubscription caps the list at 10 devices but always allows re-registering a known one", () => {
+  const make = (i: number) => parseSubscription({ ...SUB, endpoint: `https://push.example/device-${i}` }, NOW)!;
+  const full = Array.from({ length: MAX_SUBSCRIPTIONS }, (_, i) => make(i));
+  assert.equal(MAX_SUBSCRIPTIONS, 10);
+  assert.equal(canAddSubscription(full.slice(0, 9), make(99)), true);
+  assert.equal(canAddSubscription(full, make(99)), false);
+  assert.equal(canAddSubscription(full, make(3)), true); // 이미 있는 기기의 재등록
 });
 
 test("parseSubscriptionList reads the stored file and skips broken entries", () => {

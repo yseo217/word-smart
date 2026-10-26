@@ -7,7 +7,7 @@
 
 ## 이번 사이클 목표
 
-PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확대, 예외 점검. 단어 빈도 목록과 수준 조정은 끝남)를 끝내서, **배포 주소를 폰 홈 화면에 추가해 하루 5회 복습을 실제로 하는 상태**에 도달한다.
+PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤 설정, 폰 확인, VOA 모음 확대, 예외 점검. 단어 빈도 목록·수준 조정·알림 코드는 끝남)를 끝내서, **배포 주소를 폰 홈 화면에 추가해 하루 5회 복습을 실제로 하는 상태**에 도달한다.
 
 ## 성공 기준
 
@@ -18,7 +18,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확�
 - [x] 단어 빈도 목록이 채워져 예문 수준 규칙이 켜졌다 (2026-10-25, 21번)
 - [x] 예문 약 90개를 보며 수준 규칙 숫자를 조정했다 (2026-10-26, 22번)
 - [ ] 알림을 켠 아이폰에 한국 시간 9·11·13·17·19시에 알림이 오고, 누르면 복습 화면이 열린다 (26번)
-- [ ] `npm test`(106개 이상)·`npm run lint`·`npm run build`가 모두 통과한다
+- [ ] `npm test`(108개 이상)·`npm run lint`·`npm run build`가 모두 통과한다
 
 **사용 성과 (PRD 3번, 판정 기준일 + 28일에 통계 화면으로 판정 — 25번)**
 - [ ] 복습 지속: 매주 Rounds this week 20회 이상, Active days 20일/28일 이상
@@ -43,7 +43,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확�
 | **WHO** | 본인 한 명, 로그인 없이 스마트폰 브라우저에서 사용 |
 | **RISK** | 브라우저가 저장 데이터를 지우면 단어장이 사라진다 → 백업 기능과 안내로 대비 (완료) |
 | **SUCCESS** | 4주 뒤 기억률 70%, 매주 회차 20회 이상(하루 4회 × 5일), 예문 제공률 60% |
-| **SCOPE** | must(단어장·복습·예문) 완료 → nice(Still Learning·통계·발음·백업) 완료 → 배포·폰 확인·빈도 목록·모음 확대·예외 점검 |
+| **SCOPE** | must(단어장·복습·예문) 완료 → nice(Still Learning·통계·발음·백업) 완료, 빈도 목록·수준 조정 완료 → 배포·푸시 알림 설정(코드 완료, 배포 뒤 설정 남음)·폰 확인·모음 확대·예외 점검 |
 
 ## 범위
 
@@ -53,7 +53,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확�
 
 *한 줄 한 작업. 먼저 되면 나머지가 쉬워지는 것부터. ✅ 완료 · ⬜ 남음. 각 작업은 `feature/*` 브랜치에서 하고 검증 루프를 거쳐 커밋한다.*
 
-*PRD 9번(개발 단위 22개)과의 번호 대응: 1~17은 같다. PRD 18 → PLAN 18·19, PRD 19 → PLAN 20, PRD 20 → PLAN 21·22, PRD 21 → PLAN 23, PRD 22 → PLAN 24, PRD 23 → PLAN 26. PLAN 25(4주 뒤 판정)는 PRD 3번 성공 기준을 확인하는 작업이라 PRD 9번에는 없다.*
+*PRD 9번(개발 단위 23개)과의 번호 대응: 1~17은 같다. PRD 18 → PLAN 18·19, PRD 19 → PLAN 20, PRD 20 → PLAN 21·22, PRD 21 → PLAN 23, PRD 22 → PLAN 24, PRD 23 → PLAN 26. PLAN 25(4주 뒤 판정)는 PRD 3번 성공 기준을 확인하는 작업이라 PRD 9번에는 없다.*
 
 1. ✅ 프로젝트 뼈대 — Next.js, `.env`·`.gitignore`, PRD·DESIGN·CLAUDE 문서
 2. ✅ 저장 기반 — localStorage 읽기·쓰기, 데이터 모양, 깨진 데이터 보관
@@ -80,7 +80,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확�
 23. ⬜ VOA 모음 확대 — 통계의 예문 제공률이 60% 미만이면 기사 1,000개로 다시 모으고 재배포
 24. ⬜ 예외 점검 — 통신사 제외 규칙(Reuters·AFP 표기, VOA 크레디트 문단 뒤에 오는 통신사 문단을 놓치는지: DESIGN 6.4 "알려진 빈틈") 검증, 백업 왕복, 자정 넘김 회차, 두 탭 동시 사용(PRD는 한 탭 전제이므로 "망가지지 않는지"만 본다)
 25. ⬜ 4주 뒤 판정 — 판정 기준일(19번 완료일): `____-__-__` · 판정일(기준일 + 28일): `____-__-__`. 판정일에 통계 화면으로 PRD 3번 기준(복습 지속·기억률·예문 제공률)을 확인하고, 1회 복습 시간은 직접 잰 값으로 판정한 뒤 숫자 조정 여부 결정. 통계 화면은 이번 주 값만 보여주므로 매주 일요일 밤 Rounds this week를 적는다 — 1주 `__`회 · 2주 `__`회 · 3주 `__`회 · 4주 `__`회 (첫 주·마지막 주가 반쪽이면 둘을 합쳐 한 주로 본다). 기준일 당일에 끝낸 회차 수 `__`회도 적어 Active days 보정에 쓴다
-26. ⬜ 푸시 알림 (PRD 23, 2026-10-26 추가) — 코드 완료: `public/sw.js`, `lib/push*.ts`, `/api/push/subscribe·send·test`, Today의 Reminders 카드, 테스트 5개(총 106개). 남은 것(18번 배포 뒤, DESIGN 13.5 순서대로): ① Vercel 환경 변수 4개 등록(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`=배포 주소·`PUSH_CRON_SECRET`) ② Vercel Blob 저장소 만들고 프로젝트에 연결(`BLOB_READ_WRITE_TOKEN`) ③ 재배포 ④ cron-job.org에 예약 5개(한국 시간 9·11·13·17·19시, `GET https://<배포 주소>/api/push/send`, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`) ⑤ 아이폰 홈 화면 아이콘으로 열어 Reminders 켜고 "Send a test"로 수신 확인
+26. ⬜ 푸시 알림 (PRD 23, 2026-10-26 추가) — 코드 완료: `public/sw.js`, `lib/push*.ts`, `/api/push/subscribe·send·test`, Today의 알림 띠, 구독 상한 10개, 테스트 7개(총 108개). 남은 것(18번 배포 뒤, DESIGN 13.5 순서대로): ① Vercel 환경 변수 4개 등록(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`=배포 주소·`PUSH_CRON_SECRET`) ② Vercel Blob 저장소 만들고 프로젝트에 연결(`BLOB_READ_WRITE_TOKEN`) ③ 재배포 ④ cron-job.org에 예약 5개(한국 시간 9·11·13·17·19시, `GET https://<배포 주소>/api/push/send`, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`) ⑤ 아이폰 홈 화면 아이콘으로 열어 Reminders 켜고 "Send a test"로 수신 확인
 
 ## 위험과 대비
 
@@ -98,11 +98,12 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확�
 | 항목 | 선택 | 이유 |
 |---|---|---|
 | 프레임워크 | Next.js 16 (App Router) | PRD 고정. 화면과 API를 한 프로젝트에서 |
-| 상태·저장 | React + localStorage, `useSyncExternalStore` | 서버 없음, 개인 데이터는 기기 안에만 |
+| 상태·저장 | React + localStorage, `useSyncExternalStore` | 학습 데이터는 서버 없이 기기 안에만 |
 | 스타일 | Tailwind CSS 4 + `globals.css` 토큰 | 핀 스트라이프 디자인을 한 곳에서 관리 |
 | 테스트 | `node:test` (`lib/*.test.ts`) | 추가 도구 없이 순수 로직 검증 |
 | 배포 | Vercel | PRD·CLAUDE.md 고정 |
-| 프로젝트 수준 | Starter에 가까운 단일 앱 | 백엔드·BaaS 없음 |
+| 알림 | web-push + Vercel Blob(구독 저장) + cron-job.org(하루 5번 호출) | PRD 8번. Vercel 무료 플랜은 하루 1번만 예약돼 바깥 예약 서비스를 쓴다 (DESIGN 13장) |
+| 프로젝트 수준 | Starter에 가까운 단일 앱 | 백엔드·BaaS 없음(알림용 Vercel Blob·cron-job.org만) |
 
 ## 다음 단계
 
@@ -121,3 +122,4 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 폰 확인, VOA 모음 확�
 | 0.4 | 2026-10-26 | 교차 검토 2회 반영: 사이클 목표에서 끝난 단위 표시, 24번에 통신사 규칙 빈틈 점검 추가 | Iron man |
 | 0.5 | 2026-10-26 | 교차 검토 3회 반영: 18번 실행 주체, 19번 완료 조건에 첫 회차, 25번에 주별 기록 칸 | Iron man |
 | 0.6 | 2026-10-26 | 푸시 알림을 범위에 넣고 26번 추가(코드 완료, 배포 설정 남음), 성공 기준·위험·다음 단계 갱신 | Iron man |
+| 0.7 | 2026-10-26 | 교차 검토 4회 반영: 사이클 목표·SCOPE에 알림, 개발 단위 23개, 기술 결정에 알림 줄, 26번에 구독 상한, 테스트 108개 | Iron man |

@@ -15,13 +15,13 @@
 | **WHO** | 본인 한 명, 로그인 없이 스마트폰 브라우저에서 사용 |
 | **RISK** | 브라우저가 저장 데이터를 지우면 단어장이 사라진다 → 백업 기능과 안내로 대비 |
 | **SUCCESS** | 4주 뒤 기억률 70%, 매주 회차 20회 이상(하루 4회 × 5일), 예문 제공률 60% |
-| **SCOPE** | must(단어장·복습·예문) 완료 → nice(Still Learning·통계·발음·백업) 완료 → 배포·폰 확인·빈도 목록·모음 확대·예외 점검 |
+| **SCOPE** | must(단어장·복습·예문) 완료 → nice(Still Learning·통계·발음·백업) 완료, 빈도 목록·수준 조정 완료 → 배포·푸시 알림 설정(코드 완료, 배포 뒤 설정 남음)·폰 확인·모음 확대·예외 점검 |
 
 ## 0. 설계 개요
 
 ### 0.1 설계 목표와 원칙
 
-- **서버 없이 돌아가는 앱**: 학습 기록은 브라우저 `localStorage`에만 두고, 서버는 예문 하나를 찾아 주는 일만 한다. 계정·DB·로그인이 없다.
+- **서버 없이 돌아가는 앱**: 학습 기록은 브라우저 `localStorage`에만 두고, 서버는 예문 하나를 찾아 주는 일과, 알림을 켰을 때 그 기기의 푸시 구독 정보를 보관해 정해진 시각에 알림을 보내는 일(13장)만 한다. 계정·DB·로그인이 없다.
 - **순수 로직과 화면의 분리**: 규칙(단어 검사, 회차, 어려운 단어, 예문 고르기, 통계)은 `lib/`에 브라우저와 무관한 함수로 두고 `node:test`로 검증한다. 화면(`app/`)은 그 함수를 부르기만 한다.
 - **출처를 갈아 끼울 수 있는 예문**: 예문 출처 순서(VOA 모음 → 사전 → 없음)는 `lib/examples.ts` 한 곳에만 있다.
 - **한 번에 한 가지 결정**: 숫자(가중치, 상한, 기간)는 확정값인지 제안값인지 구분해 적고(수준 규칙의 숫자는 6.6), 코드에는 상수로 둔다.
@@ -89,7 +89,7 @@
    끄기: DELETE /api/push/subscribe ─▶ 브라우저 구독 해제
 ```
 
-데이터가 기기 밖으로 나가는 지점은 ③(이 앱의 서버 → 필요하면 사전 API)과 ③-1(구글)이고, 나가는 것은 "영어 단어 한 개"뿐이다. ①②④⑤는 모두 브라우저 안에서 끝난다. 서버 코드는 단어를 로그에 쓰지 않지만, 주소(`?word=`)에 단어가 들어가므로 Vercel의 기본 요청 로그에는 남을 수 있다(PRD 7번).
+데이터가 기기 밖으로 나가는 지점은 ③(이 앱의 서버 → 필요하면 사전 API)과 ③-1(구글)이고, 나가는 것은 "영어 단어 한 개"뿐이다. 여기에 ⑥(알림)을 켰을 때만 푸시 구독 정보(기기의 알림 주소와 키 2개)가 이 앱의 서버 저장소(Vercel Blob)로 간다. ①②④⑤는 모두 브라우저 안에서 끝난다. 서버 코드는 단어를 로그에 쓰지 않지만, 주소(`?word=`)에 단어가 들어가므로 Vercel의 기본 요청 로그에는 남을 수 있다(PRD 7번).
 
 ### 0.4 기술 선택 — Next.js를 기본으로, 그 위에 쓰는 것
 
@@ -97,7 +97,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 | 기술 | 쓰는 곳 | 쉬운 설명 (한 줄) | 상태 |
 |---|---|---|---|
-| **Next.js 16** (App Router) | 모든 화면과 `/api/example` | 화면과 작은 서버 기능을 한 프로젝트에 넣어 Vercel에 그대로 올릴 수 있게 해 주는 틀 | 사용 중 |
+| **Next.js 16** (App Router) | 모든 화면과 `/api/example`, `/api/push/*` | 화면과 작은 서버 기능을 한 프로젝트에 넣어 Vercel에 그대로 올릴 수 있게 해 주는 틀 | 사용 중 |
 | **React 19** | 화면 구성 | 화면을 "부품"으로 나눠 조립하는 방식. Next.js에 포함됨 | 사용 중 |
 | **TypeScript** | 모든 코드 | 코드에 "이 값은 글자, 이건 숫자"를 적어 두어 실수를 미리 잡아 주는 맞춤법 검사기 같은 것 | 사용 중 |
 | **Tailwind CSS 4** | 디자인 | 색·여백·글꼴을 클래스 이름으로 바로 붙이는 꾸미기 도구. 핀 스트라이프는 `globals.css` 한 곳에서 정의 | 사용 중 |
@@ -109,8 +109,9 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | **Free Dictionary API** | 사전 예문 | 키 없이 쓰는 무료 사전 서비스(Wiktionary 기반). 느리거나 오류일 수 있어 6초만 기다린다 | 사용 중 |
 | **VOA 문장 모음** (`data/voa-sentences.json`) | 기사 예문 | VOA Learning English 기사를 미리 문장으로 잘라 둔 파일. 퍼블릭 도메인이라 저장해도 된다 | 사용 중 |
 | **단어 빈도 목록** (`data/word-freq.json`) | 예문 수준 규칙 | 영어 단어 20,000개가 얼마나 흔한지 순위를 적은 표(OpenSubtitles 자막 기반, CC BY-SA 4.0). 이게 있어서 "예문이 단어보다 어렵지 않게" 규칙이 켜진다 | 사용 중 |
-| **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 106개를 검사 | 사용 중 |
+| **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 108개를 검사 | 사용 중 |
 | **ESLint** | 코드 검사 | 흔한 실수와 규칙 위반을 찾아 주는 검사기. `npm run lint` | 사용 중 |
+| **opentype.js** (개발용) | 아이콘 만들기 | 글꼴 파일에서 글자의 윤곽선을 읽어 주는 라이브러리. `scripts/make-icons.mjs`만 쓰고 앱에는 들어가지 않는다 | 사용 중 |
 | **Vercel** | 배포 | 코드를 올리면 인터넷 주소를 만들어 주는 서비스. Next.js를 만든 회사라 설정이 거의 없다 | 배포 예정 |
 | **web-push** | 푸시 알림 보내기 | 브라우저 알림 서비스(애플·구글)에 "이 기기에 이 문구를 띄워 달라"고 서명해서 보내는 라이브러리. 서명 키(VAPID)는 `.env`에 | 사용 중 (13장) |
 | **서비스 워커** (`public/sw.js`) | 알림 받기 | 앱이 닫혀 있어도 폰 뒤에서 깨어나 알림을 띄우는 작은 코드. 오프라인 캐시는 하지 않는다 | 사용 중 (13장) |
@@ -128,7 +129,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 ### 0.5 화면 체크리스트 (빠짐 검사용)
 
-- **Today**: 오늘 횟수 N/5 · 상태별 버튼 1개(Start review / Continue review / Done for today / Add words first)
+- **Today**: 오늘 횟수 N/5 · 상태별 버튼 1개(Start review / Continue review / Done for today / Add words first) · 알림 띠(끔: Turn on reminders / 켬: "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내) · 켜거나 끈 직후 안내 한 줄
 - **Review**: 진행 k/3 · 단어 · 스피커 버튼(지원 시) · 예문 카드(강조·출처·Another example 또는 No more examples·오프라인 문구) · I remember / Look it up · Look it up 뒤 Open Google / Next · 요약(횟수, 어제 계산 안내, 추가·제외 단어, One more round / Home) · 빈 단어장 안내 · 5회 완료 안내
 - **Word List**: Backup 링크 · 백업 안내(조건부, 7일 미루기) · 여러 줄 입력 · Add · 결과 안내 · 건너뛴 목록(10개 + and N more) · 검색 · 단어 수 · 알파벳 목록 · Delete(확인 창)
 - **Still Learning**: Stats 링크 · 검색 · 개수 · 최근 순 목록(단어·횟수·날짜) · Remove(확인 창) · 빈 상태 안내
@@ -139,10 +140,10 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 | 단계 | 대상 | 방법 | 지금 상태 |
 |---|---|---|---|
-| L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 106개) | 자동 |
-| L1 API | `/api/example` 정상·400·없음 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
+| L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 108개) | 자동 |
+| L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
 | L2 화면 | 0.5 체크리스트 | 내장 브라우저에서 눌러 확인 | 수동 |
-| L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 | 폰에서 직접 | PLAN 19~20·24번 |
+| L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
 
 ## 1. 한눈에 보기
 
@@ -153,17 +154,18 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | 화면 | 브라우저 (Next.js 클라이언트 컴포넌트) | 단어장, 복습, 목록, 통계, 백업 화면 |
 | 데이터 저장 | 브라우저 `localStorage` | 단어장, 응답 기록, 어려운 단어 목록, 진행 상태 |
 | 예문 가져오기 | Next.js 서버 (`/api/example`) | VOA 문장 모음에서 찾기, 없으면 Free Dictionary API 호출 |
+| 알림 보내기 | Next.js 서버 (`/api/push/*`) + Vercel Blob + cron-job.org | 구독 정보 보관, 정해진 시각에 고정 문구 알림 (13장) |
 
 핵심 원칙 두 가지는 이렇다.
 
-- **학습 기록은 서버로 보내지 않는다.** 서버로 가는 것은 예문 검색용 영어 단어 하나뿐이다.
+- **학습 기록은 서버로 보내지 않는다.** 서버로 가는 것은 예문 검색용 영어 단어 하나와, 알림을 켰을 때의 푸시 구독 정보(기기 알림 주소와 키 2개, 13장)뿐이다.
 - **기사 전체는 브라우저로 보내지 않는다.** 서버에서 문장을 뽑아 최대 2문장만 내려준다.
 
 ## 2. 화면 구성
 
 | 주소 | 화면 | 기획서 근거 |
 |---|---|---|
-| `/` | 홈(Today 탭): 오늘 복습 횟수 N/5, '복습 시작/이어서 하기/오늘 완료' 버튼 | 5번 ②, 4번 |
+| `/` | 홈(Today 탭): 오늘 복습 횟수 N/5, '복습 시작/이어서 하기/오늘 완료' 버튼, 알림 켜기/끄기 띠(13장) | 5번 ②, 4번, 5번 nice |
 | `/words` | **단어장**(Word List 탭): 여러 줄 입력칸, 알파벳 순 목록, 검색, 삭제, Backup 링크, 백업 안내 | 5번 ① |
 | `/review` | 복습: 한 화면에 한 단어, 예문, I remember / Look it up, 회차 요약 | 5번 ② |
 | `/hard` | 어려운 단어 목록(Still Learning 탭): 보기·검색·삭제, Stats 링크 | nice |
@@ -178,7 +180,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 - must는 `/`, `/words`, `/review` 세 화면이고, nice 화면(`/hard`, `/stats`, `/backup`)까지 모두 구현됐다.
 - **하단 탭 바** (2026-10-25 결정, `app/tab-bar.tsx`): Today(`/`, 복습 화면 `/review` 포함) · Word List(`/words`) · Still Learning(`/hard`, 어려운 단어 목록) 세 탭. 모든 화면에 고정으로 붙고, 누르면 바로 이동한다.
 
-**홈 화면 추가(PWA)**: `app/manifest.ts`(이름, 전체화면 `standalone`, 색), `public/icon-192.png`·`icon-512.png`·`apple-touch-icon.png`(`scripts/make-icons.mjs`가 만드는 아이콘: 흰 바탕에 가는 네이비 핀 스트라이프, 가운데 네이비 "W" 한 글자. W는 상단 띠의 "WORD SMART"와 같은 글꼴(Playfair Display 900)의 글자 모양을 `scripts/fonts/PlayfairDisplay-Black.ttf`(SIL OFL 1.1)에서 읽어 그린다. 홈 유니폼 느낌이되 구단 로고·이름은 쓰지 않는다, 2026-10-26 사용자 결정), 레이아웃의 `appleWebApp`·`viewportFit: cover`. 오프라인 캐시용 서비스 워커는 두지 않고, `public/sw.js`는 푸시 알림만 다룬다(13장). 오프라인이면 예문 카드에 "Offline – examples need an internet connection."을 보여준다.
+**홈 화면 추가(PWA)**: `app/manifest.ts`(이름, 전체화면 `standalone`, 색), `public/icon-192.png`·`icon-512.png`·`apple-touch-icon.png`(`scripts/make-icons.mjs`가 만드는 아이콘: 흰 바탕에 가는 네이비 핀 스트라이프, 가운데 네이비 "W" 한 글자. W는 상단 띠의 "WORD SMART"와 같은 글꼴(Playfair Display 900)의 글자 모양을 `scripts/fonts/PlayfairDisplay-Black.ttf`(SIL OFL 1.1)에서 읽어 그린다. 홈 유니폼 느낌이되 구단 로고·이름은 쓰지 않는다, 2026-10-26 사용자 결정). 같은 스크립트가 안드로이드 알림 배지 `badge-96.png`(투명 배경 W)도 만들며, 글꼴 읽기에는 개발용 라이브러리 opentype.js를 쓴다, 레이아웃의 `appleWebApp`·`viewportFit: cover`. 오프라인 캐시용 서비스 워커는 두지 않고, `public/sw.js`는 푸시 알림만 다룬다(13장). 오프라인이면 예문 카드에 "Offline – examples need an internet connection."을 보여준다.
 
 ## 3. 단어장
 
@@ -453,7 +455,7 @@ app/
   api/push/subscribe/route.ts  푸시 구독 등록(POST)·해제(DELETE)
   api/push/send/route.ts       등록된 기기 전부에 알림 보내기 (예약 서비스가 비밀 값과 함께 부른다)
   api/push/test/route.ts       이 기기에만 시험 알림
-lib/                    순수 로직. 파일마다 *.test.ts가 짝으로 있다 (kst, use-store, examples 제외)
+lib/                    순수 로직. 파일마다 *.test.ts가 짝으로 있다 (kst, use-store, examples, push-store, push-send 제외)
   store.ts              저장 데이터 모양, parseStore, 단어 추가·삭제
   use-store.ts          localStorage 읽기·쓰기 훅 (브라우저 API는 여기만)
   words.ts              입력 검사, 여러 단어 나누기, 중복
@@ -499,14 +501,14 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | ~~3~~ | 응답 기록 보관 기간 → **무제한으로 확정** (PRD 검토 4회) | 완료 |
 | ~~4~~ | 단어 삭제 시 기록 삭제 → **PRD 5번 ①에 반영** (검토 3회) | 완료 |
 | ~~5~~ | "1분 이내"에 예문 로딩 포함 → **포함으로 확정** (검토 4회) | 완료 |
-| ~~6~~ | 테스트 도구 → **`node:test`로 확정**, 106개 작성(2026-10-26 기준) | 완료 |
+| ~~6~~ | 테스트 도구 → **`node:test`로 확정**, 108개 작성(2026-10-26 기준) | 완료 |
 
 ## 11. 알아둘 점
 
 - **배포 주소**: (PLAN 18번을 마친 뒤 여기에 적는다) `https://________.vercel.app` · 배포 방식은 Vercel CLI로 `main`을 프로덕션 배포(사용자가 터미널에서 직접 실행, PRD 9번 18). GitHub 저장소 연동은 쓰지 않는다.
 - `localStorage`는 **주소마다 따로** 저장된다. 컴퓨터에서 띄운 `localhost` 주소와 Vercel에 배포한 주소는 서로 다른 단어장을 갖는다. 배포 주소를 바꾸면 기록이 사라지므로 백업 기능이 중요하다.
 - 사파리는 오래 쓰지 않은 사이트의 저장 데이터를 지울 수 있다. 홈 화면에 추가해서 쓰면 도움이 될 수 있다. (제가 아는 범위의 내용이라 만들 때 다시 확인한다.)
-- 지금 쓰는 예문 출처(VOA 모음, Free Dictionary API)는 API 키가 필요 없다. 나중에 키가 필요한 서비스를 추가하면 `.env`에 넣고 서버 코드에서만 읽는다. `NEXT_PUBLIC_`으로 시작하는 이름은 쓰지 않는다. 브라우저로 노출되기 때문이다.
+- 지금 쓰는 예문 출처(VOA 모음, Free Dictionary API)는 API 키가 필요 없다. 나중에 키가 필요한 서비스를 추가하면 `.env`에 넣고 서버 코드에서만 읽는다. `NEXT_PUBLIC_`으로 시작하는 이름은 쓰지 않는다. 브라우저로 노출되기 때문이다. 단, 푸시 알림의 공개 키 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개해도 되는 값이라 예외다(13.4).
 - Free Dictionary API는 후원으로 운영되는 서비스라 오류가 날 수 있다(시험에서 20번 중 5번). 그래서 실패해도 "예문 없음"으로 계속 진행한다.
 
 ## 12. 만드는 순서
@@ -521,7 +523,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 | 항목 | 결정 | 이유 |
 |---|---|---|
-| 시각 | 한국 시간 9·11·13·17·19시 고정, 앱에서는 켜기/끄기만 | PRD 3번 권장 시각. 시각 선택은 서버 저장이 늘어 뒤로 미룸 |
+| 시각 | 한국 시간 9·11·13·17·19시 고정(확정, 2026-10-26), 앱에서는 켜기/끄기만 | PRD 3번 권장 시각. 시각 선택 기능은 만들지 않는다 |
 | 시계 | cron-job.org 무료 계정, 예약 5개 | Vercel 무료 플랜은 하루 1번만 예약 가능(시 단위 오차). Pro는 월 20달러 |
 | 저장 | Vercel Blob 비공개 파일 `push/subscriptions.json` 하나 | 추가 계정 없이 Vercel 안에서 해결. 사용자 한 명이라 파일 하나면 충분 |
 | 문구 | "Word Smart" / "Time for 1st round" … "Time for 5th round" (시각이 하루 중 몇 번째 알림인지로 번호를 정한다. 시험 알림처럼 알림 시각이 아니면 "Time for a round") | 학습 기록을 서버에 보내지 않기 위해(PRD 7번) 번호는 시각에서만 나온다. 같은 tag라 알림이 쌓이지 않는다 |
@@ -538,15 +540,17 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
    누르면 → 앱이 열리고 /review 로 이동 (이미 열려 있으면 그 창을 앞으로)
 ```
 
+안드로이드 상태 표시줄에는 `badge-96.png`의 W 실루엣이 작게 보인다. 아이폰은 배지를 쓰지 않는다.
+
 ### 13.3 흐름과 파일
 
-- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 안내, 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면 구독을 되돌린다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남는다. 띠 자체는 어느 상태에서도 사라지지 않는다.
+- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면 구독을 되돌린다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
 - **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(https 주소, 키 2개), 같은 기기는 하나만 둔다.
 - **보내기** (`app/api/push/send/route.ts` → `lib/push-send.ts`): `Authorization: Bearer <PUSH_CRON_SECRET>` 헤더가 맞을 때만 동작(주소에 비밀 값을 넣으면 로그에 남으므로 헤더만). 지금이 알림 시각(한국 시간 시 단위)이 아니면 보내지 않는다(`?force=1`이면 보낸다). 모든 구독에 `web-push`로 고정 문구를 보내고, 404·410(기기가 구독을 끊음)은 목록에서 지운다. TTL 1시간.
 - **시험** (`app/api/push/test/route.ts`): 카드의 "Send a test". 그 기기의 endpoint를 알아야만 보낼 수 있다.
 - **끄기**: `DELETE /api/push/subscribe` 뒤 브라우저 구독 해제.
-- **표시** (`public/sw.js`): `push` 이벤트에서 제목·본문·아이콘·tag로 알림을 띄우고, `notificationclick`에서 열린 창이 있으면 그 창을 `/review`로, 없으면 새 창을 연다. `next.config.ts`가 `/sw.js`에 캐시 금지 헤더를 붙여 항상 최신 워커를 받게 한다.
-- **테스트** (`lib/push.test.ts`, 5개): 문구에 기록이 없음, 시각 판정(KST), 구독 검사, 중복 제거, 저장 파일 읽기. 저장·전송 코드는 바깥 서비스를 쓰므로 단위 테스트가 없고, 배포 뒤 폰에서 확인한다(PLAN 26).
+- **표시** (`public/sw.js`): `push` 이벤트에서 제목·본문·아이콘(`icon-192.png`)·배지(`badge-96.png`, 안드로이드)·tag로 알림을 띄우고, `notificationclick`에서 열린 창이 있으면 그 창을 `/review`로, 없으면 새 창을 연다. `next.config.ts`가 `/sw.js`에 캐시 금지 헤더를 붙여 항상 최신 워커를 받게 한다.
+- **테스트** (`lib/push.test.ts`, 7개): 시각별 문구(1st~5th, 그 밖에는 "Time for a round"), 회차 번호와 서수, 시각 판정(KST), 구독 검사, 중복 제거, 상한 10개, 저장 파일 읽기. 저장·전송 코드는 바깥 서비스를 쓰므로 단위 테스트가 없고, 배포 뒤 폰에서 확인한다(PLAN 26).
 
 ### 13.4 비밀 값 (`.env`와 Vercel 환경 변수, 값은 적지 않는다)
 
@@ -564,7 +568,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 1. Vercel 프로젝트 설정 → Environment Variables에 `.env`의 푸시 값 4개를 등록한다(`VAPID_SUBJECT`는 배포 주소로).
 2. Vercel 프로젝트 → Storage → Blob 저장소를 하나 만들어 연결한다(`BLOB_READ_WRITE_TOKEN`이 자동 등록됨).
-3. 다시 배포한다(환경 변수는 새 배포부터 적용).
+3. 다시 배포한다(환경 변수는 새 배포부터 적용). 환경 변수를 넣기 전에는 Today의 알림 띠가 "Reminders are not set up on this server yet."을 보인다.
 4. cron-job.org에 가입해 예약 5개를 만든다: 주소 `https://<배포 주소>/api/push/send`, 방식 GET, 시간대 Asia/Seoul, 시각 9·11·13·17·19시 00분, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`. 실패 알림 메일을 켠다.
 5. 아이폰: 사파리로 배포 주소를 열어 홈 화면에 추가 → 그 아이콘으로 열기 → Today의 "Turn on reminders" → 허용 → "Send a test"로 알림이 오는지 본다.
 
@@ -573,6 +577,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 - 아이폰은 홈 화면 아이콘으로 열었을 때만 켤 수 있고(iOS 16.4 이상), 사파리 탭에서는 "홈 화면에 추가" 안내만 보인다.
 - cron-job.org가 몇 분 늦게 부를 수 있다. 서버는 "그 시각(시 단위)"만 확인하므로 59분까지는 보낸다.
 - 알림을 끄지 않고 홈 화면 아이콘을 지우면 구독이 남는다. 다음 보내기 때 애플이 404·410을 돌려주면 서버가 지운다.
+- 구독 등록(`POST /api/push/subscribe`)은 인증 없이 누구나 부를 수 있다. 배포 주소를 아는 사람이 알림을 켜면 그 사람도 알림을 받는다. 혼자 쓰는 앱이라 감수하되, 목록 상한을 10개로 두어(넘으면 409) 저장 파일이 커지는 것은 막는다(2026-10-26).
 - 개발 컴퓨터의 브라우저 창(Claude 미리보기)은 알림 권한이 막혀 있어 "Notifications are blocked" 상태까지만 확인했다. 실제 수신은 배포 뒤 폰에서 확인한다.
 
 ## 변경 이력
@@ -587,3 +592,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.6 | 2026-10-26 | 푸시 알림 13장 추가(결정·알림 모양·흐름·비밀 값·설정 순서·한계), 0.2~0.4·2장·9장·12장 갱신, 테스트 106개 | Iron man |
 | 0.7 | 2026-10-26 | Reminders 카드: 켠 뒤 한 줄로 줄임 (0.2, 13.3). 알림 문구를 "Time for Nth round"로 (13.1, 13.2). 카드를 제목·시각 없는 한 줄 띠(종 아이콘 + 알약 버튼)로 | Iron man |
 | 0.8 | 2026-10-26 | 아이콘을 흰 바탕 핀 스트라이프 + W로 바꾸고 알림 배지 badge-96.png 추가 (2장, 9장, 13.2). W는 Playfair Display 900 글꼴 파일에서 읽어 그림(opentype.js, 개발용) | Iron man |
+| 0.9 | 2026-10-26 | 교차 검토 4회 반영: 서버로 가는 데이터에 구독 정보 명시(0.1·0.3·1장), NEXT_PUBLIC_ 예외, 알림 띠 상태·안내 줄, 알림 시각 고정 확정, 구독 상한 10개(13.6), 배지·opentype.js 설명, 테스트 계획·체크리스트에 알림, 테스트 108개 | Iron man |
