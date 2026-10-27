@@ -71,14 +71,25 @@ export default function Reminders() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(PUBLIC_KEY),
       });
-      const res = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: subscription.toJSON() }),
-      });
-      if (!res.ok) {
+      // 서버 저장이 어떤 이유로든 안 되면(응답 오류든 네트워크 예외든) 브라우저 구독을 되돌린다.
+      // 안 그러면 다음에 열었을 때 띠는 "On"인데 서버에는 없어 알림이 오지 않는다 (DESIGN 13.3).
+      let saved: Response | null = null;
+      try {
+        saved = await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subscription: subscription.toJSON() }),
+        });
+      } catch {
+        saved = null;
+      }
+      if (!saved || !saved.ok) {
         await subscription.unsubscribe();
-        setNotice("Could not save the reminder on the server. Try again later.");
+        setNotice(
+          saved?.status === 409
+            ? "This server already has the maximum number of devices registered. See the design notes to clear the list."
+            : "Could not save the reminder on the server. Check your connection and try again.",
+        );
         setStatus({ kind: "off", registration });
         return;
       }
@@ -105,7 +116,7 @@ export default function Reminders() {
     }
   }
 
-  async function sendTest(subscription: PushSubscription) {
+  async function sendTest(registration: ServiceWorkerRegistration, subscription: PushSubscription) {
     setBusy(true);
     setNotice(null);
     try {
@@ -114,7 +125,16 @@ export default function Reminders() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ endpoint: subscription.endpoint }),
       });
-      setNotice(res.ok ? "Test sent. It may take a few seconds to arrive." : "The test could not be sent.");
+      if (res.ok) {
+        setNotice("Test sent. It may take a few seconds to arrive.");
+      } else if (res.status === 404 || res.status === 410) {
+        // 서버에 이 기기가 없다(목록을 지웠거나 푸시 서비스가 구독을 끊음). 브라우저 구독도 풀고 꺼진 상태로 돌아가 다시 켤 수 있게 한다 (DESIGN 13.6).
+        await subscription.unsubscribe();
+        setStatus({ kind: "off", registration });
+        setNotice("This device is no longer registered on the server. Turn reminders on again.");
+      } else {
+        setNotice("The test could not be sent. The server could not deliver it (check the push settings on the server).");
+      }
     } catch {
       setNotice("The test could not be sent.");
     } finally {
@@ -157,7 +177,7 @@ export default function Reminders() {
         )}
         {status.kind === "on" && (
           <span className="flex shrink-0 gap-2">
-            <button type="button" className={pillOutline} disabled={busy} onClick={() => sendTest(status.subscription)}>
+            <button type="button" className={pillOutline} disabled={busy} onClick={() => sendTest(status.registration, status.subscription)}>
               Send a test
             </button>
             <button type="button" className={pillOutline} disabled={busy} onClick={() => turnOff(status.registration)}>

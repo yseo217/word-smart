@@ -45,6 +45,10 @@ export function parseBackup(text: string): ParseBackupResult {
     };
   }
   const data = migrate(file.data, version);
+  // data가 아예 없거나 객체가 아니면(손으로 고친 파일 등) "빈 단어장"으로 통과시키지 않고 거부한다. 덮어쓰면 데이터를 잃기 때문이다.
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, reason: "unreadable", message: "The backup's contents could not be read." };
+  }
   const { store, corrupt } = parseStore(JSON.stringify(data));
   if (corrupt) {
     return { ok: false, reason: "unreadable", message: "The backup's contents could not be read." };
