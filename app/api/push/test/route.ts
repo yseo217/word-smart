@@ -20,6 +20,15 @@ export async function POST(request: NextRequest) {
   if (!sub) return Response.json({ ok: false, error: "not_subscribed" }, { status: 404 });
 
   const outcome = await sendReminder(sub);
-  if (outcome.gone) await writeSubscriptions(list.filter((s) => s.endpoint !== endpoint));
-  return Response.json({ ok: outcome.ok, status: outcome.status ?? null }, { headers: { "Cache-Control": "no-store" } });
+  const headers = { "Cache-Control": "no-store" };
+  if (outcome.gone) {
+    // 푸시 서비스가 "이 기기는 더 이상 없다"(404·410)고 했으므로 목록에서 지우고 410으로 알린다. 화면은 이걸 보고 꺼진 상태로 돌아간다.
+    await writeSubscriptions(list.filter((s) => s.endpoint !== endpoint));
+    return Response.json({ ok: false, error: "gone", status: outcome.status ?? null }, { status: 410, headers });
+  }
+  if (!outcome.ok) {
+    // 서명 키·subject 오류(403 등)처럼 서버 쪽 문제. 200으로 숨기지 않고 502로 돌려줘야 화면이 "보냈다"고 잘못 말하지 않는다.
+    return Response.json({ ok: false, error: "send_failed", status: outcome.status ?? null }, { status: 502, headers });
+  }
+  return Response.json({ ok: true, status: outcome.status ?? null }, { headers });
 }

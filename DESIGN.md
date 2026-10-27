@@ -142,7 +142,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | 단계 | 대상 | 방법 | 지금 상태 |
 |---|---|---|---|
 | L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 108개) | 자동 |
-| L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401, 알림 시각이 아니면 `off_hours`로 안 보냄, 서버 설정 전이면 503 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404, 서버 설정 전 503 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
+| L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401, 알림 시각이 아니면 `off_hours`로 안 보냄, 서버 설정 전이면 503 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404, 기기가 구독을 끊었으면 410(목록에서 지움), 푸시 서비스가 거부하면 502, 서버 설정 전 503 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
 | L2 화면 | 0.5 체크리스트 | 내장 브라우저에서 눌러 확인 | 수동 |
 | L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
 
@@ -428,7 +428,7 @@ type VoaCorpus = {
 
 **백업 파일**: `{ app: "word-smart", version: 1, exportedAt, data: Store }` 형태의 JSON 파일. 이름은 `word-smart-backup-<KST 날짜>.json` (`lib/backup.ts`, 화면은 `app/backup/page.tsx`). — 구현됨
 - 내보내기: `navigator.canShare({files})`가 되면 공유 시트, 아니면(또는 공유 실패) `<a download>`로 다운로드. 사용자가 공유를 취소하면(AbortError) 백업 시각을 남기지 않는다. 성공하면 `lastBackupAt`을 기록하고 미룸을 푼다.
-- 가져오기: `parseBackup`이 JSON → `app === "word-smart"` → `version`(앱보다 크면 거부, 작으면 `migrate`로 변환) → `parseStore` 순으로 검사한다. 통과하면 단어 수와 내보낸 시각을 보여주는 확인 창을 거친 뒤 저장본 전체를 바꾼다(`useStore().replace`). 오늘의 진행 상태도 파일 것으로 바뀐다고 알린다.
+- 가져오기: `parseBackup`이 JSON → `app === "word-smart"` → `version`(앱보다 크면 거부, 작으면 `migrate`로 변환) → `data`가 객체인지(없거나 다른 형이면 거부. 빈 단어장으로 덮어쓰지 않기 위해, 2026-10-27) → `parseStore` 순으로 검사한다. 통과하면 단어 수와 내보낸 시각을 보여주는 확인 창을 거친 뒤 저장본 전체를 바꾼다(`useStore().replace`). 오늘의 진행 상태도 파일 것으로 바뀐다고 알린다.
 - 백업 안내(Word List 화면, `app/backup-notice.tsx`; Backup 링크도 그 화면 제목 옆): `needsBackupReminder` = 단어 50개 초과 ∧ (백업 기록 없음 ∨ 14일 경과) ∧ 미룸 기간 아님. '7일 뒤에 다시'는 `backupSnoozedUntil`에 저장.
 - 전체 초기화(백업 화면 맨 아래): 확인 창 → `prompt`에 `DELETE` 입력 → 이 기기의 알림 구독을 끄고(`app/push-client.ts`, 서버 목록에서 지우고 브라우저 구독 해제) → `useStore().reset()`이 저장소 키를 지운다. 알림을 못 끄면 데이터는 지우되 "Today에서 끄라"고 안내한다.
 
@@ -547,7 +547,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 ### 13.3 흐름과 파일
 
-- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면 구독을 되돌린다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
+- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면(응답 오류든 네트워크 예외든) 구독을 되돌리고, 409면 상한이 찼다고 안내한다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
 - **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(https 주소, 키 2개), 같은 기기는 하나만 둔다.
 - **보내기** (`app/api/push/send/route.ts` → `lib/push-send.ts`): `Authorization: Bearer <PUSH_CRON_SECRET>` 헤더가 맞을 때만 동작(주소에 비밀 값을 넣으면 로그에 남으므로 헤더만). 지금이 알림 시각(한국 시간 시 단위)이 아니면 보내지 않는다(`?force=1`이면 보낸다). 모든 구독에 `web-push`로 고정 문구를 보내고, 404·410(기기가 구독을 끊음)은 목록에서 지운다. TTL 1시간.
 - **시험** (`app/api/push/test/route.ts`): 카드의 "Send a test". 그 기기의 endpoint를 알아야만 보낼 수 있다.
@@ -580,7 +580,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 - 아이폰은 홈 화면 아이콘으로 열었을 때만 켤 수 있고(iOS 16.4 이상), 사파리 탭에서는 "홈 화면에 추가" 안내만 보인다.
 - cron-job.org가 몇 분 늦게 부를 수 있다. 서버는 "그 시각(시 단위)"만 확인하므로 59분까지는 보낸다.
 - 알림을 끄지 않고 홈 화면 아이콘을 지우면 구독이 남는다. 다음 보내기 때 애플이 404·410을 돌려주면 서버가 지운다.
-- 구독 등록(`POST /api/push/subscribe`)은 인증 없이 누구나 부를 수 있다. 배포 주소를 아는 사람이 알림을 켜면 그 사람도 알림을 받는다. 혼자 쓰는 앱이라 감수하되, 목록 상한을 10개(확정)로 두어(넘으면 409) 저장 파일이 커지는 것은 막는다(2026-10-26). 다른 사람이 10개를 채워 내 새 기기가 거부되면, Vercel 대시보드 → Storage → Blob에서 `push/subscriptions.json`을 지우고 내 기기에서 다시 켠다.
+- 구독 등록(`POST /api/push/subscribe`)은 인증 없이 누구나 부를 수 있다. 배포 주소를 아는 사람이 알림을 켜면 그 사람도 알림을 받는다. 혼자 쓰는 앱이라 감수하되, 목록 상한을 10개(확정)로 두어(넘으면 409) 저장 파일이 커지는 것은 막는다(2026-10-26). 다른 사람이 10개를 채워 내 새 기기가 거부되면, Vercel 대시보드 → Storage → Blob에서 `push/subscriptions.json`을 지운다. 이미 켜 둔 기기는 "Send a test"를 누르면 서버가 404를 돌려주고 띠가 꺼진 상태로 돌아가므로, 그 자리에서 다시 켠다(2026-10-27).
 - 개발 컴퓨터의 브라우저 창(Claude 미리보기)은 알림 권한이 막혀 있어 "Notifications are blocked" 상태까지만 확인했다. 실제 수신은 배포 뒤 폰에서 확인한다.
 
 ## 변경 이력
@@ -597,3 +597,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.8 | 2026-10-26 | 아이콘을 흰 바탕 핀 스트라이프 + W로 바꾸고 알림 배지 badge-96.png 추가 (2장, 9장, 13.2). W는 Playfair Display 900 글꼴 파일에서 읽어 그림(opentype.js, 개발용) | Iron man |
 | 0.9 | 2026-10-26 | 교차 검토 4회 반영: 서버로 가는 데이터에 구독 정보 명시(0.1·0.3·1장), NEXT_PUBLIC_ 예외, 알림 띠 상태·안내 줄, 알림 시각 고정 확정, 구독 상한 10개(13.6), 배지·opentype.js 설명, 테스트 계획·체크리스트에 알림, 테스트 108개 | Iron man |
 | 1.0 | 2026-10-26 | 교차 검토 5회 반영: .vercelignore(11장·9장), 전체 초기화가 알림도 끔(0.3·8장), Blob은 Private로(13.5), 상한 찼을 때 푸는 방법(13.6), VAPID_SUBJECT 임시 값(13.4), 0.2 띠 상태, L1에 503·off_hours, ⑥에 시험 알림 | Iron man |
+| 1.1 | 2026-10-27 | Gap 분석 높음·중간 4건 반영: 시험 알림 실패를 410·502로 돌려주고 화면이 꺼진 상태로 복귀, 켜기 중 네트워크 예외도 구독 되돌림, data 없는 백업 파일 거부, 13.6 복구 절차를 화면 동작에 맞춤 | Iron man |

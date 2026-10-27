@@ -52,6 +52,13 @@ test("parseBackup rejects files that are not from this app", () => {
   assert.equal(r.ok === false && r.reason, "not_this_app");
 });
 
+test("parseBackup rejects a file whose data is missing or not an object (would wipe the store)", () => {
+  for (const data of [undefined, null, "x", 3, []]) {
+    const r = parseBackup(JSON.stringify({ app: "word-smart", version: 1, exportedAt: NOW.toISOString(), data }));
+    assert.equal(r.ok === false && r.reason, "unreadable", `data=${JSON.stringify(data)}`);
+  }
+});
+
 test("parseBackup rejects a newer version but accepts an older one", () => {
   const newer = parseBackup(JSON.stringify({ app: "word-smart", version: 2, data: emptyStore() }));
   assert.equal(newer.ok === false && newer.reason, "newer_version");
