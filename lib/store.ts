@@ -82,12 +82,49 @@ function toWord(v: unknown): Word | null {
   return word;
 }
 
+// 깨진 항목(손으로 고친 백업, 옛 버전)은 버린다. 하나 때문에 화면 전체가 멈추지 않게 하기 위해서다 (DESIGN.md 4장).
+function isIsoLike(v: unknown): v is string {
+  return typeof v === "string" && !Number.isNaN(Date.parse(v));
+}
+
+function isCount(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0;
+}
+
+function toLog(v: unknown): Log | null {
+  if (!isRecord(v) || typeof v.wordId !== "string" || !isIsoLike(v.at)) return null;
+  if (v.answer !== "known" && v.answer !== "unknown") return null;
+  const log: Log = { wordId: v.wordId, at: v.at, answer: v.answer };
+  if (v.example === "voa" || v.example === "dictionary" || v.example === "none") log.example = v.example;
+  return log;
+}
+
+function toHardItem(v: unknown): HardItem | null {
+  if (!isRecord(v) || typeof v.wordId !== "string" || !isIsoLike(v.savedAt)) return null;
+  return { wordId: v.wordId, savedAt: v.savedAt };
+}
+
+function toRound(v: unknown): RoundRecord | null {
+  if (!isRecord(v) || !isIsoLike(v.at) || typeof v.date !== "string") return null;
+  return { at: v.at, date: v.date };
+}
+
 // 오늘의 진행 상태를 읽는다. 숫자가 아닌 completed(옛 데이터·손으로 고친 백업)는 0으로 두어 화면에 "NaN/5"가 나오지 않게 한다.
+// 진행 중인 회차(current)는 시각·단어 목록·답한 수가 온전할 때만 받고, 아니면 없는 것으로 본다(복습 화면이 빈 채로 멈추지 않게).
 function toProgress(v: unknown, fallback: Progress): Progress {
   if (!isRecord(v)) return fallback;
-  const completed = typeof v.completed === "number" && Number.isFinite(v.completed) ? Math.max(0, Math.floor(v.completed)) : 0;
+  const completed = isCount(v.completed) ? Math.floor(v.completed) : 0;
   const progress: Progress = { date: typeof v.date === "string" ? v.date : "", completed };
-  if (isRecord(v.current) && Array.isArray(v.current.wordIds)) progress.current = v.current as Progress["current"];
+  const c = v.current;
+  if (
+    isRecord(c) &&
+    isIsoLike(c.startedAt) &&
+    Array.isArray(c.wordIds) &&
+    c.wordIds.every((id) => typeof id === "string") &&
+    isCount(c.answered)
+  ) {
+    progress.current = { startedAt: c.startedAt, wordIds: c.wordIds as string[], answered: Math.floor(c.answered) };
+  }
   return progress;
 }
 
@@ -104,11 +141,11 @@ export function parseStore(raw: string): { store: Store; corrupt: boolean } {
     const store: Store = {
       version: 1,
       words: data.words.map(toWord).filter((w): w is Word => w !== null),
-      logs: Array.isArray(data.logs) ? (data.logs as Log[]) : [],
-      hard: Array.isArray(data.hard) ? (data.hard as HardItem[]) : [],
+      logs: Array.isArray(data.logs) ? data.logs.map(toLog).filter((l): l is Log => l !== null) : [],
+      hard: Array.isArray(data.hard) ? data.hard.map(toHardItem).filter((h): h is HardItem => h !== null) : [],
       progress,
     };
-    if (Array.isArray(data.rounds)) store.rounds = data.rounds as RoundRecord[];
+    if (Array.isArray(data.rounds)) store.rounds = data.rounds.map(toRound).filter((r): r is RoundRecord => r !== null);
     if (typeof data.firstUsedAt === "string") store.firstUsedAt = data.firstUsedAt;
     if (typeof data.lastBackupAt === "string") store.lastBackupAt = data.lastBackupAt;
     if (typeof data.backupSnoozedUntil === "string") store.backupSnoozedUntil = data.backupSnoozedUntil;

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { completedToday, ROUNDS_PER_DAY } from "@/lib/quiz";
-import { useStore } from "@/lib/use-store";
+import { useKstMidnightTick, useStore } from "@/lib/use-store";
 
 // 홈 화면의 'Today N/5'와 'Start review' 버튼. 저장소를 읽어야 해서 클라이언트 컴포넌트다.
 export default function TodayProgress() {
   const { ready, store } = useStore();
+  useKstMidnightTick(); // 자정을 넘기면 다시 그려서 N/5가 어제 값으로 남지 않게 한다
   // 오늘 날짜는 브라우저에서 저장소가 준비된 뒤에만 읽는다 (미리 그리는 단계에서는 현재 시각을 쓸 수 없다).
   const completed = ready ? Math.min(completedToday(store), ROUNDS_PER_DAY) : 0;
   const hasWords = store.words.length > 0;

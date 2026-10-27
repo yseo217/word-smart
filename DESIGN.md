@@ -202,7 +202,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 ## 4. 데이터 모델
 
-모두 `localStorage` 한 키(`wordsmart:v1`)에 JSON으로 저장한다. 읽을 수 없는(깨진) 데이터를 덮어쓸 때는 그 원문을 `wordsmart:v1:corrupt:<시각>` 키에 따로 보관하고, 전체 초기화는 이 사본 키들도 함께 지운다. 읽을 때 `progress.completed`가 숫자가 아니면 0으로 둔다(화면에 "NaN/5"가 나오지 않게, 2026-10-26).
+모두 `localStorage` 한 키(`wordsmart:v1`)에 JSON으로 저장한다. 읽을 수 없는(깨진) 데이터를 덮어쓸 때는 그 원문을 `wordsmart:v1:corrupt:<시각>` 키에 따로 보관하고, 전체 초기화는 이 사본 키들도 함께 지운다. 읽을 때 `progress.completed`가 숫자가 아니면 0으로 둔다(화면에 "NaN/5"가 나오지 않게, 2026-10-26). 깨진 항목은 버린다(2026-10-27): `logs`·`hard`·`rounds`의 원소는 id·시각·답이 온전한 것만 남기고, 진행 중 회차 `progress.current`는 시각·단어 목록·답한 수가 모두 맞을 때만 받는다(아니면 없는 것으로 보고 새 회차를 시작한다). 저장이 막힌 브라우저에서는 `useStore().saveFailed`가 참이 되고, 모든 화면 위에 공통 경고(`app/save-warning.tsx`)가 보인다.
 
 ```ts
 type Answer = "known" | "unknown";
@@ -269,6 +269,7 @@ type Store = {
 **구현 메모** (`lib/quiz.ts`, `app/review/page.tsx`)
 - `/review`에 들어오면 진행 중인 회차가 없을 때 자동으로 시작한다. 홈의 '복습 시작'은 이 화면으로 가는 링크다.
 - 자정을 넘겨 끝난 회차는 시작한 날로 센다: 회차의 `startedAt`이 오늘(KST)이 아니면 오늘 `completed`에 더하지 않는다.
+- 앱을 열어 둔 채 자정을 넘기면 Today 카드와 탭 바의 N/5가 저절로 0으로 바뀐다(2026-10-27): `useKstMidnightTick`(`lib/use-store.ts`)이 다음 KST 0시에 맞춘 타이머와, 폰이 잠들었다 깨어날 때의 `visibilitychange`로 날짜가 바뀌었으면 화면을 다시 그린다.
 - 회차에 있던 단어가 지워졌으면 그 회차는 버리고 새로 뽑는다.
 - 회차를 끝내면 결과(오늘 횟수, 어려운 단어 목록 추가·제외)를 보여주고, '한 회차 더'를 누를 때까지 다음 회차를 시작하지 않는다.
 - 'Look it up'을 누르면 응답은 즉시 기록하되 화면은 그 단어에 머문다(`lookedUp` 상태). 예문을 다시 볼 수 있고 'Open Google' 링크(새 탭)와 'Next' 버튼이 보인다. 그 응답으로 회차가 끝났으면 요약은 'Next'를 누른 뒤에 보여준다. 'I remember'는 바로 다음 단어로 넘어간다.
@@ -336,6 +337,7 @@ type VoaCorpus = {
 - 저장 형태는 기사별 문장 배열이다 (`{ url, title, sentences: string[] }`). 앞뒤 문장은 이웃 원소이고, 예문 id는 `voa:<모음 안의 기사 순번>:<문장 순번>`이다(VOA 기사 번호가 아니라 배열 순번이라, 모음을 다시 만들면 바뀐다). 수준(`level`)은 미리 저장하지 않고 요청할 때 계산한다(빈도 목록을 바꿔도 모음을 다시 만들 필요가 없도록).
 - **통신사 기사 구분 규칙** (기사 12개로 확인, 2026-10-25): 통신사 표기는 사진 설명의 `(AP Photo/...)`와 본문 중간의 **짧은 크레디트 문단** 두 군데에 나온다. 사진 설명은 사진 저작자 표시일 뿐이라 기사를 제외할 이유가 아니다. 제외 기준은 크레디트 문단이다.
   - 제외하는 형태: `... reported (on) this story for (The) Associated Press. ... adapted it for VOA Learning English.` / `... wrote this story for The Associated Press. ... adapted it for VOA Learning English.` / `... Additional reporting came from The Associated Press.`
+  - 제외하는 형태(2026-10-27 추가, PLAN 24 점검에서 발견): `... adapted this story based on an AFP report.` / `... wrote this story, based on reports from ..., The Associated Press and Reuters.` — 첫 모음 102개 중 2개가 이 꼴로 들어와 있어 규칙(`(adapted|wrote) … based on … AP/AFP/Reuters`)을 더하고 그 2개를 뺐다. Reuters·AFP 표기는 본문 인용("told AFP", "Reuters reported")으로는 흔히 나오며, 그것은 VOA 자체 기사라 남긴다.
   - 남기는 형태: `... wrote this story/report for Learning English.` (VOA 자체 기사)
   - 규칙: 260자 이하의 문단 중 `(reported|wrote) ... for (The )?(Associated Press|Reuters|AFP|Agence France-Presse)`, `adapted it for VOA`, `Additional reporting came from ... (Associated Press|Reuters|AFP)` 중 하나라도 맞으면 그 기사 전체를 제외한다. "adapted it for VOA"만 있는 경우도 다른 매체를 고쳐 쓴 것으로 보고 제외한다(보수적 판단).
   - 본문 문단이 2개 이하인 페이지(영상·팟캐스트 안내 등)와 제목이 "Learning English Podcast"인 페이지도 뺀다.
@@ -443,6 +445,7 @@ app/
   today-progress.tsx    홈 카드: 오늘 횟수 N/5와 상태별 버튼
   reminders.tsx         홈의 알림 띠: 켜기/끄기, 시험 알림 (13장)
   push-client.ts        이 기기의 알림 끄기 (알림 띠와 전체 초기화가 같이 씀)
+  save-warning.tsx      저장이 막힌 브라우저일 때 모든 화면 위에 보이는 경고 (layout.tsx가 그림)
   backup-notice.tsx     백업 권유 안내 (Word List 화면)
   page.tsx              홈 (Today)
   words/page.tsx        단어장 (Word List)
@@ -496,8 +499,8 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 | # | 내용 | 언제 정하나 |
 |---|---|---|
-| 1 | **VOA 문장 모음의 범위.** 첫 모음(2026-10-25): 최근 기사 300개를 받아 **102개 유지, 3,252문장, 313KB**. 제외는 통신사 134, 본문 부족(too_short) 60, 팟캐스트 2, 퀴즈 1, 본문 없음 1. 통신사 기사가 절반이라 유지되는 기사는 받은 수의 1/3 정도다. 더 모을지(예: 1,000개 → 약 20분, 1MB 안팎), `too_short` 60개가 정말 짧은 글인지 추출 실수인지 확인할 것. | PLAN 23번 (통계의 예문 제공률이 60% 미만일 때) |
-| 1-1 | **통신사 기사 구분 규칙의 검증.** 기사 12개로 표기 형태를 확인해 6.4에 규칙을 적었다. 다만 Reuters와 AFP 표기는 표본에 한 번도 나오지 않아 확인하지 못했고, 크레디트가 없는 통신사 기사가 있는지도 모른다. 모음을 만든 뒤 제외된 기사를 몇십 개 직접 훑어봐야 한다. | PLAN 24번 (필수) |
+| 1 | **VOA 문장 모음의 범위.** 첫 모음(2026-10-25): 최근 기사 300개를 받아 **102개 유지, 3,252문장, 313KB**(2026-10-27 통신사 규칙 보강으로 2개를 빼 지금은 **100개, 3,197문장, 314KB**). 제외는 통신사 134, 본문 부족(too_short) 60, 팟캐스트 2, 퀴즈 1, 본문 없음 1. 통신사 기사가 절반이라 유지되는 기사는 받은 수의 1/3 정도다. 더 모을지(예: 1,000개 → 약 20분, 1MB 안팎), `too_short` 60개가 정말 짧은 글인지 추출 실수인지 확인할 것. | PLAN 23번 (통계의 예문 제공률이 60% 미만일 때) |
+| 1-1 | **통신사 기사 구분 규칙의 검증.** 2026-10-27 점검(PLAN 24): 유지된 102개를 전부 훑어 "based on … AFP/AP/Reuters report" 꼴 2개를 찾아 규칙을 더하고 뺐다(6.4). Reuters·AFP 표기는 본문 인용으로 확인됨. 남은 것: VOA 크레디트 문단 뒤에 오는 통신사 문단(6.4 "알려진 빈틈")은 제외된 기사를 다시 받아야 볼 수 있어 모음을 확대할 때(PLAN 23) 함께 본다. | PLAN 23번 때 |
 | ~~1-3~~ | **수준 계산의 숫자** → 실제 예문 약 90개를 보고 **4,000/8,000/13,000/20,000위, 10% 제외(올림), 40단어 초과 시 +1로 확정** (2026-10-26, 6.6, PLAN 22번) | 완료 |
 | 1-2 | **VOA 모음의 단어 적중률.** 표본 40개에서는 어려운 단어가 0건이었으나 표본이 너무 작다. 모음을 만든 뒤 단어장 단어의 몇 %가 걸리는지 재 본다. 낮으면 먼저 모음을 확대한다(PLAN 23번). Wikinews 같은 다른 출처를 더하는 것은 PRD의 출처 순서(VOA → 사전 → 없음)를 바꾸는 일이라 PRD 변경이 필요한 선택지다. | PLAN 23번 (통계의 예문 제공률이 60% 미만일 때) |
 | 2 | 불규칙 동사·명사 복수형 표를 얼마나 넓게 할지 (지금 `lib/forms.ts`에 약 135개) | 예문을 쓰다 빠진 것이 보이면 추가 |
@@ -598,3 +601,5 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.9 | 2026-10-26 | 교차 검토 4회 반영: 서버로 가는 데이터에 구독 정보 명시(0.1·0.3·1장), NEXT_PUBLIC_ 예외, 알림 띠 상태·안내 줄, 알림 시각 고정 확정, 구독 상한 10개(13.6), 배지·opentype.js 설명, 테스트 계획·체크리스트에 알림, 테스트 108개 | Iron man |
 | 1.0 | 2026-10-26 | 교차 검토 5회 반영: .vercelignore(11장·9장), 전체 초기화가 알림도 끔(0.3·8장), Blob은 Private로(13.5), 상한 찼을 때 푸는 방법(13.6), VAPID_SUBJECT 임시 값(13.4), 0.2 띠 상태, L1에 503·off_hours, ⑥에 시험 알림 | Iron man |
 | 1.1 | 2026-10-27 | Gap 분석 높음·중간 4건 반영: 시험 알림 실패를 410·502로 돌려주고 화면이 꺼진 상태로 복귀, 켜기 중 네트워크 예외도 구독 되돌림, data 없는 백업 파일 거부, 13.6 복구 절차를 화면 동작에 맞춤 | Iron man |
+| 1.2 | 2026-10-27 | Gap 낮음 3건 반영: 자정 넘김 때 N/5 자동 갱신(5.1), 깨진 기록·목록·진행 중 회차 걸러내기(4장), 저장 실패 공통 경고(4장·9장) | Iron man |
+| 1.3 | 2026-10-27 | PLAN 24 점검: 통신사 크레디트 규칙 보강과 모음 2개 제거(6.4·10번 1·1-1), 백업 왕복·자정 넘김은 테스트로 확인 | Iron man |

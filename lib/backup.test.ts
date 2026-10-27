@@ -39,6 +39,27 @@ test("makeBackup wraps the store with app, version and time; parseBackup reads i
   }
 });
 
+test("backup round trip keeps every part of the store (PLAN 24 check)", () => {
+  const base = withWords(2);
+  const [a, b] = base.words;
+  const full = {
+    ...base,
+    logs: [{ wordId: a.id, at: NOW.toISOString(), answer: "unknown" as const, example: "voa" as const }],
+    hard: [{ wordId: b.id, savedAt: NOW.toISOString() }],
+    rounds: [{ at: NOW.toISOString(), date: "2026-10-25" }],
+    progress: { date: "2026-10-25", completed: 2, current: { startedAt: NOW.toISOString(), wordIds: [a.id, b.id], answered: 1 } },
+    firstUsedAt: "2026-10-20T00:00:00.000Z",
+    backupSnoozedUntil: "2026-11-01T00:00:00.000Z",
+  };
+  const text = JSON.stringify(makeBackup(full, NOW), null, 2); // 파일로 내보낸 모양 그대로
+  const r = parseBackup(text);
+  assert.equal(r.ok, true);
+  // 내보내기는 백업 시각을 찍고 미룸(snooze)을 푼다(markBackedUp). 그 둘 말고는 모두 그대로 돌아와야 한다.
+  const expected: Store = { ...full, lastBackupAt: NOW.toISOString() };
+  delete expected.backupSnoozedUntil;
+  if (r.ok) assert.deepEqual(r.store, expected);
+});
+
 test("backupFileName carries the KST date", () => {
   assert.equal(backupFileName(NOW), "word-smart-backup-2026-10-25.json");
   assert.equal(backupFileName(new Date("2026-10-25T15:30:00.000Z")), "word-smart-backup-2026-10-26.json");
