@@ -202,7 +202,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 ## 4. 데이터 모델
 
-모두 `localStorage` 한 키(`wordsmart:v1`)에 JSON으로 저장한다. 읽을 수 없는(깨진) 데이터를 덮어쓸 때는 그 원문을 `wordsmart:v1:corrupt:<시각>` 키에 따로 보관하고, 전체 초기화는 이 사본 키들도 함께 지운다. 읽을 때 `progress.completed`가 숫자가 아니면 0으로 둔다(화면에 "NaN/5"가 나오지 않게, 2026-10-26).
+모두 `localStorage` 한 키(`wordsmart:v1`)에 JSON으로 저장한다. 읽을 수 없는(깨진) 데이터를 덮어쓸 때는 그 원문을 `wordsmart:v1:corrupt:<시각>` 키에 따로 보관하고, 전체 초기화는 이 사본 키들도 함께 지운다. 읽을 때 `progress.completed`가 숫자가 아니면 0으로 둔다(화면에 "NaN/5"가 나오지 않게, 2026-10-26). 깨진 항목은 버린다(2026-10-27): `logs`·`hard`·`rounds`의 원소는 id·시각·답이 온전한 것만 남기고, 진행 중 회차 `progress.current`는 시각·단어 목록·답한 수가 모두 맞을 때만 받는다(아니면 없는 것으로 보고 새 회차를 시작한다). 저장이 막힌 브라우저에서는 `useStore().saveFailed`가 참이 되고, 모든 화면 위에 공통 경고(`app/save-warning.tsx`)가 보인다.
 
 ```ts
 type Answer = "known" | "unknown";
@@ -269,6 +269,7 @@ type Store = {
 **구현 메모** (`lib/quiz.ts`, `app/review/page.tsx`)
 - `/review`에 들어오면 진행 중인 회차가 없을 때 자동으로 시작한다. 홈의 '복습 시작'은 이 화면으로 가는 링크다.
 - 자정을 넘겨 끝난 회차는 시작한 날로 센다: 회차의 `startedAt`이 오늘(KST)이 아니면 오늘 `completed`에 더하지 않는다.
+- 앱을 열어 둔 채 자정을 넘기면 Today 카드와 탭 바의 N/5가 저절로 0으로 바뀐다(2026-10-27): `useKstMidnightTick`(`lib/use-store.ts`)이 다음 KST 0시에 맞춘 타이머와, 폰이 잠들었다 깨어날 때의 `visibilitychange`로 날짜가 바뀌었으면 화면을 다시 그린다.
 - 회차에 있던 단어가 지워졌으면 그 회차는 버리고 새로 뽑는다.
 - 회차를 끝내면 결과(오늘 횟수, 어려운 단어 목록 추가·제외)를 보여주고, '한 회차 더'를 누를 때까지 다음 회차를 시작하지 않는다.
 - 'Look it up'을 누르면 응답은 즉시 기록하되 화면은 그 단어에 머문다(`lookedUp` 상태). 예문을 다시 볼 수 있고 'Open Google' 링크(새 탭)와 'Next' 버튼이 보인다. 그 응답으로 회차가 끝났으면 요약은 'Next'를 누른 뒤에 보여준다. 'I remember'는 바로 다음 단어로 넘어간다.
@@ -443,6 +444,7 @@ app/
   today-progress.tsx    홈 카드: 오늘 횟수 N/5와 상태별 버튼
   reminders.tsx         홈의 알림 띠: 켜기/끄기, 시험 알림 (13장)
   push-client.ts        이 기기의 알림 끄기 (알림 띠와 전체 초기화가 같이 씀)
+  save-warning.tsx      저장이 막힌 브라우저일 때 모든 화면 위에 보이는 경고 (layout.tsx가 그림)
   backup-notice.tsx     백업 권유 안내 (Word List 화면)
   page.tsx              홈 (Today)
   words/page.tsx        단어장 (Word List)
@@ -598,3 +600,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 0.9 | 2026-10-26 | 교차 검토 4회 반영: 서버로 가는 데이터에 구독 정보 명시(0.1·0.3·1장), NEXT_PUBLIC_ 예외, 알림 띠 상태·안내 줄, 알림 시각 고정 확정, 구독 상한 10개(13.6), 배지·opentype.js 설명, 테스트 계획·체크리스트에 알림, 테스트 108개 | Iron man |
 | 1.0 | 2026-10-26 | 교차 검토 5회 반영: .vercelignore(11장·9장), 전체 초기화가 알림도 끔(0.3·8장), Blob은 Private로(13.5), 상한 찼을 때 푸는 방법(13.6), VAPID_SUBJECT 임시 값(13.4), 0.2 띠 상태, L1에 503·off_hours, ⑥에 시험 알림 | Iron man |
 | 1.1 | 2026-10-27 | Gap 분석 높음·중간 4건 반영: 시험 알림 실패를 410·502로 돌려주고 화면이 꺼진 상태로 복귀, 켜기 중 네트워크 예외도 구독 되돌림, data 없는 백업 파일 거부, 13.6 복구 절차를 화면 동작에 맞춤 | Iron man |
+| 1.2 | 2026-10-27 | Gap 낮음 3건 반영: 자정 넘김 때 N/5 자동 갱신(5.1), 깨진 기록·목록·진행 중 회차 걸러내기(4장), 저장 실패 공통 경고(4장·9장) | Iron man |

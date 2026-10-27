@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { completedToday, ROUNDS_PER_DAY } from "@/lib/quiz";
-import { useStore } from "@/lib/use-store";
+import { useKstMidnightTick, useStore } from "@/lib/use-store";
 
 // 하단 탭 바: Today / Word List / Still Learning(어려운 단어). 복습 화면(/review)은 Today 탭에 속한다.
 // Today 탭 위에는 오늘 끝낸 회차 수를 N/5로 보여준다.
@@ -16,6 +16,7 @@ const TABS = [
 export default function TabBar() {
   const pathname = usePathname();
   const { ready, store } = useStore();
+  useKstMidnightTick(); // 자정을 넘기면 다시 그린다
   // 오늘 날짜는 브라우저에서 저장소가 준비된 뒤에만 읽는다 (미리 그리는 단계에서는 현재 시각을 쓸 수 없다).
   const completed = ready ? Math.min(completedToday(store), ROUNDS_PER_DAY) : null;
 

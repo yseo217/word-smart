@@ -202,8 +202,32 @@ test("parseStore never yields a non-number progress count (no NaN/5 on screen)",
   assert.deepEqual(read({ date: "2026-10-26", completed: "3" }), { date: "2026-10-26", completed: 0 }); // 글자로 저장된 숫자
   assert.deepEqual(read({ completed: 2.7 }), { date: "", completed: 2 });
   assert.deepEqual(read("nope"), { date: "", completed: 0 });
-  const withRound = read({ date: "2026-10-26", completed: 1, current: { startedAt: "x", wordIds: ["a"], answered: 0 } });
+  const withRound = read({ date: "2026-10-26", completed: 1, current: { startedAt: "2026-10-26T01:00:00.000Z", wordIds: ["a"], answered: 0 } });
   assert.deepEqual(withRound.current?.wordIds, ["a"]);
+});
+
+test("parseStore drops broken logs, hard items, rounds and an incomplete in-progress round", () => {
+  const raw = JSON.stringify({
+    version: 1,
+    words: [{ id: "w", text: "apple" }],
+    logs: [{ wordId: "w", at: "2026-10-26T00:00:00.000Z", answer: "known", example: "voa" }, { wordId: "w", at: "not a date", answer: "known" }, { wordId: "w", at: "2026-10-26T00:00:00.000Z", answer: "maybe" }, "junk"],
+    hard: [{ wordId: "w", savedAt: "2026-10-26T00:00:00.000Z" }, { wordId: "w" }, null],
+    rounds: [{ at: "2026-10-26T00:00:00.000Z", date: "2026-10-26" }, { at: "x", date: "2026-10-26" }],
+    progress: { date: "2026-10-26", completed: 1, current: { startedAt: "garbage", wordIds: ["w"], answered: 0 } },
+  });
+  const { store, corrupt } = parseStore(raw);
+  assert.equal(corrupt, false);
+  assert.equal(store.logs.length, 1);
+  assert.equal(store.logs[0].example, "voa");
+  assert.equal(store.hard.length, 1);
+  assert.equal(store.rounds?.length, 1);
+  assert.equal(store.progress.current, undefined); // startedAt이 날짜가 아니라 진행 중 회차를 버린다
+  assert.equal(store.progress.completed, 1);
+
+  const good = parseStore(JSON.stringify({ version: 1, words: [], progress: { date: "2026-10-26", completed: 0, current: { startedAt: "2026-10-26T01:00:00.000Z", wordIds: ["a", "b"], answered: 1 } } }));
+  assert.deepEqual(good.store.progress.current, { startedAt: "2026-10-26T01:00:00.000Z", wordIds: ["a", "b"], answered: 1 });
+  const badAnswered = parseStore(JSON.stringify({ version: 1, words: [], progress: { date: "2026-10-26", completed: 0, current: { startedAt: "2026-10-26T01:00:00.000Z", wordIds: ["a"], answered: "2" } } }));
+  assert.equal(badAnswered.store.progress.current, undefined);
 });
 
 test("withFirstUse stamps the first-use time once and parseStore keeps it", () => {

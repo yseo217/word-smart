@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Oswald, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import SaveWarning from "./save-warning";
 import TabBar from "./tab-bar";
 
 // 글꼴 (DESIGN.md 2장): 제목은 Playfair Display, 본문·버튼은 Inter, 숫자·스코어는 Oswald
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="band">
           <p className="mx-auto w-full max-w-md px-4 py-3 text-center font-display text-base font-black uppercase tracking-[0.3em]">Word Smart</p>
         </div>
+        <SaveWarning />
         {children}
         <TabBar />
       </body>
