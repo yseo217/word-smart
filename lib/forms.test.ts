@@ -7,6 +7,18 @@ const has = (base: string, ...forms: string[]) => {
   for (const f of forms) assert.ok(all.includes(f), `${base} should include ${f}`);
 };
 
+test("curly apostrophes in VOA text match a word typed with a straight one", () => {
+  // VOA 본문은 ’를 쓴다. o'clock으로 등록한 단어가 "o’clock"이 든 문장에서 후보로 잡히고 강조된다.
+  assert.equal(containsForm("We met at eight o’clock sharp.", "o'clock"), true);
+  assert.equal(containsFormAsCommonWord("We met at eight o’clock sharp.", "o'clock"), true);
+  assert.equal(containsForm("We met at eight o'clock sharp.", "o'clock"), true);
+  assert.deepEqual([..."It’s eight o’clock now.".matchAll(formsRegExp("o'clock"))].map((m) => m[0]), ["o’clock"]);
+  // 소유격은 곧은 것과 같은 규칙으로 잡힌다: "cat’s"에서 cat
+  assert.equal(containsForm("The cat’s tail.", "cat"), true);
+  // 둥근 아포스트로피 바로 뒤에 붙은 글자는 단어 시작이 아니다: "o’clock" 안의 "clock"은 단어 clock이 아니다
+  assert.equal(containsForm("It is eight o’clock.", "clock"), false);
+});
+
 test("regular inflections", () => {
   has("walk", "walk", "walks", "walked", "walking");
   has("watch", "watches", "watched", "watching");

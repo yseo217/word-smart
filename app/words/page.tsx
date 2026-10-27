@@ -15,7 +15,6 @@ export default function WordsPage() {
   const { ready, store, corrupt, update } = useStore();
   const [value, setValue] = useState("");
   const [notice, setNotice] = useState<Notice>(null);
-  const [saveFailed, setSaveFailed] = useState(false);
   const [skipped, setSkipped] = useState<SkippedItem[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -27,8 +26,7 @@ export default function WordsPage() {
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    const { result, saved } = update((current) => addWords(current, value));
-    if (!saved) setSaveFailed(true);
+    const { result } = update((current) => addWords(current, value)); // 저장 실패는 모든 화면 공통 경고(app/save-warning.tsx)가 알린다
     const { added, skipped: failed } = result;
 
     if (added.length === 0) {
@@ -50,8 +48,7 @@ export default function WordsPage() {
   function handleRemove(id: string, text: string) {
     const sure = window.confirm(`Delete '${text}'?\nIts review history will be removed too.`);
     if (!sure) return;
-    const { saved } = update((current) => ({ store: removeWord(current, id), result: null }));
-    if (!saved) setSaveFailed(true);
+    update((current) => ({ store: removeWord(current, id), result: null }));
     setNotice({ kind: "ok", text: `Deleted '${text}'.` });
     setSkipped([]);
   }
@@ -67,11 +64,6 @@ export default function WordsPage() {
 
       <BackupNotice />
 
-      {saveFailed && (
-        <p role="alert" className="rounded-lg border border-amber-500 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
-          Storage is blocked in this browser. Your words will last only while this tab is open.
-        </p>
-      )}
       {corrupt && (
         <p role="alert" className="rounded-lg border border-amber-500 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
           Saved data could not be read. When you add a word, the old data is kept under a separate name.

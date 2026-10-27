@@ -26,9 +26,19 @@ function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   return out;
 }
 
+// 브라우저 구독 해제가 예외를 내도 흐름을 끊지 않는다 (해제 실패는 다음 보내기 때 404·410으로 정리된다).
+async function safeUnsubscribe(subscription: PushSubscription): Promise<void> {
+  try {
+    await subscription.unsubscribe();
+  } catch {
+    // 무시
+  }
+}
+
 async function detect(): Promise<Status> {
   if (!PUBLIC_KEY) return { kind: "not_configured" };
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  // iPadOS 사파리는 UA에 "Macintosh"라고 적으므로 터치 포인트로 가른다
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
   if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
     return isIOS && !standalone ? { kind: "need_install" } : { kind: "unsupported" };
@@ -84,10 +94,10 @@ export default function Reminders() {
         saved = null;
       }
       if (!saved || !saved.ok) {
-        await subscription.unsubscribe();
+        await safeUnsubscribe(subscription);
         setNotice(
           saved?.status === 409
-            ? "This server already has the maximum number of devices registered. See the design notes to clear the list."
+            ? "This server already has 10 devices registered. Turn reminders off on another device, or clear the list on the server (Vercel → Storage → Blob → push/subscriptions.json), then try again."
             : "Could not save the reminder on the server. Check your connection and try again.",
         );
         setStatus({ kind: "off", registration });
@@ -129,7 +139,7 @@ export default function Reminders() {
         setNotice("Test sent. It may take a few seconds to arrive.");
       } else if (res.status === 404 || res.status === 410) {
         // 서버에 이 기기가 없다(목록을 지웠거나 푸시 서비스가 구독을 끊음). 브라우저 구독도 풀고 꺼진 상태로 돌아가 다시 켤 수 있게 한다 (DESIGN 13.6).
-        await subscription.unsubscribe();
+        await safeUnsubscribe(subscription);
         setStatus({ kind: "off", registration });
         setNotice("This device is no longer registered on the server. Turn reminders on again.");
       } else {

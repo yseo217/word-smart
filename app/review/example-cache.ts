@@ -3,7 +3,10 @@
 import type { ExampleResult } from "@/lib/examples-core";
 
 export type ExampleState =
-  | { status: "loading" }
+  | { status: "loading"; previous?: DoneState } // '다른 예문 보기' 중에는 직전 예문을 그대로 보여주고 기록한다
+  | DoneState;
+
+export type DoneState =
   | {
       status: "done";
       result: ExampleResult;
@@ -53,7 +56,8 @@ export async function requestExample(wordId: string, text: string, seen: string[
     emit();
     return;
   }
-  states.set(wordId, { status: "loading" });
+  const keep = previous?.status === "done" && previous.result.ok ? previous : undefined;
+  states.set(wordId, { status: "loading", previous: keep });
   emit();
   let next: ExampleState;
   try {
@@ -61,23 +65,25 @@ export async function requestExample(wordId: string, text: string, seen: string[
     if (seen.length) params.set("skip", seen.join(","));
     const res = await fetch(`/api/example?${params}`);
     const result: ExampleResult = res.ok ? await res.json() : { ok: false };
-    if (!result.ok && previous?.status === "done" && previous.result.ok) {
+    if (!result.ok && keep) {
       // 더 찾았지만 없다: 마지막 예문은 그대로 두고 "더 없음"만 표시한다.
-      next = { ...previous, exhausted: true };
+      next = { ...keep, exhausted: true };
     } else {
       next = { status: "done", result, seen: result.ok ? [...seen, result.id] : seen };
     }
   } catch {
-    // 요청 자체가 실패했고 브라우저가 오프라인이라고 하면, 그 이유를 화면에 알려준다.
+    // 요청 자체가 실패했고 브라우저가 오프라인이라고 하면, 그 이유를 화면에 알려준다 ('다른 예문 보기' 때도).
     const offline = typeof navigator !== "undefined" && navigator.onLine === false;
-    next = previous?.status === "done" && previous.result.ok ? { ...previous, exhausted: true } : { status: "done", result: { ok: false }, seen, offline };
+    next = keep ? { ...keep, exhausted: true, offline } : { status: "done", result: { ok: false }, seen, offline };
   }
   states.set(wordId, next);
   emit();
 }
 
-// 답할 때 기록할 예문 종류. 아직 불러오는 중이면 undefined.
+// 답할 때 기록할 예문 종류. 처음 예문을 아직 불러오는 중이면 undefined, '다른 예문 보기' 중이면 보고 있던 직전 예문의 종류.
 export function exampleKindOf(state: ExampleState | undefined): "voa" | "dictionary" | "none" | undefined {
-  if (!state || state.status !== "done") return undefined;
-  return state.result.ok ? state.result.kind : "none";
+  if (!state) return undefined;
+  const shown = state.status === "done" ? state : state.previous;
+  if (!shown) return undefined;
+  return shown.result.ok ? shown.result.kind : "none";
 }

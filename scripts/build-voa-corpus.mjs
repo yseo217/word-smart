@@ -72,11 +72,12 @@ const decode = (s) =>
     .replace(/&[a-z]+;/gi, " ");
 
 const WIRE = [
-  /\b(reported|wrote)\b[^.]*\bfor (The )?(Associated Press|Reuters|AFP|Agence France[- ]Presse)\b/i,
+  // "Agence France Press"(e 없음) 같은 철자 변형도 잡는다 (2026-10-27, 모음에서 1건 발견)
+  /\b(reported|wrote)\b[^.]*\bfor (The )?(Associated Press|Reuters|AFP|Agence France[- ]Presse?)\b/i,
   /\badapted (it|this( story)?) for VOA\b/i,
   /\bAdditional reporting (came )?from\b[^.]*\b(Associated Press|Reuters|AFP)\b/i,
   // 2026-10-27 추가 (PLAN 24 점검): "… adapted this story based on an AFP report." / "… wrote this story, based on reports from …, The Associated Press and Reuters." 꼴이 빠져 있었다.
-  /\b(adapted|wrote)\b[^.]*\bbased on\b[^.]*\b(Associated Press|AP|Reuters|AFP|Agence France[- ]Presse)\b/i,
+  /\b(adapted|wrote)\b[^.]*\bbased on\b[^.]*\b(Associated Press|AP|Reuters|AFP|Agence France[- ]Presse?)\b/i,
 ];
 const CREDIT_END = /\b(wrote|reported|adapted|produced)\b[^.]*\b(for|by) (VOA )?Learning English\b/i;
 const SIGN_OFF = /^I['’]m [A-Z][A-Za-z.'-]+( [A-Z][A-Za-z.'-]+){0,2}\.$/;

@@ -19,8 +19,8 @@ export type SendOutcome = { endpoint: string; ok: boolean; status?: number; gone
 
 // 구독 하나에 알림을 보낸다. 404·410은 기기가 구독을 끊은 것이라 gone으로 표시해 목록에서 지울 수 있게 한다.
 export async function sendReminder(sub: PushSubscriptionRecord): Promise<SendOutcome> {
-  ensureVapid();
   try {
+    ensureVapid(); // 키·subject 형식이 틀리면 여기서 예외가 난다 → 500이 아니라 "보내기 실패"(502)로 돌려준다
     const res = await webpush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, JSON.stringify(reminderPayload()), {
       TTL: 60 * 60, // 1시간 안에 못 전하면 버린다 (다음 알림 시각이 곧 온다)
       urgency: "normal",

@@ -38,6 +38,9 @@ export default function ReviewPage() {
     update((s) => startRound(s));
   }, [ready, finished, lookedUp, word, update]);
 
+  // 회차 중간에 화면을 떠나면 예문 캐시를 비운다. 다음 회차에 같은 단어가 나와도 옛 예문·"더 없음" 상태를 쓰지 않게 (6.2).
+  useEffect(() => () => clearExamples(), []);
+
   // 회차의 단어들 중 아직 예문을 요청하지 않은 것을 한꺼번에 요청한다 (6.5).
   useEffect(() => {
     if (!current) return;

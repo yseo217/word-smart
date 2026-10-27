@@ -7,18 +7,21 @@ import type { ExampleState } from "./example-cache";
 export default function ExampleCard({ state, onAnother }: { state: ExampleState | undefined; onAnother: () => void }) {
   const box = "rounded-lg border border-zinc-200 p-4 dark:border-zinc-800";
 
-  if (!state || state.status === "loading") {
+  // '다른 예문 보기'를 불러오는 중에는 직전 예문을 그대로 두고 버튼만 "Finding…"으로 바꾼다 (카드가 비지 않게)
+  const shown = !state || state.status === "done" ? state : state.previous;
+  const busy = state?.status === "loading";
+  if (!shown) {
     return (
       <div className={`${box} text-sm text-zinc-600 dark:text-zinc-400`} aria-busy="true">
         Finding an example…
       </div>
     );
   }
-  const { result } = state;
+  const { result } = shown;
   if (!result.ok) {
     return (
       <div className={`${box} border-dashed text-sm text-zinc-600 dark:text-zinc-400`}>
-        {state.offline ? "Offline – examples need an internet connection." : "No example found for this word."}
+        {shown.offline ? "Offline – examples need an internet connection." : "No example found for this word."}
       </div>
     );
   }
@@ -37,11 +40,11 @@ export default function ExampleCard({ state, onAnother }: { state: ExampleState 
           </a>
           {result.source.license && ` · ${result.source.license}`}
         </span>
-        {state.exhausted ? (
-          <span className="min-h-9 content-center px-1">No more examples</span>
+        {shown.exhausted ? (
+          <span className="min-h-9 content-center px-1">{shown.offline ? "Offline – can't look for more" : "No more examples"}</span>
         ) : (
-          <button type="button" onClick={onAnother} className="min-h-9 rounded-md border border-zinc-300 px-3 dark:border-zinc-700">
-            Another example
+          <button type="button" onClick={onAnother} disabled={busy} aria-busy={busy} className="min-h-9 rounded-md border border-zinc-300 px-3 disabled:opacity-50 dark:border-zinc-700">
+            {busy ? "Finding…" : "Another example"}
           </button>
         )}
       </figcaption>
