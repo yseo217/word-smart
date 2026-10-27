@@ -68,11 +68,14 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
 
+// 백업으로 들어온 단어도 입력 검사를 거친다 (DESIGN.md 3장·8장). 규칙에 안 맞는 단어는 버리고, 글자는 정리한 꼴(소문자·곧은 아포스트로피)로 둔다.
 function toWord(v: unknown): Word | null {
   if (!isRecord(v) || typeof v.id !== "string" || typeof v.text !== "string") return null;
+  const check = validateWord(v.text, []);
+  if (!check.ok) return null;
   const word: Word = {
     id: v.id,
-    text: v.text,
+    text: check.text,
     addedAt: typeof v.addedAt === "string" ? v.addedAt : new Date(0).toISOString(),
     missTotal: typeof v.missTotal === "number" ? v.missTotal : 0,
     knownStreak: typeof v.knownStreak === "number" ? v.knownStreak : 0,
@@ -89,6 +92,18 @@ function isIsoLike(v: unknown): v is string {
 
 function isCount(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v) && v >= 0;
+}
+
+// 같은 id나 같은 글자의 단어가 둘 이상이면 앞의 것만 남긴다 (손으로 합친 백업 파일 대비).
+function dedupeWords(words: Word[]): Word[] {
+  const ids = new Set<string>();
+  const texts = new Set<string>();
+  return words.filter((w) => {
+    if (ids.has(w.id) || texts.has(w.text)) return false;
+    ids.add(w.id);
+    texts.add(w.text);
+    return true;
+  });
 }
 
 function toLog(v: unknown): Log | null {
@@ -120,8 +135,10 @@ function toProgress(v: unknown, fallback: Progress): Progress {
     isRecord(c) &&
     isIsoLike(c.startedAt) &&
     Array.isArray(c.wordIds) &&
+    c.wordIds.length > 0 &&
     c.wordIds.every((id) => typeof id === "string") &&
-    isCount(c.answered)
+    isCount(c.answered) &&
+    c.answered < c.wordIds.length // 단어가 없거나 이미 다 답한 회차는 "진행 중"이 아니다 (빈 복습 화면 방지)
   ) {
     progress.current = { startedAt: c.startedAt, wordIds: c.wordIds as string[], answered: Math.floor(c.answered) };
   }
@@ -140,7 +157,7 @@ export function parseStore(raw: string): { store: Store; corrupt: boolean } {
     const progress = toProgress(data.progress, base.progress);
     const store: Store = {
       version: 1,
-      words: data.words.map(toWord).filter((w): w is Word => w !== null),
+      words: dedupeWords(data.words.map(toWord).filter((w): w is Word => w !== null)),
       logs: Array.isArray(data.logs) ? data.logs.map(toLog).filter((l): l is Log => l !== null) : [],
       hard: Array.isArray(data.hard) ? data.hard.map(toHardItem).filter((h): h is HardItem => h !== null) : [],
       progress,

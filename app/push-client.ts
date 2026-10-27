@@ -6,11 +6,13 @@ export async function turnOffPushOnThisDevice(): Promise<boolean> {
   const registration = await navigator.serviceWorker.getRegistration("/");
   const subscription = await registration?.pushManager.getSubscription();
   if (!subscription) return false;
-  await fetch("/api/push/subscribe", {
+  const res = await fetch("/api/push/subscribe", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ endpoint: subscription.endpoint }),
   });
+  // 서버에서 못 지웠으면 브라우저 구독은 그대로 두고 실패를 알린다(부른 쪽이 "못 껐다"고 안내). 풀어 버리면 서버에는 남아 알림이 계속 간다.
+  if (!res.ok) throw new Error(`unsubscribe_failed_${res.status}`);
   await subscription.unsubscribe();
   return true;
 }

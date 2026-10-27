@@ -154,6 +154,7 @@ export function useStore() {
       // 저장소에 손댈 수 없으면 메모리만 비운다.
     }
     memoryRaw = null;
+    saveFailed = false; // 초기화했으니 "메모리에만 남아 있다"는 경고도 거둔다
     emit();
   }, []);
 

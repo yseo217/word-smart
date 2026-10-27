@@ -110,7 +110,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | **Free Dictionary API** | 사전 예문 | 키 없이 쓰는 무료 사전 서비스(Wiktionary 기반). 느리거나 오류일 수 있어 6초만 기다린다 | 사용 중 |
 | **VOA 문장 모음** (`data/voa-sentences.json`) | 기사 예문 | VOA Learning English 기사를 미리 문장으로 잘라 둔 파일. 퍼블릭 도메인이라 저장해도 된다 | 사용 중 |
 | **단어 빈도 목록** (`data/word-freq.json`) | 예문 수준 규칙 | 영어 단어 20,000개가 얼마나 흔한지 순위를 적은 표(OpenSubtitles 자막 기반, CC BY-SA 4.0). 이게 있어서 "예문이 단어보다 어렵지 않게" 규칙이 켜진다 | 사용 중 |
-| **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 108개를 검사 | 사용 중 |
+| **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 114개를 검사 | 사용 중 |
 | **ESLint** | 코드 검사 | 흔한 실수와 규칙 위반을 찾아 주는 검사기. `npm run lint` | 사용 중 |
 | **opentype.js** (개발용) | 아이콘 만들기 | 글꼴 파일에서 글자의 윤곽선을 읽어 주는 라이브러리. `scripts/make-icons.mjs`만 쓰고 앱에는 들어가지 않는다 | 사용 중 |
 | **Vercel** | 배포 | 코드를 올리면 인터넷 주소를 만들어 주는 서비스. Next.js를 만든 회사라 설정이 거의 없다 | 배포 예정 |
@@ -141,7 +141,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 | 단계 | 대상 | 방법 | 지금 상태 |
 |---|---|---|---|
-| L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 108개) | 자동 |
+| L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 114개) | 자동 |
 | L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401, 알림 시각이 아니면 `off_hours`로 안 보냄, 서버 설정 전이면 503 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404, 기기가 구독을 끊었으면 410(목록에서 지움), 푸시 서비스가 거부하면 502, 서버 설정 전 503 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
 | L2 화면 | 0.5 체크리스트 | 내장 브라우저에서 눌러 확인 | 수동 |
 | L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
@@ -189,7 +189,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 **입력 검사 (순서대로)**
 1. 앞뒤 공백을 지운다.
-2. 영문자, 하이픈(-), 아포스트로피(')만 남아 있는지 본다. 숫자와 중간 공백이 있으면 거부하고, 영문자가 하나도 없는 입력(`-`, `'` 등)도 거부한다.
+2. 앞뒤 공백을 지우고 둥근 아포스트로피(’ ‘ ʼ)는 곧은 것(')으로 바꾼 뒤 소문자로 만든다(`normalizeWord`). 그다음 영문자, 하이픈(-), 아포스트로피(')만 남아 있는지 본다. 숫자와 중간 공백이 있으면 거부하고, 영문자가 하나도 없는 입력(`-`, `'` 등)도 거부한다.
 3. 길이가 1~30자인지 본다.
 4. 소문자로 바꾼 값이 이미 있는지 본다. 있으면 저장하지 않고 "이미 단어장에 있는 단어입니다"를 보여준다.
 5. 통과하면 저장한다. 저장 순서는 입력 순서이지만, 화면 목록은 알파벳 순으로 정렬해 보여준다 (2026-10-25 결정). 목록 위의 검색 칸에 글자를 넣으면 그 글자가 들어 있는 단어만 바로 걸러 보여준다(저장과 무관한 화면 상태).
@@ -202,7 +202,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 ## 4. 데이터 모델
 
-모두 `localStorage` 한 키(`wordsmart:v1`)에 JSON으로 저장한다. 읽을 수 없는(깨진) 데이터를 덮어쓸 때는 그 원문을 `wordsmart:v1:corrupt:<시각>` 키에 따로 보관하고, 전체 초기화는 이 사본 키들도 함께 지운다. 읽을 때 `progress.completed`가 숫자가 아니면 0으로 둔다(화면에 "NaN/5"가 나오지 않게, 2026-10-26). 깨진 항목은 버린다(2026-10-27): `logs`·`hard`·`rounds`의 원소는 id·시각·답이 온전한 것만 남기고, 진행 중 회차 `progress.current`는 시각·단어 목록·답한 수가 모두 맞을 때만 받는다(아니면 없는 것으로 보고 새 회차를 시작한다). 저장이 막힌 브라우저에서는 `useStore().saveFailed`가 참이 되고, 모든 화면 위에 공통 경고(`app/save-warning.tsx`)가 보인다.
+모두 `localStorage` 한 키(`wordsmart:v1`)에 JSON으로 저장한다. 읽을 수 없는(깨진) 데이터를 덮어쓸 때는 그 원문을 `wordsmart:v1:corrupt:<시각>` 키에 따로 보관하고, 전체 초기화는 이 사본 키들도 함께 지운다. 읽을 때 `progress.completed`가 숫자가 아니면 0으로 둔다(화면에 "NaN/5"가 나오지 않게, 2026-10-26). 깨진 항목은 버린다(2026-10-27): `logs`·`hard`·`rounds`의 원소는 id·시각·답이 온전한 것만 남기고, 진행 중 회차 `progress.current`는 시각이 맞고, 단어가 하나 이상이며, 답한 수가 단어 수보다 작을 때만 받는다(아니면 없는 것으로 보고 새 회차를 시작한다). 저장이 막힌 브라우저에서는 `useStore().saveFailed`가 참이 되고, 모든 화면 위에 공통 경고(`app/save-warning.tsx`)가 보인다.
 
 ```ts
 type Answer = "known" | "unknown";
@@ -245,8 +245,8 @@ type Store = {
 ### 5.1 회차 시작
 1. 한국 시간(KST)으로 오늘 날짜를 구한다. `progress.date`와 다르면 `completed`를 0으로 초기화한다.
 2. 진행 중인 회차(`current`)가 있으면 이어서 한다.
-3. `completed`가 5이면 '오늘 복습 완료'를 보여주고 시작하지 않는다.
-4. 단어장이 비어 있으면 '단어를 먼저 등록해 주세요'를 보여준다.
+3. 단어장이 비어 있으면 '단어를 먼저 등록해 주세요'를 보여준다(단어가 없으면 횟수와 상관없이 복습할 수 없으므로 완료 판정보다 먼저 본다. 2026-10-27 코드 순서에 맞춤).
+4. `completed`가 5이면 '오늘 복습 완료'를 보여주고 시작하지 않는다.
 5. 아니면 3단어를 뽑아 `current`에 저장한다.
 
 ### 5.2 단어 뽑기
@@ -306,7 +306,7 @@ type Store = {
   source: { name: "Wiktionary (Free Dictionary API)", url: string, license: "CC BY-SA 3.0" } }  // 1문장
 { ok: false }                                                      // 예문 없음
 ```
-잘못된 단어(단어장 규칙 위반)는 400으로 거부한다. 화면은 회차가 시작되면 3단어의 예문을 한꺼번에 요청해 캐시(`app/review/example-cache.ts`)에 두고, 회차가 끝나면 비운다.
+잘못된 단어(단어장 규칙 위반)는 400으로 거부한다. 화면은 회차가 시작되면 3단어의 예문을 한꺼번에 요청해 캐시(`app/review/example-cache.ts`)에 두고, 회차가 끝나거나 복습 화면을 떠나면 비운다(2026-10-27: 중간에 나가도 옛 예문·"더 없음" 상태가 남지 않게). '다른 예문 보기'를 불러오는 동안은 직전 예문을 그대로 보여주고 버튼만 "Finding…"이 되며, 그때 답하면 직전 예문의 종류를 기록한다. 요청이 실패하고 브라우저가 오프라인이면 처음이든 '다른 예문 보기'든 오프라인 문구를 보인다.
 `skip`은 '다른 예문 보기'를 눌렀을 때 이미 본 예문을 빼기 위한 값이다. 더 찾았는데 없으면(`ok: false`) 화면은 마지막 예문을 그대로 두고 "No more examples"만 표시한다(`example-cache`의 `exhausted`). 한 단어당 '다른 예문 보기'는 5번까지(`MAX_ANOTHER`)이며, 넘으면 요청하지 않고 같은 표시를 한다.
 
 ### 6.3 서버가 하는 일 (순서대로)
@@ -339,7 +339,7 @@ type VoaCorpus = {
   - 제외하는 형태: `... reported (on) this story for (The) Associated Press. ... adapted it for VOA Learning English.` / `... wrote this story for The Associated Press. ... adapted it for VOA Learning English.` / `... Additional reporting came from The Associated Press.`
   - 제외하는 형태(2026-10-27 추가, PLAN 24 점검에서 발견): `... adapted this story based on an AFP report.` / `... wrote this story, based on reports from ..., The Associated Press and Reuters.` — 첫 모음 102개 중 2개가 이 꼴로 들어와 있어 규칙(`(adapted|wrote) … based on … AP/AFP/Reuters`)을 더하고 그 2개를 뺐다. Reuters·AFP 표기는 본문 인용("told AFP", "Reuters reported")으로는 흔히 나오며, 그것은 VOA 자체 기사라 남긴다.
   - 남기는 형태: `... wrote this story/report for Learning English.` (VOA 자체 기사)
-  - 규칙: 260자 이하의 문단 중 `(reported|wrote) ... for (The )?(Associated Press|Reuters|AFP|Agence France-Presse)`, `adapted it for VOA`, `Additional reporting came from ... (Associated Press|Reuters|AFP)` 중 하나라도 맞으면 그 기사 전체를 제외한다. "adapted it for VOA"만 있는 경우도 다른 매체를 고쳐 쓴 것으로 보고 제외한다(보수적 판단).
+  - 규칙: 260자 이하의 문단 중 `(reported|wrote) ... for (The )?(Associated Press|Reuters|AFP|Agence France-Presse)`, `adapted it for VOA`, `Additional reporting came from ... (Associated Press|Reuters|AFP)`, `(adapted|wrote) ... based on ... (Associated Press|AP|Reuters|AFP|Agence France-Presse)`(2026-10-27 추가) 중 하나라도 맞으면 그 기사 전체를 제외한다. "Agence France Press"(e 없음) 철자 변형도 잡는다. "adapted it for VOA"만 있는 경우도 다른 매체를 고쳐 쓴 것으로 보고 제외한다(보수적 판단).
   - 본문 문단이 2개 이하인 페이지(영상·팟캐스트 안내 등)와 제목이 "Learning English Podcast"인 페이지도 뺀다.
   - 그 밖의 걸러내기(코드 기준, 2026-10-26 확인): 사이트맵 목록에서 `sections`·`videos` 사이트맵은 빼고, 제목이 "Quiz"로 시작하는 페이지는 뺀다. 40자 미만 문단은 건너뛴다. 문장은 20~300자, 4단어 이상, 문장부호로 끝나는 것만 남기고, 전부 대문자인 문장과 `___`가 든 문장은 뺀다. 남은 문장이 3개 미만이면 기사를 뺀다.
   - **알려진 빈틈**: VOA 자체 크레디트 문단(`… for Learning English`)을 만나면 본문 읽기를 멈추므로, 그 뒤에 따로 오는 "Additional reporting came from Reuters" 같은 문단은 검사하지 못한다. PLAN 24번에서 표본으로 확인한다.
@@ -416,6 +416,7 @@ type VoaCorpus = {
 - 규칙 변화: `-s`, `-es`, `-ed`, `-d`, `-ing`, 자음 겹침(`running`), 끝 `e` 탈락(`making`), `y→ies/ied`
 - 불규칙형: 자주 쓰는 불규칙 동사와 명사 복수형 표(`run → ran`, `go → went`, `child → children` 등 약 135개)를 코드에 넣어 둔다. (표의 범위는 10번 참고)
 - 고유명사 제외(PRD 5번 ②, `containsFormAsCommonWord`): 문장 중간에서 대문자로 시작하는 형태만 있는 문장은 후보에서 뺀다. 문장 첫머리의 대문자는 인정하므로 "Apple released…" 같은 경우는 걸러지지 않는다(한계, '다른 예문 보기'로 넘긴다).
+- 아포스트로피(2026-10-27): 단어는 곧은 '로 저장되지만 VOA 본문은 둥근 ’를 쓰므로, 찾기·강조 패턴(`formsPattern`)은 ' 자리에 둘 다 허용하고 둥근 ’도 단어 경계로 본다(o'clock ↔ o’clock).
 
 ## 8. 통계와 백업
 
@@ -430,7 +431,7 @@ type VoaCorpus = {
 
 **백업 파일**: `{ app: "word-smart", version: 1, exportedAt, data: Store }` 형태의 JSON 파일. 이름은 `word-smart-backup-<KST 날짜>.json` (`lib/backup.ts`, 화면은 `app/backup/page.tsx`). — 구현됨
 - 내보내기: `navigator.canShare({files})`가 되면 공유 시트, 아니면(또는 공유 실패) `<a download>`로 다운로드. 사용자가 공유를 취소하면(AbortError) 백업 시각을 남기지 않는다. 성공하면 `lastBackupAt`을 기록하고 미룸을 푼다.
-- 가져오기: `parseBackup`이 JSON → `app === "word-smart"` → `version`(앱보다 크면 거부, 작으면 `migrate`로 변환) → `data`가 객체인지(없거나 다른 형이면 거부. 빈 단어장으로 덮어쓰지 않기 위해, 2026-10-27) → `parseStore` 순으로 검사한다. 통과하면 단어 수와 내보낸 시각을 보여주는 확인 창을 거친 뒤 저장본 전체를 바꾼다(`useStore().replace`). 오늘의 진행 상태도 파일 것으로 바뀐다고 알린다.
+- 가져오기: `parseBackup`이 JSON → `app === "word-smart"` → `version`(앱보다 크면 거부, 작으면 `migrate`로 변환) → `data`가 객체인지(없거나 다른 형이면 거부. 빈 단어장으로 덮어쓰지 않기 위해, 2026-10-27) → `parseStore` 순으로 검사한다. `parseStore`는 가져온 단어도 입력 규칙(3장)으로 검사해 규칙에 안 맞는 단어는 버리고 소문자·곧은 아포스트로피로 정리하며, 같은 id나 같은 글자의 중복은 앞의 것만 남긴다(2026-10-27). 통과하면 단어 수와 내보낸 시각을 보여주는 확인 창을 거친 뒤 저장본 전체를 바꾼다(`useStore().replace`). 오늘의 진행 상태도 파일 것으로 바뀐다고 알린다.
 - 백업 안내(Word List 화면, `app/backup-notice.tsx`; Backup 링크도 그 화면 제목 옆): `needsBackupReminder` = 단어 50개 초과 ∧ (백업 기록 없음 ∨ 14일 경과) ∧ 미룸 기간 아님. '7일 뒤에 다시'는 `backupSnoozedUntil`에 저장.
 - 전체 초기화(백업 화면 맨 아래): 확인 창 → `prompt`에 `DELETE` 입력 → 이 기기의 알림 구독을 끄고(`app/push-client.ts`, 서버 목록에서 지우고 브라우저 구독 해제) → `useStore().reset()`이 저장소 키를 지운다. 알림을 못 끄면 데이터는 지우되 "Today에서 끄라"고 안내한다.
 
@@ -499,7 +500,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 | # | 내용 | 언제 정하나 |
 |---|---|---|
-| 1 | **VOA 문장 모음의 범위.** 첫 모음(2026-10-25): 최근 기사 300개를 받아 **102개 유지, 3,252문장, 313KB**(2026-10-27 통신사 규칙 보강으로 2개를 빼 지금은 **100개, 3,197문장, 314KB**). 제외는 통신사 134, 본문 부족(too_short) 60, 팟캐스트 2, 퀴즈 1, 본문 없음 1. 통신사 기사가 절반이라 유지되는 기사는 받은 수의 1/3 정도다. 더 모을지(예: 1,000개 → 약 20분, 1MB 안팎), `too_short` 60개가 정말 짧은 글인지 추출 실수인지 확인할 것. | PLAN 23번 (통계의 예문 제공률이 60% 미만일 때) |
+| 1 | **VOA 문장 모음의 범위.** 첫 모음(2026-10-25): 최근 기사 300개를 받아 **102개 유지, 3,252문장, 313KB**(2026-10-27 통신사 규칙 보강으로 2개를 빼 지금은 **99개, 3,172문장, 304KB**. "Agence France Press" 철자 변형 1개를 같은 날 더 뺐다). 제외는 통신사 134, 본문 부족(too_short) 60, 팟캐스트 2, 퀴즈 1, 본문 없음 1. 통신사 기사가 절반이라 유지되는 기사는 받은 수의 1/3 정도다. 더 모을지(예: 1,000개 → 약 20분, 1MB 안팎), `too_short` 60개가 정말 짧은 글인지 추출 실수인지 확인할 것. | PLAN 23번 (통계의 예문 제공률이 60% 미만일 때) |
 | 1-1 | **통신사 기사 구분 규칙의 검증.** 2026-10-27 점검(PLAN 24): 유지된 102개를 전부 훑어 "based on … AFP/AP/Reuters report" 꼴 2개를 찾아 규칙을 더하고 뺐다(6.4). Reuters·AFP 표기는 본문 인용으로 확인됨. 남은 것: VOA 크레디트 문단 뒤에 오는 통신사 문단(6.4 "알려진 빈틈")은 제외된 기사를 다시 받아야 볼 수 있어 모음을 확대할 때(PLAN 23) 함께 본다. | PLAN 23번 때 |
 | ~~1-3~~ | **수준 계산의 숫자** → 실제 예문 약 90개를 보고 **4,000/8,000/13,000/20,000위, 10% 제외(올림), 40단어 초과 시 +1로 확정** (2026-10-26, 6.6, PLAN 22번) | 완료 |
 | 1-2 | **VOA 모음의 단어 적중률.** 표본 40개에서는 어려운 단어가 0건이었으나 표본이 너무 작다. 모음을 만든 뒤 단어장 단어의 몇 %가 걸리는지 재 본다. 낮으면 먼저 모음을 확대한다(PLAN 23번). Wikinews 같은 다른 출처를 더하는 것은 PRD의 출처 순서(VOA → 사전 → 없음)를 바꾸는 일이라 PRD 변경이 필요한 선택지다. | PLAN 23번 (통계의 예문 제공률이 60% 미만일 때) |
@@ -507,7 +508,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | ~~3~~ | 응답 기록 보관 기간 → **무제한으로 확정** (PRD 검토 4회) | 완료 |
 | ~~4~~ | 단어 삭제 시 기록 삭제 → **PRD 5번 ①에 반영** (검토 3회) | 완료 |
 | ~~5~~ | "1분 이내"에 예문 로딩 포함 → **포함으로 확정** (검토 4회) | 완료 |
-| ~~6~~ | 테스트 도구 → **`node:test`로 확정**, 108개 작성(2026-10-26 기준) | 완료 |
+| ~~6~~ | 테스트 도구 → **`node:test`로 확정**, 114개 작성(2026-10-27 기준) | 완료 |
 
 ## 11. 알아둘 점
 
@@ -550,11 +551,11 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 ### 13.3 흐름과 파일
 
-- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰 사파리(홈 화면 추가 전)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면(응답 오류든 네트워크 예외든) 구독을 되돌리고, 409면 상한이 찼다고 안내한다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
+- **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰·아이패드 사파리(홈 화면 추가 전. 아이패드는 UA가 Mac이라 터치 포인트 수로 가른다)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면(응답 오류든 네트워크 예외든) 구독을 되돌리고, 409면 상한이 찼다고 안내한다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
 - **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(https 주소, 키 2개), 같은 기기는 하나만 둔다.
 - **보내기** (`app/api/push/send/route.ts` → `lib/push-send.ts`): `Authorization: Bearer <PUSH_CRON_SECRET>` 헤더가 맞을 때만 동작(주소에 비밀 값을 넣으면 로그에 남으므로 헤더만). 지금이 알림 시각(한국 시간 시 단위)이 아니면 보내지 않는다(`?force=1`이면 보낸다). 모든 구독에 `web-push`로 고정 문구를 보내고, 404·410(기기가 구독을 끊음)은 목록에서 지운다. TTL 1시간.
 - **시험** (`app/api/push/test/route.ts`): 카드의 "Send a test". 그 기기의 endpoint를 알아야만 보낼 수 있다.
-- **끄기**: `DELETE /api/push/subscribe` 뒤 브라우저 구독 해제.
+- **끄기**: `DELETE /api/push/subscribe`가 성공한 뒤에만 브라우저 구독을 해제한다. 서버에서 못 지웠으면 구독을 그대로 두고 "못 껐다"고 안내한다(풀어 버리면 서버에는 남아 알림이 계속 가므로, 2026-10-27). 브라우저 구독 해제 자체가 실패하는 것은 무시한다(다음 보내기 때 404·410으로 정리된다).
 - **표시** (`public/sw.js`): `push` 이벤트에서 제목·본문·아이콘(`icon-192.png`)·배지(`badge-96.png`, 안드로이드)·tag로 알림을 띄우고, `notificationclick`에서 열린 창이 있으면 그 창을 `/review`로, 없으면 새 창을 연다. `next.config.ts`가 `/sw.js`에 캐시 금지 헤더를 붙여 항상 최신 워커를 받게 한다.
 - **테스트** (`lib/push.test.ts`, 7개): 시각별 문구(1st~5th, 그 밖에는 "Time for a round"), 회차 번호와 서수, 시각 판정(KST), 구독 검사, 중복 제거, 상한 10개, 저장 파일 읽기. 저장·전송 코드는 바깥 서비스를 쓰므로 단위 테스트가 없고, 배포 뒤 폰에서 확인한다(PLAN 26).
 
@@ -603,3 +604,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 1.1 | 2026-10-27 | Gap 분석 높음·중간 4건 반영: 시험 알림 실패를 410·502로 돌려주고 화면이 꺼진 상태로 복귀, 켜기 중 네트워크 예외도 구독 되돌림, data 없는 백업 파일 거부, 13.6 복구 절차를 화면 동작에 맞춤 | Iron man |
 | 1.2 | 2026-10-27 | Gap 낮음 3건 반영: 자정 넘김 때 N/5 자동 갱신(5.1), 깨진 기록·목록·진행 중 회차 걸러내기(4장), 저장 실패 공통 경고(4장·9장) | Iron man |
 | 1.3 | 2026-10-27 | PLAN 24 점검: 통신사 크레디트 규칙 보강과 모음 2개 제거(6.4·10번 1·1-1), 백업 왕복·자정 넘김은 테스트로 확인 | Iron man |
+| 1.4 | 2026-10-27 | Gap 2차 20건 반영: 철자 변형 규칙과 모음 1개 더 제거(6.4·10번), 진행 중 회차 조건(4장), 가져온 단어 검사(8장), 아포스트로피(3장·7장), 끄기 응답 확인(13.3), 아이패드(13.3), 5.1 판정 순서, 예문 캐시·오프라인·다른 예문 중 기록(6.2) | Iron man |

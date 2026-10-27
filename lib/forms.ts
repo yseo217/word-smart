@@ -175,12 +175,13 @@ export function wordForms(base: string): string[] {
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // 문장 안에서 단어와 변화형을 찾는 정규식의 소스. 긴 것부터 맞춰서 "runs"가 "run"으로 잘리지 않게 한다.
+// VOA 본문은 둥근 아포스트로피(’)를 쓰므로, 단어의 곧은 ' 자리에 둘 다 허용한다 (o'clock ↔ o’clock).
 export function formsPattern(base: string): string {
   const alternatives = wordForms(base)
     .sort((a, b) => b.length - a.length)
-    .map(escape)
+    .map((form) => escape(form).replace(/'/g, "['’]"))
     .join("|");
-  return `(?<![A-Za-z'-])(?:${alternatives})(?![A-Za-z-])`;
+  return `(?<![A-Za-z'’-])(?:${alternatives})(?![A-Za-z-])`;
 }
 
 export function formsRegExp(base: string): RegExp {

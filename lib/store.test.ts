@@ -230,6 +230,37 @@ test("parseStore drops broken logs, hard items, rounds and an incomplete in-prog
   assert.equal(badAnswered.store.progress.current, undefined);
 });
 
+test("parseStore drops an in-progress round with no words or with every word already answered", () => {
+  const read = (current: unknown) => parseStore(JSON.stringify({ version: 1, words: [], progress: { date: "2026-10-26", completed: 0, current } })).store.progress.current;
+  const at = "2026-10-26T01:00:00.000Z";
+  assert.equal(read({ startedAt: at, wordIds: [], answered: 0 }), undefined);
+  assert.equal(read({ startedAt: at, wordIds: ["a", "b"], answered: 2 }), undefined);
+  assert.equal(read({ startedAt: at, wordIds: ["a", "b"], answered: 5 }), undefined);
+  assert.deepEqual(read({ startedAt: at, wordIds: ["a", "b"], answered: 1 }), { startedAt: at, wordIds: ["a", "b"], answered: 1 });
+});
+
+test("parseStore validates imported words like typed ones and drops duplicates", () => {
+  const raw = JSON.stringify({
+    version: 1,
+    words: [
+      { id: "1", text: "Apple" }, // 대문자 → 소문자
+      { id: "2", text: "o’clock" }, // 둥근 아포스트로피 → 곧은 것
+      { id: "3", text: "bad word" }, // 공백 → 버림
+      { id: "4", text: "x1" }, // 숫자 → 버림
+      { id: "1", text: "pear" }, // 같은 id → 버림
+      { id: "5", text: "apple" }, // 같은 글자 → 버림
+    ],
+  });
+  const { store } = parseStore(raw);
+  assert.deepEqual(
+    store.words.map((w) => [w.id, w.text]),
+    [
+      ["1", "apple"],
+      ["2", "o'clock"],
+    ],
+  );
+});
+
 test("withFirstUse stamps the first-use time once and parseStore keeps it", () => {
   const first = withFirstUse(emptyStore(), NOW);
   assert.equal(first.firstUsedAt, NOW.toISOString());

@@ -64,6 +64,7 @@ main {
   background-color: var(--navy);
   background-image: repeating-linear-gradient(90deg, transparent 0 9px, var(--band-stripe) 9px 10px);
   color: #ffffff;
+  padding-top: env(safe-area-inset-top); /* 홈 화면 앱(검은 반투명 상태 표시줄)에서 글자가 노치 아래로 들어가지 않게 */
 }
 
 /* 각 화면의 본문 패널 */

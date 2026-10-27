@@ -18,15 +18,23 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
+// 새 워커가 설치되면 바로 열린 창들을 맡는다. 그래야 알림을 눌렀을 때 navigate()가 거부되지 않는다.
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = new URL((event.notification.data && event.notification.data.url) || "/review", self.location.origin).href;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      // 이미 열린 앱 창이 있으면 그 창을 앞으로 가져와 복습 화면으로 보낸다
+      // 이미 열린 앱 창이 있으면 그 창을 앞으로 가져와 복습 화면으로 보낸다. 창을 옮길 수 없으면 새 창을 연다.
       for (const client of clients) {
         if (new URL(client.url).origin === self.location.origin && "focus" in client) {
-          return client.focus().then((c) => (c && "navigate" in c ? c.navigate(url) : c));
+          return client
+            .focus()
+            .then((c) => (c && "navigate" in c ? c.navigate(url) : null))
+            .then((c) => c || self.clients.openWindow(url))
+            .catch(() => self.clients.openWindow(url));
         }
       }
       return self.clients.openWindow(url);
