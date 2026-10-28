@@ -554,7 +554,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 ### 13.3 흐름과 파일
 
 - **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰·아이패드 사파리(홈 화면 추가 전. 아이패드는 UA가 Mac이라 터치 포인트 수로 가른다)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면(응답 오류든 네트워크 예외든) 구독을 되돌리고, 409면 상한이 찼다고 안내한다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
-- **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(키 2개, 주소는 https이면서 **실제 푸시 서비스 도메인**(fcm.googleapis.com, *.push.apple.com, *.push.services.mozilla.com, *.notify.windows.com)이고 포트 지정이 없는 것만 — 아무 주소나 받으면 우리 서버가 남의 서버로 요청을 보내는 중계기가 되므로, 2026-10-28 보안 점검), 같은 기기는 하나만 둔다. 해제(DELETE)는 실제로 지운 게 있을 때만 저장한다.
+- **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN` 또는 `BLOB_STORE_ID`(저장소 연결 시 Vercel이 넣는 값, 배포 환경의 OIDC 토큰과 함께 SDK가 인증)가 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(키 2개, 주소는 https이면서 **실제 푸시 서비스 도메인**(fcm.googleapis.com, *.push.apple.com, *.push.services.mozilla.com, *.notify.windows.com)이고 포트 지정이 없는 것만 — 아무 주소나 받으면 우리 서버가 남의 서버로 요청을 보내는 중계기가 되므로, 2026-10-28 보안 점검), 같은 기기는 하나만 둔다. 해제(DELETE)는 실제로 지운 게 있을 때만 저장한다.
 - **보내기** (`app/api/push/send/route.ts` → `lib/push-send.ts`): `Authorization: Bearer <PUSH_CRON_SECRET>` 헤더가 맞을 때만 동작(주소에 비밀 값을 넣으면 로그에 남으므로 헤더만). 지금이 알림 시각(한국 시간 시 단위)이 아니면 보내지 않는다(`?force=1`이면 보낸다). 모든 구독에 `web-push`로 고정 문구를 보내고, 404·410(기기가 구독을 끊음)은 목록에서 지운다. TTL 1시간.
 - **시험** (`app/api/push/test/route.ts`): 카드의 "Send a test". 그 기기의 endpoint를 알아야만 보낼 수 있다.
 - **끄기**: `DELETE /api/push/subscribe`가 성공한 뒤에만 브라우저 구독을 해제한다. 서버에서 못 지웠으면 구독을 그대로 두고 "못 껐다"고 안내한다(풀어 버리면 서버에는 남아 알림이 계속 가므로, 2026-10-27). 브라우저 구독 해제 자체가 실패하는 것은 무시한다(다음 보내기 때 404·410으로 정리된다).
@@ -569,14 +569,14 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | `VAPID_PRIVATE_KEY` | 서버 | 알림 서명 비밀 키 |
 | `VAPID_SUBJECT` | 서버 | 서명에 넣는 서비스 식별 주소. **배포 주소(https)** 를 쓴다. 이메일은 쓰지 않는다. 애플은 `https://localhost`를 거부한다 |
 | `PUSH_CRON_SECRET` | 서버·cron-job.org | 예약 서비스가 `/api/push/send`를 부를 때의 비밀 값 |
-| `BLOB_READ_WRITE_TOKEN` | 서버 | Vercel Blob 저장소 토큰. Blob 저장소를 프로젝트에 연결하면 Vercel이 넣어 준다 |
+| `BLOB_STORE_ID` (또는 예전 방식 `BLOB_READ_WRITE_TOKEN`) | 서버 | Vercel Blob 저장소 연결 정보. 저장소를 프로젝트에 연결하면 Vercel이 넣어 주고, 인증은 배포 환경의 OIDC 토큰으로 SDK가 처리한다(2026-10-29 확인: 토큰 대신 저장소 ID가 생김) |
 
 키 한 쌍과 비밀 값은 2026-10-26에 만들어 `.env`에 넣었다(`web-push`의 `generateVAPIDKeys`, 무작위 24바이트). `VAPID_SUBJECT`에는 임시로 예상 배포 주소를 넣어 두어 개발 컴퓨터에서도 시험 알림이 503 없이 동작하며, 배포 주소가 정해지면 그 값으로 바꾼다(13.5 1단계).
 
 ### 13.5 배포 뒤 설정 순서 (PLAN 26)
 
 1. Vercel 프로젝트 설정 → Environment Variables에 `.env`의 푸시 값 4개를 등록한다(`VAPID_SUBJECT`는 배포 주소로).
-2. Vercel 프로젝트 → Storage → Blob 저장소를 하나 만들어 연결한다(`BLOB_READ_WRITE_TOKEN`이 자동 등록됨). 만들 때 접근을 **Private**로 정한다. 접근 방식은 나중에 바꿀 수 없고, 코드가 `access: "private"`로 읽고 쓰므로 공개 저장소로 만들면 저장이 실패한다(Vercel 문서 확인, 2026-10-26. `@vercel/blob` 2.3 이상 필요, 지금 2.8).
+2. Vercel 프로젝트 → Storage → Blob 저장소를 하나 만들어 연결한다(`BLOB_STORE_ID`가 자동 등록됨. 2026-10-29 연결 완료). 만들 때 접근을 **Private**로 정한다. 접근 방식은 나중에 바꿀 수 없고, 코드가 `access: "private"`로 읽고 쓰므로 공개 저장소로 만들면 저장이 실패한다(Vercel 문서 확인, 2026-10-26. `@vercel/blob` 2.3 이상 필요, 지금 2.8).
 3. 다시 배포한다(환경 변수는 새 배포부터 적용). 환경 변수를 넣기 전에는 Today의 알림 띠가 "Reminders are not set up on this server yet."을 보인다.
 4. cron-job.org에 가입해 예약 5개를 만든다: 주소 `https://<배포 주소>/api/push/send`, 방식 GET, 시간대 Asia/Seoul, 시각 9·11·13·17·19시 00분, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`. 실패 알림 메일을 켠다.
 5. 아이폰: 사파리로 배포 주소를 열어 홈 화면에 추가 → 그 아이콘으로 열기 → Today의 "Turn on reminders" → 허용 → "Send a test"로 알림이 오는지 본다.
@@ -621,3 +621,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 2.6 | 2026-10-29 | UX 개선: 단어장·Still Learning 목록의 단어 옆에 스피커 버튼(발음 듣기). 스피커 조각을 `app/speak-button.tsx`로 옮겨 공용화 (0.2) | Iron man |
 | 2.7 | 2026-10-29 | UX 개선: Today 카드에 연속 복습 일수 "N days in a row" (0.2), 테스트 117개 | Iron man |
 | 2.8 | 2026-10-29 | 11장에 배포 주소와 GitHub 저장소 기록 | Iron man |
+| 2.9 | 2026-10-29 | Blob 인증을 BLOB_STORE_ID + OIDC로도 되게(13.3·13.4·13.5): 저장소 연결 시 토큰 대신 저장소 ID가 생김 | Iron man |
