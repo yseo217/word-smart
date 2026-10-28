@@ -22,7 +22,7 @@ export default function StatsPage() {
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Stats</h1>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {ready ? (day ? `Day ${day} of Word Smart.` : "Nothing recorded yet.") : "Loading…"} Goals: 20 rounds a week, 20 active days in 28, 70% remembered.
+          {ready ? (day ? `Day ${day} of Word Smart.` : "Nothing recorded yet.") : "Loading…"} Goals: 20 rounds a week, 20 active days in 28, 70% known.
         </p>
       </header>
 
@@ -35,12 +35,12 @@ export default function StatsPage() {
           />
           <Stat label="Active days" value={`${activeDays}`} unit="/ 28" detail="Days with at least one finished round in the last four weeks. Goal: 20." />
           <Stat
-            label="Remembered"
+            label="Knew it"
             value={memory.rate === null ? "–" : pct(memory.rate)}
             detail={
               memory.total === 0
-                ? "Words you first looked up, later remembered. None looked up yet."
-                : `${memory.known} of ${memory.total} words you first looked up are remembered now. Goal: 70% after four weeks.`
+                ? "Words you first looked up and now know. None looked up yet."
+                : `${memory.known} of ${memory.total} words you first looked up are known now. Goal: 70% after four weeks.`
             }
           />
           <Stat

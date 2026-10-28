@@ -7,7 +7,7 @@ import { KNOWN_STREAK_TO_CLEAR, MISS_LIMIT, removeFromHard } from "@/lib/quiz";
 import { useStore } from "@/lib/use-store";
 
 // 어려운 단어 목록(화면 이름은 "Still Learning"): "Look it up"을 누적 3번 누른 단어.
-// 연속 3번 "I remember"면 저절로 빠지고, 여기서 직접 뺄 수도 있다.
+// 연속 3번 "I know it"이면 저절로 빠지고, 여기서 직접 뺄 수도 있다.
 export default function StillLearningPage() {
   const { ready, store, update } = useStore();
 
@@ -37,7 +37,7 @@ export default function StillLearningPage() {
           </Link>
         </div>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Words you looked up {MISS_LIMIT} times. They leave the list after {KNOWN_STREAK_TO_CLEAR} remembers in a row, or when you remove them here.
+          Words you looked up {MISS_LIMIT} times. They leave the list after you say Knew it {KNOWN_STREAK_TO_CLEAR} times in a row, or when you remove them here.
         </p>
       </header>
 
@@ -83,7 +83,7 @@ export default function StillLearningPage() {
                     {word!.text}
                   </p>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                    Looked up <span className="font-score text-sm">{word!.missTotal}</span> times · remembered{" "}
+                    Looked up <span className="font-score text-sm">{word!.missTotal}</span> times · knew it{" "}
                     <span className="font-score text-sm">{word!.knownStreak}</span> in a row · since {kstDate(new Date(savedAt))}
                   </p>
                 </div>

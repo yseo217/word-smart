@@ -37,7 +37,7 @@ export default function TodayProgress() {
       {hasAnswers && (
         <p className="flex items-baseline gap-3 text-sm">
           <span className="text-green-700 dark:text-green-400">
-            Remembered <span className="font-score text-base font-medium">{answers.known}</span>
+            Knew it <span className="font-score text-base font-medium">{answers.known}</span>
           </span>
           <span className="text-zinc-400">·</span>
           <span className="text-red-600 dark:text-red-400">
