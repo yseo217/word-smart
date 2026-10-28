@@ -1,5 +1,7 @@
 // 푸시 구독 목록의 저장소 (서버 전용, DESIGN.md 13장).
-// 배포에서는 Vercel Blob(비공개 파일 하나)에, 토큰이 없는 개발 컴퓨터에서는 .local/push-subscriptions.json에 둔다.
+// 배포에서는 Vercel Blob(비공개 파일 하나)에, 연결 정보가 없는 개발 컴퓨터에서는 .local/push-subscriptions.json에 둔다.
+// Blob 인증은 두 가지 중 하나: 예전 방식의 BLOB_READ_WRITE_TOKEN, 또는 저장소를 프로젝트에 연결하면 Vercel이 넣어 주는
+// BLOB_STORE_ID + 배포 환경의 OIDC 토큰(VERCEL_OIDC_TOKEN, SDK가 알아서 읽는다). 2026-10-29 배포 때 후자만 생겨서 둘 다 본다.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, put } from "@vercel/blob";
@@ -9,7 +11,7 @@ const BLOB_PATH = "push/subscriptions.json";
 const LOCAL_FILE = path.join(process.cwd(), ".local", "push-subscriptions.json");
 
 function hasBlobToken(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
 export async function readSubscriptions(): Promise<PushSubscriptionRecord[]> {

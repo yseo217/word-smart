@@ -188,7 +188,7 @@ AI가 지킬 규칙
 
 **API 키 관리**
 - 지금 쓰기로 한 예문 출처(VOA 문장 모음, Free Dictionary API)는 API 키가 필요 없다.
-- 푸시 알림(2026-10-26)에는 설정값 다섯 가지가 있다. `.env`와 Vercel 환경 변수에 두는 것 4개: 알림 서명 키 한 쌍(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개 키라 화면 코드에 들어가도 되고, `VAPID_PRIVATE_KEY`는 서버만), 서명에 넣는 서비스 주소 `VAPID_SUBJECT`(배포 주소. 비밀은 아니지만 없으면 알림이 안 간다), 예약 서비스가 우리 서버를 부를 때 쓰는 `PUSH_CRON_SECRET`. 그리고 구독 저장소 토큰 `BLOB_READ_WRITE_TOKEN`은 Vercel에서 Blob 저장소를 연결하면 자동으로 들어간다(설계 문서 13.4).
+- 푸시 알림(2026-10-26)에는 설정값 다섯 가지가 있다. `.env`와 Vercel 환경 변수에 두는 것 4개: 알림 서명 키 한 쌍(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개 키라 화면 코드에 들어가도 되고, `VAPID_PRIVATE_KEY`는 서버만), 서명에 넣는 서비스 주소 `VAPID_SUBJECT`(배포 주소. 비밀은 아니지만 없으면 알림이 안 간다), 예약 서비스가 우리 서버를 부를 때 쓰는 `PUSH_CRON_SECRET`. 그리고 구독 저장소 연결 정보(`BLOB_STORE_ID`, 예전 방식은 `BLOB_READ_WRITE_TOKEN`)는 Vercel에서 Blob 저장소를 연결하면 자동으로 들어간다(설계 문서 13.4).
 - 나중에 키가 필요한 서비스를 추가하면 키는 `.env` 파일에 보관하고, `.gitignore`로 GitHub에 올라가지 않게 한다.
 - 키는 서버 쪽 코드에서만 쓰고, 브라우저 화면 코드에는 넣지 않는다. 단, 알림 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)는 공개해도 되는 값이라 예외다.
 - 코드나 대화창에 키를 직접 붙여넣지 않는다.
