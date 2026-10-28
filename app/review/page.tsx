@@ -9,8 +9,9 @@ import ExampleCard from "./example-card";
 import SpeakButton from "./speak-button";
 import { clearExamples, exampleKindOf, getExampleState, getServerVersion, getVersion, requestExample, subscribe } from "./example-cache";
 
-type HardNotes = { added: string[]; removed: string[] };
-const NO_NOTES: HardNotes = { added: [], removed: [] };
+// 회차 안에서 쌓는 메모: 어려운 단어 변동과, 이 회차에서 답한 단어들(요약 화면에 "Remembered / Looked up"으로 보여준다, 2026-10-28 UX 개선).
+type HardNotes = { added: string[]; removed: string[]; answers: { text: string; kind: Answer }[] };
+const NO_NOTES: HardNotes = { added: [], removed: [], answers: [] };
 // 회차 요약: 어려운 단어 변동과, 이 회차가 오늘 횟수에 더해졌는지(자정을 넘긴 회차는 어제로 센다).
 type Finished = HardNotes & { countedToday: boolean };
 
@@ -81,6 +82,7 @@ export default function ReviewPage() {
     const next: HardNotes = {
       added: result.addedToHard ? [...notes.added, result.word.text] : notes.added,
       removed: result.removedFromHard ? [...notes.removed, result.word.text] : notes.removed,
+      answers: [...notes.answers, { text: word.text, kind }],
     };
     const summary: Finished = { ...next, countedToday: result.countedToday };
     if (kind === "unknown") {
@@ -139,6 +141,21 @@ export default function ReviewPage() {
             <p className="rounded-lg bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
               This round started before midnight, so it counts toward yesterday, not today.
             </p>
+          )}
+          {/* 이 회차의 단어 세 개와 결과. 색은 단어장의 상태 글자와 같다 (녹색 = 기억함, 빨간색 = 찾아봄) */}
+          {finished.answers.length > 0 && (
+            <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+              {finished.answers.map((a, i) => (
+                <li key={`${a.text}-${i}`} className="flex items-center justify-between gap-3 px-3 py-2">
+                  <span lang="en" className="min-w-0 break-words text-lg">
+                    {a.text}
+                  </span>
+                  <span className={`shrink-0 text-sm font-medium ${a.kind === "known" ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                    {a.kind === "known" ? "Remembered" : "Looked up"}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
           {finished.added.length > 0 && (
             <p className="text-sm">
