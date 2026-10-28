@@ -15,7 +15,7 @@ export function makeBackup(store: Store, now: Date = new Date()): BackupFile {
   return { app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: now.toISOString(), data: markBackedUp(store, now) };
 }
 
-// 마지막 백업이 며칠 전인지, 한국 시간 날짜 기준 (2026-10-29 UX 개선). 오늘이면 0, 어제면 1.
+// 마지막 백업이 며칠 전인지, 한국 시간 날짜 기준 (2026-10-28 UX 개선). 오늘이면 0, 어제면 1.
 export function daysSinceBackup(lastBackupAt: string, now: Date = new Date()): number {
   const day = (iso: string) => Date.UTC(...(kstDate(new Date(iso)).split("-").map(Number) as [number, number, number]).map((n, i) => (i === 1 ? n - 1 : n)) as [number, number, number]);
   return Math.max(0, Math.round((day(now.toISOString()) - day(lastBackupAt)) / (24 * 60 * 60 * 1000)));

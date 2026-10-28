@@ -118,7 +118,7 @@ export default function BackupPage() {
           {ready ? (
             <>
               <span className="font-score text-base text-foreground">{store.words.length}</span> words ·{" "}
-              {/* 며칠 전인지 먼저, 날짜는 괄호에 (2026-10-29 UX 개선). 현재 시각은 ready일 때만 읽는다 */}
+              {/* 며칠 전인지 먼저, 날짜는 괄호에 (2026-10-28 UX 개선). 현재 시각은 ready일 때만 읽는다 */}
               {lastBackup && store.lastBackupAt
                 ? `last backup ${daysAgoText(daysSinceBackup(store.lastBackupAt))} (${lastBackup.toLocaleDateString("en-US")})`
                 : "never backed up"}

@@ -34,7 +34,7 @@ export default function WordsPage() {
     return null;
   }
 
-  // 상태 필터 (2026-10-29 UX 개선): All / Still learning / Looked up / Knew it. 검색 칸과 함께 적용된다.
+  // 상태 필터 (2026-10-28 UX 개선): All / Still learning / Looked up / Knew it. 검색 칸과 함께 적용된다.
   // 단추 색은 윗첨자 상태색과 같다 (황색·빨강·녹색). 누른 단추는 그 색으로 채운다.
   type Filter = "all" | Status;
   const [filter, setFilter] = useState<Filter>("all");
@@ -148,7 +148,7 @@ export default function WordsPage() {
         />
         <p id="word-help" className="text-xs text-zinc-600 dark:text-zinc-400">
           Separate words with a new line or a comma to add several at once.
-          {/* 누르기 전에 결과를 미리 보여준다 (2026-10-29 UX 개선): 몇 개가 더해지고 몇 개가 건너뛰어지는지 */}
+          {/* 누르기 전에 결과를 미리 보여준다 (2026-10-28 UX 개선): 몇 개가 더해지고 몇 개가 건너뛰어지는지 */}
           {preview && preview.skipped.length > 0 && (
             <span className="text-amber-700 dark:text-amber-400">
               {" "}
@@ -246,13 +246,13 @@ export default function WordsPage() {
             <li key={word.id} className="flex items-center gap-2 px-3">
               <span lang="en" className="min-w-0 flex-1 break-words py-3 text-lg">
                 {word.text}
-                {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-29: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
+                {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-28: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
                 {(() => {
                   const status = statusOf(word.id, word.lastAnswer);
                   return status && <sup className={`ml-1 whitespace-nowrap text-[10px] font-medium ${status.className}`}>{status.label}</sup>;
                 })()}
               </span>
-              {/* 발음 듣기 (2026-10-30 UX 개선): 복습을 시작하지 않아도 목록에서 바로 듣는다. 미지원 브라우저에서는 버튼이 숨는다 */}
+              {/* 발음 듣기 (2026-10-29 UX 개선): 복습을 시작하지 않아도 목록에서 바로 듣는다. 미지원 브라우저에서는 버튼이 숨는다 */}
               <SpeakButton text={word.text} compact />
               <button
                 type="button"

@@ -14,10 +14,10 @@ export default function TodayProgress() {
   const hasWords = store.words.length > 0;
   const inProgress = Boolean(store.progress.current);
   const done = completed >= ROUNDS_PER_DAY && !inProgress;
-  // 오늘 결과 한 줄 (2026-10-30 UX 개선): 응답이 하나라도 있을 때만 보여준다. 상태색은 복습 요약과 같은 녹색·빨간색
+  // 오늘 결과 한 줄 (2026-10-28 UX 개선): 응답이 하나라도 있을 때만 보여준다. 상태색은 복습 요약과 같은 녹색·빨간색
   const answers = ready ? todayAnswers(store) : { known: 0, unknown: 0 };
   const hasAnswers = answers.known + answers.unknown > 0;
-  // 연속 복습 일수 (2026-10-30 UX 개선): 2일 이상일 때만. 오늘 아직 안 했으면 어제까지의 수와 함께 "오늘 하면 이어진다"고 알린다
+  // 연속 복습 일수 (2026-10-29 UX 개선): 2일 이상일 때만. 오늘 아직 안 했으면 어제까지의 수와 함께 "오늘 하면 이어진다"고 알린다
   const streak = ready ? streakDays(store) : 0;
 
   const primary = "flex min-h-12 items-center justify-center rounded-lg bg-foreground px-4 text-base font-medium text-background";

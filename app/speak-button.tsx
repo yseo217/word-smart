@@ -3,7 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 // 단어 발음 듣기 (PRD 5번 nice): 브라우저 기본 음성(speechSynthesis)으로 영어(미국식)를 누를 때만 읽어준다.
-// 복습 화면(큰 테두리 버튼)과 단어장·Still Learning 목록(compact: 테두리 없는 작은 아이콘, 터치 영역 44px 유지)에서 같이 쓴다 (2026-10-30 UX 개선).
+// 복습 화면(큰 테두리 버튼)과 단어장·Still Learning 목록(compact: 테두리 없는 작은 아이콘, 터치 영역 44px 유지)에서 같이 쓴다 (2026-10-29 UX 개선).
 // 음성 파일은 가져오지 않고, 브라우저가 지원하지 않으면 버튼을 숨긴다.
 const noop = () => () => {};
 const supported = () => typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;

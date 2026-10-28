@@ -88,7 +88,7 @@ export default function StillLearningPage() {
                     <span className="font-score text-sm">{word!.knownStreak}</span> in a row · since {kstDate(new Date(savedAt))}
                   </p>
                 </div>
-                {/* 발음 듣기 (2026-10-30 UX 개선): 어려운 단어를 다시 볼 때 바로 듣는다 */}
+                {/* 발음 듣기 (2026-10-29 UX 개선): 어려운 단어를 다시 볼 때 바로 듣는다 */}
                 <SpeakButton text={word!.text} compact />
                 <button
                   type="button"

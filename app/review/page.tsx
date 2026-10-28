@@ -226,7 +226,7 @@ export default function ReviewPage() {
               <p lang="en" className="break-words text-4xl font-semibold tracking-tight">
                 {shown.text}
               </p>
-              {/* 이 단어의 이력 한 줄 (2026-10-29 UX 개선): 색은 단어장의 상태 글자와 같다 */}
+              {/* 이 단어의 이력 한 줄 (2026-10-28 UX 개선): 색은 단어장의 상태 글자와 같다 */}
               {(() => {
                 const h = historyOf(shown);
                 return <p className={`mt-1 text-sm ${h.className}`}>{h.text}</p>;
