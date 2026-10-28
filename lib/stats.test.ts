@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { kstWeekStart } from "./kst.ts";
 import { answerCurrent, startRound } from "./quiz.ts";
-import { activeDaysLast4Weeks, daysSinceFirstUse, exampleRate, retention, roundsThisWeek, todayAnswers } from "./stats.ts";
+import { activeDaysLast4Weeks, daysSinceFirstUse, exampleRate, retention, roundsThisWeek, streakDays, todayAnswers } from "./stats.ts";
 import { addWords, emptyStore, type Store } from "./store.ts";
 
 // 2026-10-25은 일요일 (KST). 주의 시작은 10-19 월요일.
@@ -104,4 +104,16 @@ test("todayAnswers counts only today's answers by KST date", () => {
   };
   assert.deepEqual(todayAnswers(store, SUNDAY), { known: 1, unknown: 1 });
   assert.deepEqual(todayAnswers(emptyStore(), SUNDAY), { known: 0, unknown: 0 });
+});
+
+test("streakDays counts consecutive KST days with a finished round, ending today or yesterday", () => {
+  const rounds = (...dates: string[]) => ({ ...withWords("a"), rounds: dates.map((date) => ({ at: "", date })) });
+  assert.equal(streakDays(rounds("2026-10-25", "2026-10-24", "2026-10-23"), SUNDAY), 3); // 오늘 포함 3일
+  assert.equal(streakDays(rounds("2026-10-24", "2026-10-23"), SUNDAY), 2); // 오늘은 아직, 어제까지 2일
+  assert.equal(streakDays(rounds("2026-10-25", "2026-10-23"), SUNDAY), 1); // 어제가 비어 오늘부터 새로
+  assert.equal(streakDays(rounds("2026-10-23", "2026-10-22"), SUNDAY), 0); // 어제도 없음
+  assert.equal(streakDays(withWords("a"), SUNDAY), 0);
+  // 오늘 횟수는 회차 기록이 없어도 progress.completed로 센다
+  const onlyProgress: Store = { ...rounds("2026-10-24"), progress: { date: "2026-10-25", completed: 1 } };
+  assert.equal(streakDays(onlyProgress, SUNDAY), 2);
 });

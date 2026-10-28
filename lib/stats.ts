@@ -65,3 +65,16 @@ export function todayAnswers(store: Store, now: Date = new Date()): { known: num
   }
   return { known, unknown };
 }
+
+// 연속 복습 일수 (Today 화면, 2026-10-30 UX 개선): 회차를 1회 이상 끝낸 날이 끊기지 않고 며칠 이어졌는지.
+// 오늘 아직 안 했으면 어제부터 거꾸로 센다 (오늘 하면 이어진다는 뜻). 어제도 없으면 0.
+export function streakDays(store: Store, now: Date = new Date()): number {
+  const days = new Set(roundDates(store, now));
+  let n = 0;
+  let back = days.has(kstDate(now)) ? 0 : 1;
+  while (days.has(kstDateDaysAgo(now, back))) {
+    n++;
+    back++;
+  }
+  return n;
+}
