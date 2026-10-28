@@ -48,7 +48,7 @@
 |---|---|---|
 | **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
 | **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼 · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I remember / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Remembered 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `speak-button.tsx`, `example-cache.ts` |
-| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내 · [Add] · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 알파벳 순 목록(각 줄: 단어, 그 아래 작은 상태 글자 "Still learning"(황색) / "Remembered"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 2026-10-28 UX 개선 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
+| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내 · [Add] · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수) / Looked up(개수) — 검색과 함께 적용, 2026-10-29 UX 개선 · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Remembered"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 2026-10-28 UX 개선. 2026-10-29에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Remembered % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
 | **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup, 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
@@ -611,3 +611,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 1.6 | 2026-10-28 | UX 개선: Still Learning 탭에 쌓인 단어 수 표시 (0.2, 2장) | Iron man |
 | 1.7 | 2026-10-28 | UX 개선: 단어장 각 줄에 복습 상태 글자 (0.2) | Iron man |
 | 1.8 | 2026-10-28 | UX 개선: 회차 요약에 단어 3개와 결과 표시 (0.2) | Iron man |
+| 1.9 | 2026-10-29 | UX 개선: 단어장에 상태 필터(All / Still learning / Looked up) (0.2) | Iron man |

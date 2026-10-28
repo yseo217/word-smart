@@ -22,7 +22,6 @@ export default function WordsPage() {
   const [query, setQuery] = useState("");
   const sortedWords = useMemo(() => [...store.words].sort((a, b) => a.text.localeCompare(b.text, "en")), [store.words]);
   const needle = query.trim().toLowerCase();
-  const visibleWords = needle ? sortedWords.filter((w) => w.text.includes(needle)) : sortedWords;
 
   // 각 단어의 복습 상태 글자와 색. Still Learning 목록에 있으면 황색, 마지막 답이 "안다"면 녹색, "모른다"면 빨간색 (상태색은 Tailwind 기본색, CLAUDE.md).
   const hardIds = useMemo(() => new Set(store.hard.map((h) => h.wordId)), [store.hard]);
@@ -32,6 +31,29 @@ export default function WordsPage() {
     if (lastAnswer === "unknown") return { label: "Looked up", className: "text-red-600 dark:text-red-400" };
     return null;
   }
+
+  // 상태 필터 (2026-10-29 UX 개선): All / Still learning / Looked up. 검색 칸과 함께 적용된다.
+  type Filter = "all" | "Still learning" | "Looked up";
+  const [filter, setFilter] = useState<Filter>("all");
+  const counts = useMemo(() => {
+    const c = { "Still learning": 0, "Looked up": 0 };
+    for (const w of store.words) {
+      const label = statusOf(w.id, w.lastAnswer)?.label;
+      if (label === "Still learning" || label === "Looked up") c[label]++;
+    }
+    return c;
+    // statusOf는 hardIds에만 의존한다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.words, hardIds]);
+  const visibleWords = sortedWords.filter((w) => {
+    if (needle && !w.text.includes(needle)) return false;
+    return filter === "all" || statusOf(w.id, w.lastAnswer)?.label === filter;
+  });
+  const FILTERS: { key: Filter; label: string; count?: number }[] = [
+    { key: "all", label: "All" },
+    { key: "Still learning", label: "Still learning", count: counts["Still learning"] },
+    { key: "Looked up", label: "Looked up", count: counts["Looked up"] },
+  ];
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -160,23 +182,44 @@ export default function WordsPage() {
           </p>
         )}
 
+        {/* 상태 필터: 눌린 것은 네이비로 채운다. 개수는 검색과 상관없이 전체 기준 */}
+        {ready && store.words.length > 0 && (
+          <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">
+            {FILTERS.map((f) => {
+              const on = filter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setFilter(f.key)}
+                  className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors ${
+                    on ? "bg-foreground text-background" : "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  {f.label}
+                  {f.count !== undefined && <span className={`font-score text-sm ${on ? "text-background/70" : "text-zinc-500 dark:text-zinc-400"}`}>{f.count}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {ready && store.words.length > 0 && visibleWords.length === 0 && (
           <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
-            No words match &lsquo;{query.trim()}&rsquo;.
+            {needle ? <>No words match &lsquo;{query.trim()}&rsquo;{filter !== "all" && ` in ${filter}`}.</> : `No words in ${filter}.`}
           </p>
         )}
 
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {visibleWords.map((word) => (
             <li key={word.id} className="flex items-center justify-between gap-3 px-3">
-              <span className="flex min-w-0 flex-col py-2">
-                <span lang="en" className="break-words text-lg">
-                  {word.text}
-                </span>
-                {/* 복습 상태 한 줄 (2026-10-28 UX 개선): Still Learning에 있으면 그것, 아니면 마지막 답. 아직 안 물었으면 비움 */}
+              <span lang="en" className="min-w-0 break-words py-3 text-lg">
+                {word.text}
+                {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-29: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
                 {(() => {
                   const status = statusOf(word.id, word.lastAnswer);
-                  return status && <span className={`text-xs ${status.className}`}>{status.label}</span>;
+                  return status && <sup className={`ml-1 whitespace-nowrap text-[10px] font-medium ${status.className}`}>{status.label}</sup>;
                 })()}
               </span>
               <button
