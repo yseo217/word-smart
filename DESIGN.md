@@ -51,7 +51,7 @@
 | **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내 · [Add] · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수) / Looked up(개수) — 검색과 함께 적용, 2026-10-29 UX 개선 · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Remembered"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 2026-10-28 UX 개선. 2026-10-29에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Remembered % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
-| **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup, 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
+| **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-29 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
 
 ### 0.3 데이터 흐름 — 입력 → 처리 → 출력
 
@@ -110,7 +110,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | **Free Dictionary API** | 사전 예문 | 키 없이 쓰는 무료 사전 서비스(Wiktionary 기반). 느리거나 오류일 수 있어 6초만 기다린다 | 사용 중 |
 | **VOA 문장 모음** (`data/voa-sentences.json`) | 기사 예문 | VOA Learning English 기사를 미리 문장으로 잘라 둔 파일. 퍼블릭 도메인이라 저장해도 된다 | 사용 중 |
 | **단어 빈도 목록** (`data/word-freq.json`) | 예문 수준 규칙 | 영어 단어 20,000개가 얼마나 흔한지 순위를 적은 표(OpenSubtitles 자막 기반, CC BY-SA 4.0). 이게 있어서 "예문이 단어보다 어렵지 않게" 규칙이 켜진다 | 사용 중 |
-| **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 114개를 검사 | 사용 중 |
+| **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 115개를 검사 | 사용 중 |
 | **ESLint** | 코드 검사 | 흔한 실수와 규칙 위반을 찾아 주는 검사기. `npm run lint` | 사용 중 |
 | **opentype.js** (개발용) | 아이콘 만들기 | 글꼴 파일에서 글자의 윤곽선을 읽어 주는 라이브러리. `scripts/make-icons.mjs`만 쓰고 앱에는 들어가지 않는다 | 사용 중 |
 | **Vercel** | 배포 | 코드를 올리면 인터넷 주소를 만들어 주는 서비스. Next.js를 만든 회사라 설정이 거의 없다 | 배포 예정 |
@@ -141,7 +141,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 
 | 단계 | 대상 | 방법 | 지금 상태 |
 |---|---|---|---|
-| L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 114개) | 자동 |
+| L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 115개) | 자동 |
 | L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401, 알림 시각이 아니면 `off_hours`로 안 보냄, 서버 설정 전이면 503 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404, 기기가 구독을 끊었으면 410(목록에서 지움), 푸시 서비스가 거부하면 502, 서버 설정 전 503 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
 | L2 화면 | 0.5 체크리스트 | 내장 브라우저에서 눌러 확인 | 수동 |
 | L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
@@ -509,7 +509,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | ~~3~~ | 응답 기록 보관 기간 → **무제한으로 확정** (PRD 검토 4회) | 완료 |
 | ~~4~~ | 단어 삭제 시 기록 삭제 → **PRD 5번 ①에 반영** (검토 3회) | 완료 |
 | ~~5~~ | "1분 이내"에 예문 로딩 포함 → **포함으로 확정** (검토 4회) | 완료 |
-| ~~6~~ | 테스트 도구 → **`node:test`로 확정**, 114개 작성(2026-10-27 기준) | 완료 |
+| ~~6~~ | 테스트 도구 → **`node:test`로 확정**, 115개 작성(2026-10-29 기준) | 완료 |
 
 ## 11. 알아둘 점
 
@@ -613,3 +613,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 1.8 | 2026-10-28 | UX 개선: 회차 요약에 단어 3개와 결과 표시 (0.2) | Iron man |
 | 1.9 | 2026-10-29 | UX 개선: 단어장에 상태 필터(All / Still learning / Looked up) (0.2) | Iron man |
 | 2.0 | 2026-10-29 | UX 개선: 복습 화면 단어 아래 이력 한 줄 (0.2) | Iron man |
+| 2.1 | 2026-10-29 | UX 개선: 백업 화면 마지막 백업을 "N days ago"로 (0.2), 테스트 115개 | Iron man |

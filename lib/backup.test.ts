@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { backupFileName, makeBackup, markBackedUp, needsBackupReminder, parseBackup, snoozeReminder } from "./backup.ts";
+import { backupFileName, daysAgoText, daysSinceBackup, makeBackup, markBackedUp, needsBackupReminder, parseBackup, snoozeReminder } from "./backup.ts";
 import { addWords, emptyStore, type Store } from "./store.ts";
 
 const NOW = new Date("2026-10-25T03:00:00.000Z"); // KST 12:00
@@ -58,6 +58,17 @@ test("backup round trip keeps every part of the store (PLAN 24 check)", () => {
   const expected: Store = { ...full, lastBackupAt: NOW.toISOString() };
   delete expected.backupSnoozedUntil;
   if (r.ok) assert.deepEqual(r.store, expected);
+});
+
+test("daysSinceBackup counts Korean-time days and daysAgoText words them", () => {
+  const now = new Date("2026-10-29T00:30:00.000Z"); // KST 10-29 09:30
+  assert.equal(daysSinceBackup("2026-10-28T20:00:00.000Z", now), 0); // KST 10-29 05:00 → 오늘
+  assert.equal(daysSinceBackup("2026-10-28T10:00:00.000Z", now), 1); // KST 10-28 19:00 → 어제
+  assert.equal(daysSinceBackup("2026-10-15T00:00:00.000Z", now), 14);
+  assert.equal(daysSinceBackup("2026-11-01T00:00:00.000Z", now), 0); // 미래 시각은 0으로
+  assert.equal(daysAgoText(0), "today");
+  assert.equal(daysAgoText(1), "yesterday");
+  assert.equal(daysAgoText(14), "14 days ago");
 });
 
 test("backupFileName carries the KST date", () => {
