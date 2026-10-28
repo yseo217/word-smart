@@ -490,6 +490,7 @@ public/                 아이콘 (icon-192.png, icon-512.png, apple-touch-icon.
 .local/                 개발 컴퓨터의 푸시 구독 파일 (Git에 올리지 않음)
 README.md               앱 소개, 명령, 자료 출처
 PRD.md · PLAN.md · DESIGN.md · CLAUDE.md   기획 · 계획 · 설계 · 작업 규칙
+CHECK.md                점검서: 성공 기준 판정, Gap 분석, 보안 점검 결과와 남은 일 (2026-10-28)
 .env                    `VERCEL_TOKEN` 등 외부 서비스 토큰과 푸시 알림 값 4개(13.4). 값은 코드·문서·채팅에 적지 않는다 (Git에 올리지 않음)
 .vercelignore           Vercel CLI 배포 때 올리지 않을 것: .env*, .local/, trash-can/, .bkit/, .claude/ (CLI는 .gitignore를 보지 않는다, 11장)
 ```
