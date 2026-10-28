@@ -6,7 +6,7 @@ import { answerCurrent, completedToday, currentWord, googleSearchUrl, ROUNDS_PER
 import type { Answer, Word } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
 import ExampleCard from "./example-card";
-import SpeakButton from "./speak-button";
+import SpeakButton from "../speak-button";
 import { clearExamples, exampleKindOf, getExampleState, getServerVersion, getVersion, requestExample, subscribe } from "./example-cache";
 
 // 회차 안에서 쌓는 메모: 어려운 단어 변동과, 이 회차에서 답한 단어들(요약 화면에 "Knew it / Looked up"으로 보여준다, 2026-10-28 UX 개선).

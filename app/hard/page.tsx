@@ -5,6 +5,7 @@ import { useState } from "react";
 import { kstDate } from "@/lib/kst";
 import { KNOWN_STREAK_TO_CLEAR, MISS_LIMIT, removeFromHard } from "@/lib/quiz";
 import { useStore } from "@/lib/use-store";
+import SpeakButton from "../speak-button";
 
 // 어려운 단어 목록(화면 이름은 "Still Learning"): "Look it up"을 누적 3번 누른 단어.
 // 연속 3번 "I know it"이면 저절로 빠지고, 여기서 직접 뺄 수도 있다.
@@ -77,8 +78,8 @@ export default function StillLearningPage() {
           )}
           <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
             {visible.map(({ word, savedAt }) => (
-              <li key={word!.id} className="flex items-center justify-between gap-3 px-3 py-2">
-                <div className="min-w-0">
+              <li key={word!.id} className="flex items-center gap-2 px-3 py-2">
+                <div className="min-w-0 flex-1">
                   <p lang="en" className="break-words text-xl font-semibold">
                     {word!.text}
                   </p>
@@ -87,11 +88,13 @@ export default function StillLearningPage() {
                     <span className="font-score text-sm">{word!.knownStreak}</span> in a row · since {kstDate(new Date(savedAt))}
                   </p>
                 </div>
+                {/* 발음 듣기 (2026-10-30 UX 개선): 어려운 단어를 다시 볼 때 바로 듣는다 */}
+                <SpeakButton text={word!.text} compact />
                 <button
                   type="button"
                   onClick={() => handleRemove(word!.id, word!.text)}
                   aria-label={`Remove ${word!.text} from Still Learning`}
-                  className="min-h-11 shrink-0 rounded-lg px-3 text-sm text-red-600 dark:text-red-400"
+                  className="-ml-1 min-h-11 shrink-0 rounded-lg px-3 text-sm text-red-600 dark:text-red-400"
                 >
                   Remove
                 </button>
