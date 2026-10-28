@@ -28,8 +28,8 @@ export default function WordsPage() {
   const hardIds = useMemo(() => new Set(store.hard.map((h) => h.wordId)), [store.hard]);
   function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): string | null {
     if (hardIds.has(id)) return "Still learning";
-    if (lastAnswer === "known") return "remembered";
-    if (lastAnswer === "unknown") return "looked up";
+    if (lastAnswer === "known") return "Remembered";
+    if (lastAnswer === "unknown") return "Looked up";
     return null;
   }
 
