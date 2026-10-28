@@ -513,7 +513,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 
 ## 11. 알아둘 점
 
-- **배포 주소**: (PLAN 18번을 마친 뒤 여기에 적는다) `https://________.vercel.app` · 배포 방식은 Vercel CLI로 `main`을 프로덕션 배포(사용자가 터미널에서 직접 실행, PRD 9번 18). GitHub 저장소 연동은 쓰지 않는다. **CLI는 Git 커밋이 아니라 작업 폴더 전체를 올리고 `.gitignore`를 보지 않으므로**, `.vercelignore`로 `.env*`·`.local/`·`trash-can/`·`.bkit/`·`.claude/`를 뺀다(2026-10-26 추가). 배포 뒤 Vercel의 Source 화면에서 `.env`가 없는지 한 번 확인한다.
+- **배포 주소**: `https://word-smart-dusky.vercel.app` (2026-10-29 배포. 코드는 GitHub 공개 저장소 `https://github.com/yseo217/word-smart`) · 배포 방식은 Vercel CLI로 `main`을 프로덕션 배포(사용자가 터미널에서 직접 실행, PRD 9번 18). GitHub 저장소 연동은 쓰지 않는다. **CLI는 Git 커밋이 아니라 작업 폴더 전체를 올리고 `.gitignore`를 보지 않으므로**, `.vercelignore`로 `.env*`·`.local/`·`trash-can/`·`.bkit/`·`.claude/`를 뺀다(2026-10-26 추가). 배포 뒤 Vercel의 Source 화면에서 `.env`가 없는지 한 번 확인한다.
 - **보안 헤더** (2026-10-28 공개 전 점검): `next.config.ts`가 모든 경로에 `Content-Security-Policy: frame-ancestors 'none'`(다른 사이트가 이 앱을 틀에 넣는 클릭재킹 차단)·`X-Frame-Options: DENY`·`X-Content-Type-Options: nosniff`·`Referrer-Policy: strict-origin-when-cross-origin`·`Permissions-Policy`(카메라·마이크·위치 끔)를 붙인다. 스크립트까지 제한하는 엄격한 CSP(nonce)는 Cache Components와 맞지 않아 쓰지 않는다. HTTPS 강제(HSTS)는 Vercel이 붙여 주는 것으로 알고 있으니 배포 뒤 응답 헤더로 확인한다. 인증 없는 API(`/api/example`, `/api/push/subscribe`·`test`)의 호출 횟수 제한은 코드에 없고, 필요하면 Vercel 대시보드의 Firewall 규칙으로 건다.
 - `localStorage`는 **주소마다 따로** 저장된다. 컴퓨터에서 띄운 `localhost` 주소와 Vercel에 배포한 주소는 서로 다른 단어장을 갖는다. 배포 주소를 바꾸면 기록이 사라지므로 백업 기능이 중요하다.
 - 사파리는 오래 쓰지 않은 사이트의 저장 데이터를 지울 수 있다. 홈 화면에 추가해서 쓰면 도움이 될 수 있다. (제가 아는 범위의 내용이라 만들 때 다시 확인한다.)
@@ -620,3 +620,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 2.5 | 2026-10-28 | 화면 문구: "Remembered"를 "Knew it"으로, 복습 버튼 "I remember"를 "I know it"으로 통일 (0.2, 4장, 6장) | Iron man |
 | 2.6 | 2026-10-29 | UX 개선: 단어장·Still Learning 목록의 단어 옆에 스피커 버튼(발음 듣기). 스피커 조각을 `app/speak-button.tsx`로 옮겨 공용화 (0.2) | Iron man |
 | 2.7 | 2026-10-29 | UX 개선: Today 카드에 연속 복습 일수 "N days in a row" (0.2), 테스트 117개 | Iron man |
+| 2.8 | 2026-10-29 | 11장에 배포 주소와 GitHub 저장소 기록 | Iron man |

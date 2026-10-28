@@ -72,7 +72,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 15. ✅ 발음 듣기 — 스피커 버튼(복습, 10-29부터 단어장·Still Learning 목록에도), 미지원 시 숨김
 16. ✅ 백업 — 내보내기·가져오기·초기화·안내
 17. ✅ 통계 — 회차 기록, 주간 횟수, 복습한 날, 기억률, 예문 제공률
-18. ⬜ 배포 — 사용자가 터미널에서 Vercel CLI로 `main`을 프로덕션 배포하고 주소 확보 (CLI 설치·토큰 확인 완료. PRD 9번 18, DESIGN 11장). CLI는 작업 폴더를 올리므로 `.vercelignore`(2026-10-26 추가)가 `.env` 등을 뺀다. 배포 뒤 Vercel Source 화면에서 `.env`가 없는지 확인
+18. ✅ 배포 (2026-10-29 완료: `https://word-smart-dusky.vercel.app`, GitHub `yseo217/word-smart` 공개 저장소, Vercel 환경 변수 4개 등록) — 사용자가 터미널에서 Vercel CLI로 `main`을 프로덕션 배포하고 주소 확보 (CLI 설치·토큰 확인 완료. PRD 9번 18, DESIGN 11장). CLI는 작업 폴더를 올리므로 `.vercelignore`(2026-10-26 추가)가 `.env` 등을 뺀다. 배포 뒤 Vercel Source 화면에서 `.env`가 없는지 확인
 19. ⬜ 데이터 이전 — 배포 주소에서 백업 파일을 가져와 단어 438개를 확인하고, 그 자리에서 첫 회차 1회를 끝낸다 (그날이 판정 기준일, PRD 3번)
 20. ⬜ 폰 확인 — 홈 화면 추가, 375px 레이아웃, 공유 시트, 발음, 오프라인 안내를 아이폰에서 점검하고 문제는 작업 목록에 추가
 21. ✅ 단어 빈도 목록 — hermitdave/FrequencyWords(OpenSubtitles 2018, CC BY-SA 4.0) 상위 20,000단어 → `scripts/build-word-freq.mjs`로 `data/word-freq.json` 생성, 출처는 `data/word-freq.meta.json`, 테스트 6개 추가(총 98개). 수준 규칙 켜짐 (2026-10-25, `feature/word-freq`)
@@ -80,7 +80,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 23. ⬜ VOA 모음 확대 — 통계의 예문 제공률이 60% 미만이면 기사 1,000개로 다시 모으고 재배포
 24. 🔶 예외 점검 — 개발 컴퓨터에서 할 수 있는 셋은 끝남(2026-10-27): ① 통신사 제외 규칙 — 모음 102개를 훑어 "based on … AFP/AP/Reuters report" 꼴 2개와 "Agence France Press" 철자 변형 1개 발견, 규칙 추가·제거(DESIGN 6.4, 모음 99개). Reuters·AFP 표기 확인됨 ② 백업 왕복 — 저장본 전체가 그대로 돌아오는 테스트 추가(총 111개) ③ 자정 넘김 회차 — 기존 테스트 2개로 확인. 남은 것: 두 탭 동시 사용(배포 뒤 폰에서, "망가지지 않는지"만), VOA 크레디트 뒤 통신사 문단(제외된 기사를 다시 받아야 하므로 23번 때)
 25. ⬜ 4주 뒤 판정 — 판정 기준일(19번 완료일): `____-__-__` · 판정일(기준일 + 28일): `____-__-__`. 판정일에 통계 화면으로 PRD 3번 기준(복습 지속·기억률·예문 제공률)을 확인하고, 1회 복습 시간은 직접 잰 값으로 판정한 뒤 숫자 조정 여부 결정. 통계 화면은 이번 주 값만 보여주므로 매주 일요일 밤 Rounds this week를 적는다 — 1주 `__`회 · 2주 `__`회 · 3주 `__`회 · 4주 `__`회 (첫 주·마지막 주가 반쪽이면 둘을 합쳐 한 주로 본다). 기준일 당일에 끝낸 회차 수 `__`회도 적어 Active days 보정에 쓴다
-26. ⬜ 푸시 알림 (PRD 23, 2026-10-26 추가) — 코드 완료: `public/sw.js`, `lib/push*.ts`, `/api/push/subscribe·send·test`, Today의 알림 띠, 구독 상한 10개, 테스트 7개(총 108개). 남은 것(18번 배포 뒤, DESIGN 13.5 순서대로): ① Vercel 환경 변수 4개 등록(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`=배포 주소·`PUSH_CRON_SECRET`) ② Vercel Blob 저장소를 **Private**로 만들고 프로젝트에 연결(`BLOB_READ_WRITE_TOKEN`. 접근 방식은 나중에 못 바꾼다) ③ 재배포 ④ cron-job.org에 예약 5개(한국 시간 9·11·13·17·19시, `GET https://<배포 주소>/api/push/send`, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`) ⑤ 아이폰 홈 화면 아이콘으로 열어 Reminders 켜고 "Send a test"로 수신 확인
+26. ⬜ 푸시 알림 (PRD 23, 2026-10-26 추가) — 코드 완료: `public/sw.js`, `lib/push*.ts`, `/api/push/subscribe·send·test`, Today의 알림 띠, 구독 상한 10개, 테스트 7개(총 108개). 남은 것(18번 배포 뒤, DESIGN 13.5 순서대로): ① Vercel 환경 변수 4개 등록(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`=배포 주소·`PUSH_CRON_SECRET`) ② Vercel Blob 저장소를 **Private**로 만들고 프로젝트에 연결(`BLOB_READ_WRITE_TOKEN`. 접근 방식은 나중에 못 바꾼다) ③ 재배포 ④ cron-job.org에 예약 5개(한국 시간 9·11·13·17·19시, `GET https://<배포 주소>/api/push/send`, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`) ⑤ 아이폰 홈 화면 아이콘으로 열어 Reminders 켜고 "Send a test"로 수신 확인 — 2026-10-29: ①(환경 변수 4개, CLI `vercel env add`)과 ③(재배포) 완료. 남은 것은 ②(Blob Private 연결 → 재배포)·④(cron-job.org 예약 5개)·⑤(아이폰 확인)
 27. ✅ UX 개선 묶음 (2026-10-28~29, 한 번에 하나씩 `feature/*`로) — Still Learning 탭 개수, 단어장 상태 윗첨자(Knew it 녹색 / Looked up 빨간색 / Still learning 황색)·상태 필터 4개·추가 미리 보기("Add N words"), 회차 요약에 3단어와 결과, 복습 단어 아래 이력 줄, 백업 화면 "N days ago", Today 카드에 오늘 결과(Knew it N · Looked up N)와 연속 복습 일수(N days in a row), 상태 용어를 "Remembered"에서 "Knew it"으로(버튼 "I know it"), 단어장·Still Learning 목록에 스피커 버튼. 테스트 117개
 
 ## 위험과 대비
@@ -108,7 +108,7 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 
 ## 다음 단계
 
-1. [ ] 18번 배포 실행 → 주소를 `DESIGN.md` 11번에 기록
+1. [x] 18번 배포 실행 → 주소를 `DESIGN.md` 11번에 기록 (2026-10-29)
 2. [ ] 19~20번 폰에서 확인 → 발견한 문제를 이 목록 끝에 추가, 25번에 판정 기준일 기록
 3. [x] 21번 빈도 목록 → [x] 22번 수준 규칙 조정 → [ ] 23번은 통계의 예문 제공률을 본 뒤
 4. [ ] 26번 푸시 알림: 배포(18번) 직후 Vercel 환경 변수·Blob·cron-job.org 설정 → 폰 확인(20번)과 함께 수신 확인
@@ -127,3 +127,4 @@ PRD "이번에 만들 것" 중 남은 단위(배포, 푸시 알림의 배포 뒤
 | 0.8 | 2026-10-26 | 교차 검토 5회 반영: 18번에 .vercelignore 확인, 26번 ②에 Blob Private | Iron man |
 | 0.9 | 2026-10-27 | 24번 예외 점검 중 개발 컴퓨터 항목 셋 완료(통신사 규칙 보강, 백업 왕복 테스트, 자정 넘김), 10번 기사 수 100개 | Iron man |
 | 1.0 | 2026-10-29 | 배포 전 문서 맞추기: 27번 UX 개선 묶음 추가, 4·6·15번에 반영 내용 표기, 테스트 117개 | Iron man |
+| 1.1 | 2026-10-29 | 18번 배포 완료(Vercel CLI, GitHub 공개 저장소), 26번 ①·③ 완료 표시 | Iron man |

@@ -4,7 +4,7 @@
 
 *A personal English-vocabulary review web app: five 3-word rounds a day, each word shown inside a real VOA Learning English sentence. No account, all learning data stays in the browser.*
 
-- **배포 주소**: https://word-smart.vercel.app (스마트폰에서 홈 화면에 추가하면 앱처럼 열린다)
+- **배포 주소**: https://word-smart-dusky.vercel.app (스마트폰에서 홈 화면에 추가하면 앱처럼 열린다)
 - **심사·기획 자료**: [`PRD.md`](PRD.md)(기획서, 최상위 기준) · [`PLAN.md`](PLAN.md)(계획서, 작업 목록) · [`DESIGN.md`](DESIGN.md)(설계) · [`CHECK.md`](CHECK.md)(점검) · [`CLAUDE.md`](CLAUDE.md)(작업 규칙)
 
 ## 무엇을 하는 앱인가
