@@ -35,6 +35,7 @@ export async function DELETE(request: NextRequest) {
     return Response.json({ ok: false, error: "invalid_endpoint" }, { status: 400 });
   }
   const list = await readSubscriptions();
-  await writeSubscriptions(removeSubscription(list, endpoint));
+  const next = removeSubscription(list, endpoint);
+  if (next.length !== list.length) await writeSubscriptions(next); // 지운 게 없으면 저장도 하지 않는다 (호출 폭주로 Blob 쓰기 한도를 쓰지 않게)
   return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -48,11 +48,25 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
 
+// 알림 주소로 받아 주는 푸시 서비스 (애플·구글·모질라·마이크로소프트). 아무 https 주소나 받으면 우리 서버가 남의 서버로
+// 요청을 보내는 중계기가 될 수 있어서(SSRF, 2026-10-28 보안 점검) 실제 푸시 서비스 도메인만 허용하고 포트 지정도 막는다.
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /(^|\.)push\.apple\.com$/, /\.push\.services\.mozilla\.com$/, /\.notify\.windows\.com$/];
+
+export function isPushServiceEndpoint(endpoint: string): boolean {
+  if (!/^https:\/\/[^\s]+$/.test(endpoint) || endpoint.length > 2048) return false;
+  try {
+    const u = new URL(endpoint);
+    return u.protocol === "https:" && u.port === "" && PUSH_HOSTS.some((re) => re.test(u.hostname));
+  } catch {
+    return false;
+  }
+}
+
 // 아무 JSON이나 저장하지 않도록 모양을 검사한다. 맞지 않으면 null.
 export function parseSubscription(v: unknown, now: Date = new Date()): PushSubscriptionRecord | null {
   if (!isRecord(v) || typeof v.endpoint !== "string" || !isRecord(v.keys)) return null;
   const { endpoint, keys } = v;
-  if (!/^https:\/\/[^\s]+$/.test(endpoint) || endpoint.length > 2048) return null;
+  if (!isPushServiceEndpoint(endpoint)) return null;
   if (typeof keys.p256dh !== "string" || typeof keys.auth !== "string") return null;
   if (!/^[A-Za-z0-9_-]{1,512}$/.test(keys.p256dh) || !/^[A-Za-z0-9_-]{1,512}$/.test(keys.auth)) return null;
   return { endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth }, addedAt: now.toISOString() };

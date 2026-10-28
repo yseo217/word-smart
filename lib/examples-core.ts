@@ -96,7 +96,9 @@ export function pickDictionaryExample(
   if (!Array.isArray(entries)) return NO_EXAMPLE;
   const examples: { id: string; text: string; url: string }[] = [];
   (entries as DictionaryEntry[]).forEach((entry, e) => {
-    const url = entry.sourceUrls?.[0] ?? `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`;
+    // 사전 API가 준 출처 주소는 https일 때만 믿고, 아니면 위키낱말사전 단어 페이지로 (엉뚱한 사이트 링크 방지, 2026-10-28)
+    const src = entry.sourceUrls?.[0];
+    const url = typeof src === "string" && src.startsWith("https://") ? src : `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`;
     entry.meanings?.forEach((m, mi) =>
       m.definitions?.forEach((d, di) => {
         const text = d.example?.trim();

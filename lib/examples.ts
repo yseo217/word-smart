@@ -14,7 +14,7 @@ export async function getExample(word: string, skip: readonly string[]): Promise
   try {
     const res = await fetch(DICTIONARY_API + encodeURIComponent(word), {
       signal: AbortSignal.timeout(DICTIONARY_TIMEOUT_MS),
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", "User-Agent": "WordSmart example/0.1 (personal learning project)" }, // 식별용 이름만, 개인 정보는 넣지 않는다 (CLAUDE.md)
     });
     if (!res.ok) return NO_EXAMPLE; // 404(단어 없음)와 530(서버 오류) 모두 "예문 없음"으로 처리
     return pickDictionaryExample(await res.json(), word, skip, freq as FrequencyMap);

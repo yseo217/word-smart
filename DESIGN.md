@@ -313,7 +313,7 @@ type Store = {
 1. `word`를 단어장 입력 검사(3번)와 같은 규칙으로 검사한다. 맞지 않으면 거부한다.
 2. VOA 문장 모음에서 단어 또는 그 변화형(7번)이 든 문장을 찾는다. `skip`에 있는 것은 빼고, **문장 수준이 단어 수준 이하인 것만 남긴다**(6.6).
 3. 찾았으면 무작위로 하나 고르고, 그 문장의 앞 문장과 뒷 문장 중 **더 긴 쪽**을 붙인다. 합쳐서 300자를 넘으면 다른 쪽을 쓰고, 둘 다 넘으면 찾은 문장만 쓴다. 한쪽이 없으면 있는 쪽만 쓴다.
-4. 못 찾았으면 `https://api.dictionaryapi.dev/api/v2/entries/en/<단어>`를 호출해 `example`이 있는 항목 중, 단어(변화형)가 보통 단어로 들어 있고 300자 이하이며 **수준이 맞는 것**(6.6) 하나를 무작위로 고른다. 첫 글자를 대문자로 바꾸고 끝에 마침표가 없으면 붙인다. 출처는 응답의 `sourceUrls` 첫 주소(없으면 Wiktionary 단어 페이지)와 라이선스 "CC BY-SA 3.0"(Wiktionary 고정값. 응답의 `license`는 쓰지 않는다)으로 돌려준다.
+4. 못 찾았으면 `https://api.dictionaryapi.dev/api/v2/entries/en/<단어>`를 호출해 `example`이 있는 항목 중, 단어(변화형)가 보통 단어로 들어 있고 300자 이하이며 **수준이 맞는 것**(6.6) 하나를 무작위로 고른다. 첫 글자를 대문자로 바꾸고 끝에 마침표가 없으면 붙인다. 출처는 응답의 `sourceUrls` 첫 주소(https가 아니거나 없으면 Wiktionary 단어 페이지로 대체, 2026-10-28)와 라이선스 "CC BY-SA 3.0"(Wiktionary 고정값. 응답의 `license`는 쓰지 않는다)으로 돌려준다. 요청에는 `User-Agent: WordSmart example/0.1 (personal learning project)`를 붙인다.
 5. 그래도 없거나, 사전 서비스가 오류(530 등)를 내거나 네트워크가 끊기면 `{ ok: false }`를 돌려준다. 예문을 지어내지 않는다.
 6. 서버 코드는 받은 단어를 `console` 등 로그에 쓰지 않는다(PRD 7번). 주소에 단어가 들어가는 것은 피할 수 없으므로 배포 서비스의 요청 로그에는 남을 수 있다.
 
@@ -513,6 +513,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 ## 11. 알아둘 점
 
 - **배포 주소**: (PLAN 18번을 마친 뒤 여기에 적는다) `https://________.vercel.app` · 배포 방식은 Vercel CLI로 `main`을 프로덕션 배포(사용자가 터미널에서 직접 실행, PRD 9번 18). GitHub 저장소 연동은 쓰지 않는다. **CLI는 Git 커밋이 아니라 작업 폴더 전체를 올리고 `.gitignore`를 보지 않으므로**, `.vercelignore`로 `.env*`·`.local/`·`trash-can/`·`.bkit/`·`.claude/`를 뺀다(2026-10-26 추가). 배포 뒤 Vercel의 Source 화면에서 `.env`가 없는지 한 번 확인한다.
+- **보안 헤더** (2026-10-28 공개 전 점검): `next.config.ts`가 모든 경로에 `Content-Security-Policy: frame-ancestors 'none'`(다른 사이트가 이 앱을 틀에 넣는 클릭재킹 차단)·`X-Frame-Options: DENY`·`X-Content-Type-Options: nosniff`·`Referrer-Policy: strict-origin-when-cross-origin`·`Permissions-Policy`(카메라·마이크·위치 끔)를 붙인다. 스크립트까지 제한하는 엄격한 CSP(nonce)는 Cache Components와 맞지 않아 쓰지 않는다. HTTPS 강제(HSTS)는 Vercel이 붙여 주는 것으로 알고 있으니 배포 뒤 응답 헤더로 확인한다. 인증 없는 API(`/api/example`, `/api/push/subscribe`·`test`)의 호출 횟수 제한은 코드에 없고, 필요하면 Vercel 대시보드의 Firewall 규칙으로 건다.
 - `localStorage`는 **주소마다 따로** 저장된다. 컴퓨터에서 띄운 `localhost` 주소와 Vercel에 배포한 주소는 서로 다른 단어장을 갖는다. 배포 주소를 바꾸면 기록이 사라지므로 백업 기능이 중요하다.
 - 사파리는 오래 쓰지 않은 사이트의 저장 데이터를 지울 수 있다. 홈 화면에 추가해서 쓰면 도움이 될 수 있다. (제가 아는 범위의 내용이라 만들 때 다시 확인한다.)
 - 지금 쓰는 예문 출처(VOA 모음, Free Dictionary API)는 API 키가 필요 없다. 나중에 키가 필요한 서비스를 추가하면 `.env`에 넣고 서버 코드에서만 읽는다. `NEXT_PUBLIC_`으로 시작하는 이름은 쓰지 않는다. 브라우저로 노출되기 때문이다. 단, 푸시 알림의 공개 키 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개해도 되는 값이라 예외다(13.4).
@@ -552,7 +553,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 ### 13.3 흐름과 파일
 
 - **켜기** (`app/reminders.tsx`): 지원 여부를 본다 → 서버에 공개 키가 없으면(배포 설정 전) "Reminders are not set up on this server yet.", 아이폰·아이패드 사파리(홈 화면 추가 전. 아이패드는 UA가 Mac이라 터치 포인트 수로 가른다)면 "홈 화면에 추가하세요" 안내, 지원 안 되면 "This browser cannot receive reminders.", 권한이 차단됐으면 안내. 지원되면 `sw.js`를 등록하고 "Turn on reminders" 버튼을 보인다. 누르면 권한을 묻고(iOS는 사용자 동작 안에서만 가능), 공개 키(`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)로 구독을 만들어 `POST /api/push/subscribe`에 보낸다. 서버 저장이 실패하면(응답 오류든 네트워크 예외든) 구독을 되돌리고, 409면 상한이 찼다고 안내한다. 카드에는 "Reminders"라는 제목과 시각을 쓰지 않고(2026-10-26 사용자 요청), 종 아이콘 + 상태 글 + 알약 버튼의 한 줄 띠로 보인다. 켠 뒤에는 "On for this device."와 Send a test·Turn off만 남고, 켜거나 끈 직후와 시험 알림을 보낸 뒤에는 그 아래에 안내 한 줄("Reminders are on for this device." 등)이 보인다. 띠 자체는 어느 상태에서도 사라지지 않는다. 서버는 구독을 10개까지만 받는다(넘으면 409, 13.6).
-- **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(https 주소, 키 2개), 같은 기기는 하나만 둔다.
+- **저장** (`lib/push-store.ts`): `BLOB_READ_WRITE_TOKEN`이 있으면 Vercel Blob(비공개, 캐시 없이 읽기), 없으면 개발 컴퓨터의 `.local/push-subscriptions.json`. 구독 정보는 `lib/push.ts`의 `parseSubscription`으로 모양을 검사한 것만 저장하고(키 2개, 주소는 https이면서 **실제 푸시 서비스 도메인**(fcm.googleapis.com, *.push.apple.com, *.push.services.mozilla.com, *.notify.windows.com)이고 포트 지정이 없는 것만 — 아무 주소나 받으면 우리 서버가 남의 서버로 요청을 보내는 중계기가 되므로, 2026-10-28 보안 점검), 같은 기기는 하나만 둔다. 해제(DELETE)는 실제로 지운 게 있을 때만 저장한다.
 - **보내기** (`app/api/push/send/route.ts` → `lib/push-send.ts`): `Authorization: Bearer <PUSH_CRON_SECRET>` 헤더가 맞을 때만 동작(주소에 비밀 값을 넣으면 로그에 남으므로 헤더만). 지금이 알림 시각(한국 시간 시 단위)이 아니면 보내지 않는다(`?force=1`이면 보낸다). 모든 구독에 `web-push`로 고정 문구를 보내고, 404·410(기기가 구독을 끊음)은 목록에서 지운다. TTL 1시간.
 - **시험** (`app/api/push/test/route.ts`): 카드의 "Send a test". 그 기기의 endpoint를 알아야만 보낼 수 있다.
 - **끄기**: `DELETE /api/push/subscribe`가 성공한 뒤에만 브라우저 구독을 해제한다. 서버에서 못 지웠으면 구독을 그대로 두고 "못 껐다"고 안내한다(풀어 버리면 서버에는 남아 알림이 계속 가므로, 2026-10-27). 브라우저 구독 해제 자체가 실패하는 것은 무시한다(다음 보내기 때 404·410으로 정리된다).
@@ -605,3 +606,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 1.2 | 2026-10-27 | Gap 낮음 3건 반영: 자정 넘김 때 N/5 자동 갱신(5.1), 깨진 기록·목록·진행 중 회차 걸러내기(4장), 저장 실패 공통 경고(4장·9장) | Iron man |
 | 1.3 | 2026-10-27 | PLAN 24 점검: 통신사 크레디트 규칙 보강과 모음 2개 제거(6.4·10번 1·1-1), 백업 왕복·자정 넘김은 테스트로 확인 | Iron man |
 | 1.4 | 2026-10-27 | Gap 2차 20건 반영: 철자 변형 규칙과 모음 1개 더 제거(6.4·10번), 진행 중 회차 조건(4장), 가져온 단어 검사(8장), 아포스트로피(3장·7장), 끄기 응답 확인(13.3), 아이패드(13.3), 5.1 판정 순서, 예문 캐시·오프라인·다른 예문 중 기록(6.2) | Iron man |
+| 1.5 | 2026-10-28 | 공개 전 보안 점검 7건 반영: 구독 주소를 푸시 서비스 도메인으로 제한(13.3), 해제 때 변경 있을 때만 저장, 전송 10초 timeout, 보안 헤더(11장), 사전 출처 주소 https 검사와 User-Agent(6.3), .gitignore에 .claude/ | Iron man |

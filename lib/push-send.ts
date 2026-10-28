@@ -24,6 +24,7 @@ export async function sendReminder(sub: PushSubscriptionRecord): Promise<SendOut
     const res = await webpush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, JSON.stringify(reminderPayload()), {
       TTL: 60 * 60, // 1시간 안에 못 전하면 버린다 (다음 알림 시각이 곧 온다)
       urgency: "normal",
+      timeout: 10_000, // 푸시 서비스가 응답을 안 주면 10초 뒤 포기 (보내기 함수가 끝까지 기다리다 멈추지 않게)
     });
     return { endpoint: sub.endpoint, ok: true, status: res.statusCode, gone: false };
   } catch (e) {
