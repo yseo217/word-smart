@@ -214,14 +214,12 @@ export default function WordsPage() {
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {visibleWords.map((word) => (
             <li key={word.id} className="flex items-center justify-between gap-3 px-3">
-              <span className="flex min-w-0 flex-col py-2">
-                <span lang="en" className="break-words text-lg">
-                  {word.text}
-                </span>
-                {/* 복습 상태 한 줄 (2026-10-28 UX 개선): Still Learning에 있으면 그것, 아니면 마지막 답. 아직 안 물었으면 비움 */}
+              <span lang="en" className="min-w-0 break-words py-3 text-lg">
+                {word.text}
+                {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-29: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
                 {(() => {
                   const status = statusOf(word.id, word.lastAnswer);
-                  return status && <span className={`text-xs ${status.className}`}>{status.label}</span>;
+                  return status && <sup className={`ml-1 whitespace-nowrap text-[10px] font-medium ${status.className}`}>{status.label}</sup>;
                 })()}
               </span>
               <button
