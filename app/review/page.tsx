@@ -9,7 +9,7 @@ import ExampleCard from "./example-card";
 import SpeakButton from "./speak-button";
 import { clearExamples, exampleKindOf, getExampleState, getServerVersion, getVersion, requestExample, subscribe } from "./example-cache";
 
-// 회차 안에서 쌓는 메모: 어려운 단어 변동과, 이 회차에서 답한 단어들(요약 화면에 "Remembered / Looked up"으로 보여준다, 2026-10-28 UX 개선).
+// 회차 안에서 쌓는 메모: 어려운 단어 변동과, 이 회차에서 답한 단어들(요약 화면에 "Knew it / Looked up"으로 보여준다, 2026-10-28 UX 개선).
 type HardNotes = { added: string[]; removed: string[]; answers: { text: string; kind: Answer }[] };
 const NO_NOTES: HardNotes = { added: [], removed: [], answers: [] };
 // 회차 요약: 어려운 단어 변동과, 이 회차가 오늘 횟수에 더해졌는지(자정을 넘긴 회차는 어제로 센다).
@@ -109,7 +109,7 @@ export default function ReviewPage() {
     if (!w.lastAnswer) return { text: "New word", className: "text-zinc-500 dark:text-zinc-400" };
     if (w.knownStreak > 0) {
       const tail = w.missTotal > 0 ? ` · looked up ${times(w.missTotal)} before` : "";
-      return { text: `Remembered ${w.knownStreak} in a row${tail}`, className: "text-green-700 dark:text-green-400" };
+      return { text: `Knew it ${w.knownStreak} in a row${tail}`, className: "text-green-700 dark:text-green-400" };
     }
     return { text: `Looked up ${times(w.missTotal)}`, className: "text-red-600 dark:text-red-400" };
   }
@@ -165,7 +165,7 @@ export default function ReviewPage() {
                     {a.text}
                   </span>
                   <span className={`shrink-0 text-sm font-medium ${a.kind === "known" ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                    {a.kind === "known" ? "Remembered" : "Looked up"}
+                    {a.kind === "known" ? "Knew it" : "Looked up"}
                   </span>
                 </li>
               ))}
@@ -253,7 +253,7 @@ export default function ReviewPage() {
               <p className="text-base text-zinc-700 dark:text-zinc-300">Does it ring a bell?</p>
               <div className="grid grid-cols-2 gap-3">
                 <button type="button" onClick={() => answer("known")} className="min-h-14 rounded-lg bg-foreground text-lg font-medium text-background">
-                  I remember
+                  I know it
                 </button>
                 <button type="button" onClick={() => answer("unknown")} className="min-h-14 rounded-lg border border-zinc-300 text-lg font-medium dark:border-zinc-700">
                   Look it up

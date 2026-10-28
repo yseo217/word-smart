@@ -25,20 +25,20 @@ export default function WordsPage() {
 
   // 각 단어의 복습 상태 글자와 색. Still Learning 목록에 있으면 황색, 마지막 답이 "안다"면 녹색, "모른다"면 빨간색 (상태색은 Tailwind 기본색, CLAUDE.md).
   const hardIds = useMemo(() => new Set(store.hard.map((h) => h.wordId)), [store.hard]);
-  type Status = "Still learning" | "Remembered" | "Looked up";
+  type Status = "Still learning" | "Knew it" | "Looked up";
   function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): { label: Status; className: string } | null {
     if (hardIds.has(id)) return { label: "Still learning", className: "text-amber-700 dark:text-amber-400" };
-    if (lastAnswer === "known") return { label: "Remembered", className: "text-green-700 dark:text-green-400" };
+    if (lastAnswer === "known") return { label: "Knew it", className: "text-green-700 dark:text-green-400" };
     if (lastAnswer === "unknown") return { label: "Looked up", className: "text-red-600 dark:text-red-400" };
     return null;
   }
 
-  // 상태 필터 (2026-10-29 UX 개선): All / Still learning / Looked up / Remembered. 검색 칸과 함께 적용된다.
+  // 상태 필터 (2026-10-29 UX 개선): All / Still learning / Looked up / Knew it. 검색 칸과 함께 적용된다.
   // 단추 색은 윗첨자 상태색과 같다 (황색·빨강·녹색). 누른 단추는 그 색으로 채운다.
   type Filter = "all" | Status;
   const [filter, setFilter] = useState<Filter>("all");
   const counts = useMemo(() => {
-    const c = { "Still learning": 0, "Looked up": 0, Remembered: 0 };
+    const c = { "Still learning": 0, "Looked up": 0, "Knew it": 0 };
     for (const w of store.words) {
       const label = statusOf(w.id, w.lastAnswer)?.label;
       if (label) c[label]++;
@@ -62,9 +62,9 @@ export default function WordsPage() {
     },
     { key: "Looked up", label: "Looked up", count: counts["Looked up"], on: "bg-red-600 text-white", off: "border-red-300 text-red-600 dark:border-red-800 dark:text-red-400" },
     {
-      key: "Remembered",
-      label: "Remembered",
-      count: counts.Remembered,
+      key: "Knew it",
+      label: "Knew it",
+      count: counts["Knew it"],
       on: "bg-green-700 text-white",
       off: "border-green-300 text-green-700 dark:border-green-800 dark:text-green-400",
     },

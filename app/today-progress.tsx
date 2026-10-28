@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { completedToday, ROUNDS_PER_DAY } from "@/lib/quiz";
+import { todayAnswers } from "@/lib/stats";
 import { useKstMidnightTick, useStore } from "@/lib/use-store";
 
 // 홈 화면의 'Today N/5'와 'Start review' 버튼. 저장소를 읽어야 해서 클라이언트 컴포넌트다.
@@ -13,6 +14,9 @@ export default function TodayProgress() {
   const hasWords = store.words.length > 0;
   const inProgress = Boolean(store.progress.current);
   const done = completed >= ROUNDS_PER_DAY && !inProgress;
+  // 오늘 결과 한 줄 (2026-10-30 UX 개선): 응답이 하나라도 있을 때만 보여준다. 상태색은 복습 요약과 같은 녹색·빨간색
+  const answers = ready ? todayAnswers(store) : { known: 0, unknown: 0 };
+  const hasAnswers = answers.known + answers.unknown > 0;
 
   const primary = "flex min-h-12 items-center justify-center rounded-lg bg-foreground px-4 text-base font-medium text-background";
   const secondary = "flex min-h-12 items-center justify-center rounded-lg border border-zinc-300 px-4 text-base dark:border-zinc-700";
@@ -30,6 +34,17 @@ export default function TodayProgress() {
           <span>Loading…</span>
         )}
       </p>
+      {hasAnswers && (
+        <p className="flex items-baseline gap-3 text-sm">
+          <span className="text-green-700 dark:text-green-400">
+            Knew it <span className="font-score text-base font-medium">{answers.known}</span>
+          </span>
+          <span className="text-zinc-400">·</span>
+          <span className="text-red-600 dark:text-red-400">
+            Looked up <span className="font-score text-base font-medium">{answers.unknown}</span>
+          </span>
+        </p>
+      )}
       {!ready && <span className={`${primary} opacity-50`}>Start review</span>}
       {ready && !hasWords && (
         <Link href="/words" className={primary}>

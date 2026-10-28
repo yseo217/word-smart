@@ -33,7 +33,7 @@ test("reminder payload names the round by the hour and opens the review screen",
   assert.equal(reminderPayload(new Date("2026-10-26T08:30:00.000Z")).body, "Time for 4th round"); // 17시 30분
   assert.equal(reminderPayload(new Date("2026-10-26T10:00:00.000Z")).body, "Time for 5th round"); // 19시
   assert.equal(reminderPayload(new Date("2026-10-26T06:00:00.000Z")).body, "Time for a round"); // 15시: 시험 알림
-  assert.doesNotMatch(p.body, /\/5|remembered|%/); // 횟수·기억률 같은 기록은 넣지 않는다 (회차 번호는 시각에서 나온다)
+  assert.doesNotMatch(p.body, /\/5|remembered|knew|%/); // 횟수·기억률 같은 기록은 넣지 않는다 (회차 번호는 시각에서 나온다)
 });
 
 test("roundNumberAt and ordinal", () => {

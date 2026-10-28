@@ -46,11 +46,11 @@
 
 | 탭 / 주소 | 위에서 아래로 보이는 것 | 파일 |
 |---|---|---|
-| **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
-| **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Remembered N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-29 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I remember / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Remembered 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `speak-button.tsx`, `example-cache.ts` |
-| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-29 UX 개선) · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Remembered(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-29 UX 개선(Remembered 단추와 색은 2026-10-30 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Remembered"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 2026-10-28 UX 개선. 2026-10-29에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
+| **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 오늘 응답이 있으면 결과 한 줄 "Knew it N · Looked up N"(녹색·빨간색, 2026-10-30 UX 개선), 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
+| **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Knew it N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-29 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I know it / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Knew it 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `speak-button.tsx`, `example-cache.ts` |
+| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-29 UX 개선) · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-29 UX 개선(Remembered 단추와 색은 2026-10-30 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 2026-10-28 UX 개선. 2026-10-29에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
-| **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Remembered % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
+| **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Knew it % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
 | **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-29 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
 
 ### 0.3 데이터 흐름 — 입력 → 처리 → 출력
@@ -131,10 +131,10 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 ### 0.5 화면 체크리스트 (빠짐 검사용)
 
 - **Today**: 오늘 횟수 N/5 · 상태별 버튼 1개(Start review / Continue review / Done for today / Add words first) · 알림 띠(끔: Turn on reminders / 켬: "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내) · 켜거나 끈 직후 안내 한 줄
-- **Review**: 진행 k/3 · 단어 · 스피커 버튼(지원 시) · 예문 카드(강조·출처·Another example 또는 No more examples·오프라인 문구) · I remember / Look it up · Look it up 뒤 Open Google / Next · 요약(횟수, 어제 계산 안내, 추가·제외 단어, One more round / Home) · 빈 단어장 안내 · 5회 완료 안내
+- **Review**: 진행 k/3 · 단어 · 스피커 버튼(지원 시) · 예문 카드(강조·출처·Another example 또는 No more examples·오프라인 문구) · I know it / Look it up · Look it up 뒤 Open Google / Next · 요약(횟수, 어제 계산 안내, 추가·제외 단어, One more round / Home) · 빈 단어장 안내 · 5회 완료 안내
 - **Word List**: Backup 링크 · 백업 안내(조건부, 7일 미루기) · 여러 줄 입력 · Add · 결과 안내 · 건너뛴 목록(10개 + and N more) · 검색 · 단어 수 · 알파벳 목록 · Delete(확인 창)
 - **Still Learning**: Stats 링크 · 검색 · 개수 · 최근 순 목록(단어·횟수·날짜) · Remove(확인 창) · 빈 상태 안내
-- **Stats**: Day N · Rounds this week · Active days x/28 · Remembered % · Examples shown %(데이터 부족 문구)
+- **Stats**: Day N · Rounds this week · Active days x/28 · Knew it % · Examples shown %(데이터 부족 문구)
 - **Backup**: 단어 수·마지막 백업 · Export · Import(파일 선택, 확인 창, 결과 안내) · Delete all data(확인 창 + DELETE 입력)
 
 ### 0.6 테스트 계획
@@ -168,7 +168,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 |---|---|---|
 | `/` | 홈(Today 탭): 오늘 복습 횟수 N/5, '복습 시작/이어서 하기/오늘 완료' 버튼, 알림 켜기/끄기 띠(13장) | 5번 ②, 4번, 5번 nice |
 | `/words` | **단어장**(Word List 탭): 여러 줄 입력칸, 알파벳 순 목록, 검색, 삭제, Backup 링크, 백업 안내 | 5번 ① |
-| `/review` | 복습: 한 화면에 한 단어, 예문, I remember / Look it up, 회차 요약 | 5번 ② |
+| `/review` | 복습: 한 화면에 한 단어, 예문, I know it / Look it up, 회차 요약 | 5번 ② |
 | `/hard` | 어려운 단어 목록(Still Learning 탭): 보기·검색·삭제, Stats 링크 | nice |
 | `/stats` | 통계 4가지 | nice |
 | `/backup` | 내보내기·가져오기·전체 초기화 | nice |
@@ -264,7 +264,7 @@ type Store = {
 
 두 경우 모두 `lastAnswer`를 갱신하고, 처음이면 `firstAnswer`도 채우고, `Log`를 한 줄 추가한다.
 
-**화면 문구**: 기획서의 "안다/모른다"는 데이터 값(`known`/`unknown`)의 이름이고, 화면에는 영어로 "Does it ring a bell?" 아래에 **I remember / Look it up** 버튼으로 보여준다. 'Look it up'이 구글 검색 탭을 여는 동작과 맞기 때문이다. 다른 안내 문구도 모두 영어다(2장).
+**화면 문구**: 기획서의 "안다/모른다"는 데이터 값(`known`/`unknown`)의 이름이고, 화면에는 영어로 "Does it ring a bell?" 아래에 **I know it / Look it up** 버튼으로 보여준다. 'Look it up'이 구글 검색 탭을 여는 동작과 맞기 때문이다. 다른 안내 문구도 모두 영어다(2장).
 
 **구현 메모** (`lib/quiz.ts`, `app/review/page.tsx`)
 - `/review`에 들어오면 진행 중인 회차가 없을 때 자동으로 시작한다. 홈의 '복습 시작'은 이 화면으로 가는 링크다.
@@ -272,7 +272,7 @@ type Store = {
 - 앱을 열어 둔 채 자정을 넘기면 Today 카드와 탭 바의 N/5가 저절로 0으로 바뀐다(2026-10-27): `useKstMidnightTick`(`lib/use-store.ts`)이 다음 KST 0시에 맞춘 타이머와, 폰이 잠들었다 깨어날 때의 `visibilitychange`로 날짜가 바뀌었으면 화면을 다시 그린다.
 - 회차에 있던 단어가 지워졌으면 그 회차는 버리고 새로 뽑는다.
 - 회차를 끝내면 결과(오늘 횟수, 어려운 단어 목록 추가·제외)를 보여주고, '한 회차 더'를 누를 때까지 다음 회차를 시작하지 않는다.
-- 'Look it up'을 누르면 응답은 즉시 기록하되 화면은 그 단어에 머문다(`lookedUp` 상태). 예문을 다시 볼 수 있고 'Open Google' 링크(새 탭)와 'Next' 버튼이 보인다. 그 응답으로 회차가 끝났으면 요약은 'Next'를 누른 뒤에 보여준다. 'I remember'는 바로 다음 단어로 넘어간다.
+- 'Look it up'을 누르면 응답은 즉시 기록하되 화면은 그 단어에 머문다(`lookedUp` 상태). 예문을 다시 볼 수 있고 'Open Google' 링크(새 탭)와 'Next' 버튼이 보인다. 그 응답으로 회차가 끝났으면 요약은 'Next'를 누른 뒤에 보여준다. 'I know it'는 바로 다음 단어로 넘어간다.
 
 ### 5.4 구글 검색 연결
 `https://www.google.com/search?q=<단어>+meaning+pronunciation`을 새 탭(`target="_blank"`, `rel="noopener noreferrer"`)으로 연다. 뜻은 앱이 만들지 않는다.
@@ -616,3 +616,5 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 2.1 | 2026-10-29 | UX 개선: 백업 화면 마지막 백업을 "N days ago"로 (0.2), 테스트 115개 | Iron man |
 | 2.2 | 2026-10-29 | UX 개선: 단어 추가 버튼에 추가될 수와 건너뛸 수 미리 보기 (0.2) | Iron man |
 | 2.3 | 2026-10-30 | UX 개선: 단어장 상태 필터에 Remembered 단추 추가, 네 개 한 줄 배열, 단추를 상태색(황·빨강·녹)으로 (0.2) | Iron man |
+| 2.4 | 2026-10-30 | UX 개선: Today 카드에 오늘 결과 한 줄(Remembered N · Looked up N) (0.2), 테스트 116개 | Iron man |
+| 2.5 | 2026-10-30 | 화면 문구: "Remembered"를 "Knew it"으로, 복습 버튼 "I remember"를 "I know it"으로 통일 (0.2, 4장, 6장) | Iron man |
