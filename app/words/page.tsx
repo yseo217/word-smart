@@ -24,6 +24,15 @@ export default function WordsPage() {
   const needle = query.trim().toLowerCase();
   const visibleWords = needle ? sortedWords.filter((w) => w.text.includes(needle)) : sortedWords;
 
+  // 각 단어의 복습 상태 글자. Still Learning 목록에 있으면 "Still learning", 아니면 마지막 답에 따라 "remembered" / "looked up".
+  const hardIds = useMemo(() => new Set(store.hard.map((h) => h.wordId)), [store.hard]);
+  function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): string | null {
+    if (hardIds.has(id)) return "Still learning";
+    if (lastAnswer === "known") return "remembered";
+    if (lastAnswer === "unknown") return "looked up";
+    return null;
+  }
+
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     const { result } = update((current) => addWords(current, value)); // 저장 실패는 모든 화면 공통 경고(app/save-warning.tsx)가 알린다
@@ -160,8 +169,12 @@ export default function WordsPage() {
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {visibleWords.map((word) => (
             <li key={word.id} className="flex items-center justify-between gap-3 px-3">
-              <span lang="en" className="min-w-0 break-words py-3 text-lg">
-                {word.text}
+              <span className="flex min-w-0 flex-col py-2">
+                <span lang="en" className="break-words text-lg">
+                  {word.text}
+                </span>
+                {/* 복습 상태 한 줄 (2026-10-28 UX 개선): Still Learning에 있으면 그것, 아니면 마지막 답. 아직 안 물었으면 비움 */}
+                {statusOf(word.id, word.lastAnswer) && <span className="text-xs text-zinc-500 dark:text-zinc-400">{statusOf(word.id, word.lastAnswer)}</span>}
               </span>
               <button
                 type="button"
