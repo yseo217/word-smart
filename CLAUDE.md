@@ -68,7 +68,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
   - 예: Supabase를 쓸 상황이 생기면 Supabase CLI를 설치해 `.env`의 `SUPABASE_ACCESS_TOKEN`으로 작업한다.
   - 예: Vercel 프로덕션 배포는 사용자가 터미널에서 Vercel CLI로 직접 실행한다(PRD 9번 18, DESIGN 11장). 에이전트가 Vercel 작업을 해야 할 때는 `.env`의 `VERCEL_TOKEN`으로 인증하고, 값은 출력하지 않는다.
 - 지금 쓰는 예문 출처(VOA 문장 모음, Free Dictionary API)는 API 키가 필요 없다.
-- 푸시 알림의 비밀 값(`VAPID_PRIVATE_KEY`, `PUSH_CRON_SECRET`, Blob 연결 정보 `BLOB_STORE_ID`·`BLOB_READ_WRITE_TOKEN`)도 `.env`와 Vercel 환경 변수에만 둔다. `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개 키라 화면 코드에 들어가도 된다. `VAPID_SUBJECT`에는 이메일(`mailto:`)이 아니라 배포 주소(https)를 쓴다.
+- 푸시 알림의 비밀 값(`VAPID_PRIVATE_KEY`, `PUSH_CRON_SECRET`, Blob 연결 정보 `BLOB_STORE_ID`·`BLOB_READ_WRITE_TOKEN`)도 `.env`와 Vercel 환경 변수에만 둔다. 관리용 토큰(`GITHUB_TOKEN`, `VERCEL_TOKEN`, `CRONJOB_API_KEY`, `SUPABASE_ACCESS_TOKEN`)은 `.env`에만 두고 Vercel 환경 변수로 올리지 않는다. Vercel 환경 변수는 PowerShell 파이프로 `vercel env add`에 넣지 않는다(값이 깨진다, 2026-10-29). Vercel REST API나 대시보드로 넣고 길이를 확인한다. `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개 키라 화면 코드에 들어가도 된다. `VAPID_SUBJECT`에는 이메일(`mailto:`)이 아니라 배포 주소(https)를 쓴다.
 
 **데이터와 개인정보**
 - 학습 기록은 브라우저 `localStorage`(`wordsmart:v1`)에만 둔다. 서버로 보내는 것은 예문 검색용 영어 단어와, 알림을 켰을 때의 푸시 구독 정보(기기 알림 주소와 키)뿐이고, 서버는 둘 다 로그에 남기지 않는다. 알림 문구에 학습 기록을 넣지 않는다.

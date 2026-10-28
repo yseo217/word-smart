@@ -578,7 +578,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 1. Vercel 프로젝트 설정 → Environment Variables에 `.env`의 푸시 값 4개를 등록한다(`VAPID_SUBJECT`는 배포 주소로).
 2. Vercel 프로젝트 → Storage → Blob 저장소를 하나 만들어 연결한다(`BLOB_STORE_ID`가 자동 등록됨. 2026-10-29 연결 완료). 만들 때 접근을 **Private**로 정한다. 접근 방식은 나중에 바꿀 수 없고, 코드가 `access: "private"`로 읽고 쓰므로 공개 저장소로 만들면 저장이 실패한다(Vercel 문서 확인, 2026-10-26. `@vercel/blob` 2.3 이상 필요, 지금 2.8).
 3. 다시 배포한다(환경 변수는 새 배포부터 적용). 환경 변수를 넣기 전에는 Today의 알림 띠가 "Reminders are not set up on this server yet."을 보인다.
-4. cron-job.org에 가입해 예약 5개를 만든다: 주소 `https://<배포 주소>/api/push/send`, 방식 GET, 시간대 Asia/Seoul, 시각 9·11·13·17·19시 00분, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`. 실패 알림 메일을 켠다.
+4. ✅ (2026-10-29, API로 등록. 계정의 API 키는 `.env`의 `CRONJOB_API_KEY`에만 두고 Vercel에는 올리지 않는다) cron-job.org에 가입해 예약 5개를 만든다: 주소 `https://<배포 주소>/api/push/send`, 방식 GET, 시간대 Asia/Seoul, 시각 9·11·13·17·19시 00분, 헤더 `Authorization: Bearer <PUSH_CRON_SECRET>`. 실패 알림 메일을 켠다.
 5. 아이폰: 사파리로 배포 주소를 열어 홈 화면에 추가 → 그 아이콘으로 열기 → Today의 "Turn on reminders" → 허용 → "Send a test"로 알림이 오는지 본다.
 
 ### 13.6 한계와 확인할 것
