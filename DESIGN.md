@@ -39,7 +39,7 @@
 │  (화면 내용: 흰 패널)          │  ← <main>, 아래는 탭 바 높이만큼 비워 둠
 │                              │
 ├──────────────────────────────┤
-│  N/5    A–Z        !         │  ← app/tab-bar.tsx (fixed, safe-area 여백)
+│  N/5    A–Z        12        │  ← app/tab-bar.tsx (fixed, safe-area 여백). Still Learning 탭의 숫자는 쌓인 단어 수
 │ Today  Word List  Still L.   │
 └──────────────────────────────┘
 ```
@@ -179,7 +179,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 - **다크 모드** (PRD 4번): 기기 설정을 따른다. 어두운 색 값은 `app/globals.css`의 `@media (prefers-color-scheme: dark)` 한 곳에서 정하고, 화면 코드는 Tailwind의 `dark:` 클래스만 쓴다. 따로 켜고 끄는 설정은 두지 않는다.
 - **글꼴** (2026-10-25 결정, 모두 Google Fonts, `app/layout.tsx`에서 `next/font/google`로 불러옴): 제목·헤더는 **Playfair Display**(복습 화면의 단어 자체는 Inter 그대로)(700·900, 하이컨트라스트 세리프), 본문·버튼·라벨은 **Inter**(없으면 시스템 글꼴), 숫자·스코어·통계는 **Oswald**(500·600, 스코어보드 느낌). Tailwind 클래스는 `font-display`, `font-sans`, `font-score`.
 - must는 `/`, `/words`, `/review` 세 화면이고, nice 화면(`/hard`, `/stats`, `/backup`)까지 모두 구현됐다.
-- **하단 탭 바** (2026-10-25 결정, `app/tab-bar.tsx`): Today(`/`, 복습 화면 `/review` 포함) · Word List(`/words`) · Still Learning(`/hard`, 어려운 단어 목록) 세 탭. 모든 화면에 고정으로 붙고, 누르면 바로 이동한다.
+- **하단 탭 바** (2026-10-25 결정, `app/tab-bar.tsx`): Today(`/`, 복습 화면 `/review` 포함) · Word List(`/words`) · Still Learning(`/hard`, 어려운 단어 목록) 세 탭. 모든 화면에 고정으로 붙고, 누르면 바로 이동한다. 탭 위 글자는 Today가 오늘 횟수 N/5, Word List가 "A–Z", Still Learning이 **지금 쌓인 단어 수**(2026-10-28 UX 개선. 전에는 "!"였다. 단어장에서 지워진 단어의 항목은 세지 않는다)이다.
 
 **홈 화면 추가(PWA)**: `app/manifest.ts`(이름, 전체화면 `standalone`, 색), `public/icon-192.png`·`icon-512.png`·`apple-touch-icon.png`(`scripts/make-icons.mjs`가 만드는 아이콘: 흰 바탕에 가는 네이비 핀 스트라이프, 가운데 네이비 "W" 한 글자. W는 상단 띠의 "WORD SMART"와 같은 글꼴(Playfair Display 900)의 글자 모양을 `scripts/fonts/PlayfairDisplay-Black.ttf`(SIL OFL 1.1)에서 읽어 그린다. 홈 유니폼 느낌이되 구단 로고·이름은 쓰지 않는다, 2026-10-26 사용자 결정). 같은 스크립트가 안드로이드 알림 배지 `badge-96.png`(투명 배경 W)도 만들며, 글꼴 읽기에는 개발용 라이브러리 opentype.js를 쓴다, 레이아웃의 `appleWebApp`·`viewportFit: cover`. 오프라인 캐시용 서비스 워커는 두지 않고, `public/sw.js`는 푸시 알림만 다룬다(13장). 오프라인이면 예문 카드에 "Offline – examples need an internet connection."을 보여준다.
 
@@ -608,3 +608,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 1.3 | 2026-10-27 | PLAN 24 점검: 통신사 크레디트 규칙 보강과 모음 2개 제거(6.4·10번 1·1-1), 백업 왕복·자정 넘김은 테스트로 확인 | Iron man |
 | 1.4 | 2026-10-27 | Gap 2차 20건 반영: 철자 변형 규칙과 모음 1개 더 제거(6.4·10번), 진행 중 회차 조건(4장), 가져온 단어 검사(8장), 아포스트로피(3장·7장), 끄기 응답 확인(13.3), 아이패드(13.3), 5.1 판정 순서, 예문 캐시·오프라인·다른 예문 중 기록(6.2) | Iron man |
 | 1.5 | 2026-10-28 | 공개 전 보안 점검 7건 반영: 구독 주소를 푸시 서비스 도메인으로 제한(13.3), 해제 때 변경 있을 때만 저장, 전송 10초 timeout, 보안 헤더(11장), 사전 출처 주소 https 검사와 User-Agent(6.3), .gitignore에 .claude/ | Iron man |
+| 1.6 | 2026-10-28 | UX 개선: Still Learning 탭에 쌓인 단어 수 표시 (0.2, 2장) | Iron man |

@@ -19,6 +19,8 @@ export default function TabBar() {
   useKstMidnightTick(); // 자정을 넘기면 다시 그린다
   // 오늘 날짜는 브라우저에서 저장소가 준비된 뒤에만 읽는다 (미리 그리는 단계에서는 현재 시각을 쓸 수 없다).
   const completed = ready ? Math.min(completedToday(store), ROUNDS_PER_DAY) : null;
+  // Still Learning 탭에는 지금 쌓인 단어 수를 보여준다 (2026-10-28 UX 개선). 단어장에서 지워진 단어의 항목은 세지 않는다.
+  const hardCount = ready ? store.hard.filter((h) => store.words.some((w) => w.id === h.wordId)).length : null;
 
   const glyph = (label: string) => {
     if (label === "Today") {
@@ -29,7 +31,8 @@ export default function TabBar() {
         </>
       );
     }
-    return label === "Word List" ? "A–Z" : "!";
+    if (label === "Still Learning") return hardCount ?? "–";
+    return "A–Z";
   };
 
   return (
