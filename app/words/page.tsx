@@ -24,12 +24,12 @@ export default function WordsPage() {
   const needle = query.trim().toLowerCase();
   const visibleWords = needle ? sortedWords.filter((w) => w.text.includes(needle)) : sortedWords;
 
-  // 각 단어의 복습 상태 글자. Still Learning 목록에 있으면 "Still learning", 아니면 마지막 답에 따라 "remembered" / "looked up".
+  // 각 단어의 복습 상태 글자와 색. Still Learning 목록에 있으면 황색, 마지막 답이 "안다"면 녹색, "모른다"면 빨간색 (상태색은 Tailwind 기본색, CLAUDE.md).
   const hardIds = useMemo(() => new Set(store.hard.map((h) => h.wordId)), [store.hard]);
-  function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): string | null {
-    if (hardIds.has(id)) return "Still learning";
-    if (lastAnswer === "known") return "Remembered";
-    if (lastAnswer === "unknown") return "Looked up";
+  function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): { label: string; className: string } | null {
+    if (hardIds.has(id)) return { label: "Still learning", className: "text-amber-700 dark:text-amber-400" };
+    if (lastAnswer === "known") return { label: "Remembered", className: "text-green-700 dark:text-green-400" };
+    if (lastAnswer === "unknown") return { label: "Looked up", className: "text-red-600 dark:text-red-400" };
     return null;
   }
 
@@ -174,7 +174,10 @@ export default function WordsPage() {
                   {word.text}
                 </span>
                 {/* 복습 상태 한 줄 (2026-10-28 UX 개선): Still Learning에 있으면 그것, 아니면 마지막 답. 아직 안 물었으면 비움 */}
-                {statusOf(word.id, word.lastAnswer) && <span className="text-xs text-zinc-500 dark:text-zinc-400">{statusOf(word.id, word.lastAnswer)}</span>}
+                {(() => {
+                  const status = statusOf(word.id, word.lastAnswer);
+                  return status && <span className={`text-xs ${status.className}`}>{status.label}</span>;
+                })()}
               </span>
               <button
                 type="button"
