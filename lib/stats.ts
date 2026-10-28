@@ -52,3 +52,16 @@ export function daysSinceFirstUse(store: Store, now: Date = new Date()): number 
   const diff = (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${first}T00:00:00Z`)) / (24 * 60 * 60 * 1000);
   return Math.max(0, Math.round(diff)) + 1;
 }
+
+// 오늘(KST) 응답을 "안다"/"모른다"로 센다 (Today 화면의 결과 한 줄, 2026-10-30 UX 개선). 어제 자정 전 응답은 세지 않는다.
+export function todayAnswers(store: Store, now: Date = new Date()): { known: number; unknown: number } {
+  const today = kstDate(now);
+  let known = 0;
+  let unknown = 0;
+  for (const log of store.logs) {
+    if (kstDate(new Date(log.at)) !== today) continue;
+    if (log.answer === "known") known++;
+    else unknown++;
+  }
+  return { known, unknown };
+}

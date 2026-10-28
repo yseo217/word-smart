@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { kstWeekStart } from "./kst.ts";
 import { answerCurrent, startRound } from "./quiz.ts";
-import { activeDaysLast4Weeks, daysSinceFirstUse, exampleRate, retention, roundsThisWeek } from "./stats.ts";
+import { activeDaysLast4Weeks, daysSinceFirstUse, exampleRate, retention, roundsThisWeek, todayAnswers } from "./stats.ts";
 import { addWords, emptyStore, type Store } from "./store.ts";
 
 // 2026-10-25은 일요일 (KST). 주의 시작은 10-19 월요일.
@@ -88,4 +88,20 @@ test("daysSinceFirstUse counts the first day as day 1", () => {
   assert.equal(daysSinceFirstUse(emptyStore(), SUNDAY), null);
   assert.equal(daysSinceFirstUse({ ...emptyStore(), firstUsedAt: SUNDAY.toISOString() }, SUNDAY), 1);
   assert.equal(daysSinceFirstUse({ ...emptyStore(), firstUsedAt: "2026-10-18T00:00:00.000Z" }, SUNDAY), 8);
+});
+
+test("todayAnswers counts only today's answers by KST date", () => {
+  const base = withWords("a", "b");
+  const [a, b] = base.words;
+  const store: Store = {
+    ...base,
+    logs: [
+      { wordId: a.id, at: "2026-10-25T02:00:00.000Z", answer: "known" }, // KST 10-25 11:00 → 오늘
+      { wordId: b.id, at: "2026-10-25T13:30:00.000Z", answer: "unknown" }, // KST 10-25 22:30 → 오늘
+      { wordId: a.id, at: "2026-10-24T14:30:00.000Z", answer: "known" }, // KST 10-24 23:30 → 어제
+      { wordId: b.id, at: "2026-10-25T15:30:00.000Z", answer: "known" }, // KST 10-26 00:30 → 내일
+    ],
+  };
+  assert.deepEqual(todayAnswers(store, SUNDAY), { known: 1, unknown: 1 });
+  assert.deepEqual(todayAnswers(emptyStore(), SUNDAY), { known: 0, unknown: 0 });
 });
