@@ -55,6 +55,13 @@ export default function WordsPage() {
     { key: "Looked up", label: "Looked up", count: counts["Looked up"] },
   ];
 
+  // 입력칸 내용으로 미리 계산한 결과 (저장은 하지 않는다. addWords는 순수 함수). 빈 입력이면 null.
+  const preview = useMemo(() => {
+    if (!ready || value.trim() === "") return null;
+    const { result } = addWords(store, value);
+    return { added: result.added, skipped: result.skipped.filter((s) => s.reason !== "empty") };
+  }, [ready, value, store]);
+
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     const { result } = update((current) => addWords(current, value)); // 저장 실패는 모든 화면 공통 경고(app/save-warning.tsx)가 알린다
@@ -125,9 +132,16 @@ export default function WordsPage() {
         />
         <p id="word-help" className="text-xs text-zinc-600 dark:text-zinc-400">
           Separate words with a new line or a comma to add several at once.
+          {/* 누르기 전에 결과를 미리 보여준다 (2026-10-29 UX 개선): 몇 개가 더해지고 몇 개가 건너뛰어지는지 */}
+          {preview && preview.skipped.length > 0 && (
+            <span className="text-amber-700 dark:text-amber-400">
+              {" "}
+              {preview.skipped.length} will be skipped (duplicate or not a word).
+            </span>
+          )}
         </p>
         <button type="submit" disabled={!ready} className="min-h-11 rounded-lg bg-foreground px-4 text-base font-medium text-background disabled:opacity-50">
-          Add
+          {preview && preview.added.length > 0 ? `Add ${preview.added.length} word${preview.added.length === 1 ? "" : "s"}` : "Add"}
         </button>
         <p
           id="word-notice"
