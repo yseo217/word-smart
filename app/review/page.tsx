@@ -100,6 +100,20 @@ export default function ReviewPage() {
     }
   }
 
+  // 단어 아래에 보여줄 이력: Still Learning 여부, 찾아본 횟수, 연속으로 기억한 횟수. 처음 나온 단어는 "New word".
+  function historyOf(w: Word): { text: string; className: string } {
+    const times = (n: number) => `${n} time${n === 1 ? "" : "s"}`;
+    if (store.hard.some((h) => h.wordId === w.id)) {
+      return { text: `Still learning · looked up ${times(w.missTotal)}`, className: "text-amber-700 dark:text-amber-400" };
+    }
+    if (!w.lastAnswer) return { text: "New word", className: "text-zinc-500 dark:text-zinc-400" };
+    if (w.knownStreak > 0) {
+      const tail = w.missTotal > 0 ? ` · looked up ${times(w.missTotal)} before` : "";
+      return { text: `Remembered ${w.knownStreak} in a row${tail}`, className: "text-green-700 dark:text-green-400" };
+    }
+    return { text: `Looked up ${times(w.missTotal)}`, className: "text-red-600 dark:text-red-400" };
+  }
+
   function goNext() {
     const pending = lookedUp;
     setLookedUp(null);
@@ -208,9 +222,16 @@ export default function ReviewPage() {
             <span className="text-zinc-400"> / {position.total}</span>
           </p>
           <div className="flex items-center justify-between gap-3">
-            <p lang="en" className="min-w-0 break-words text-4xl font-semibold tracking-tight">
-              {shown.text}
-            </p>
+            <div className="min-w-0">
+              <p lang="en" className="break-words text-4xl font-semibold tracking-tight">
+                {shown.text}
+              </p>
+              {/* 이 단어의 이력 한 줄 (2026-10-29 UX 개선): 색은 단어장의 상태 글자와 같다 */}
+              {(() => {
+                const h = historyOf(shown);
+                return <p className={`mt-1 text-sm ${h.className}`}>{h.text}</p>;
+              })()}
+            </div>
             <SpeakButton text={shown.text} />
           </div>
           <ExampleCard state={getExampleState(shown.id)} onAnother={anotherExample} />
