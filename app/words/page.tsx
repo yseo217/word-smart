@@ -25,21 +25,23 @@ export default function WordsPage() {
 
   // 각 단어의 복습 상태 글자와 색. Still Learning 목록에 있으면 황색, 마지막 답이 "안다"면 녹색, "모른다"면 빨간색 (상태색은 Tailwind 기본색, CLAUDE.md).
   const hardIds = useMemo(() => new Set(store.hard.map((h) => h.wordId)), [store.hard]);
-  function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): { label: string; className: string } | null {
+  type Status = "Still learning" | "Remembered" | "Looked up";
+  function statusOf(id: string, lastAnswer: "known" | "unknown" | undefined): { label: Status; className: string } | null {
     if (hardIds.has(id)) return { label: "Still learning", className: "text-amber-700 dark:text-amber-400" };
     if (lastAnswer === "known") return { label: "Remembered", className: "text-green-700 dark:text-green-400" };
     if (lastAnswer === "unknown") return { label: "Looked up", className: "text-red-600 dark:text-red-400" };
     return null;
   }
 
-  // 상태 필터 (2026-10-29 UX 개선): All / Still learning / Looked up. 검색 칸과 함께 적용된다.
-  type Filter = "all" | "Still learning" | "Looked up";
+  // 상태 필터 (2026-10-29 UX 개선): All / Still learning / Looked up / Remembered. 검색 칸과 함께 적용된다.
+  // 단추 색은 윗첨자 상태색과 같다 (황색·빨강·녹색). 누른 단추는 그 색으로 채운다.
+  type Filter = "all" | Status;
   const [filter, setFilter] = useState<Filter>("all");
   const counts = useMemo(() => {
-    const c = { "Still learning": 0, "Looked up": 0 };
+    const c = { "Still learning": 0, "Looked up": 0, Remembered: 0 };
     for (const w of store.words) {
       const label = statusOf(w.id, w.lastAnswer)?.label;
-      if (label === "Still learning" || label === "Looked up") c[label]++;
+      if (label) c[label]++;
     }
     return c;
     // statusOf는 hardIds에만 의존한다
@@ -49,10 +51,23 @@ export default function WordsPage() {
     if (needle && !w.text.includes(needle)) return false;
     return filter === "all" || statusOf(w.id, w.lastAnswer)?.label === filter;
   });
-  const FILTERS: { key: Filter; label: string; count?: number }[] = [
-    { key: "all", label: "All" },
-    { key: "Still learning", label: "Still learning", count: counts["Still learning"] },
-    { key: "Looked up", label: "Looked up", count: counts["Looked up"] },
+  const FILTERS: { key: Filter; label: string; count?: number; on: string; off: string }[] = [
+    { key: "all", label: "All", on: "bg-foreground text-background", off: "border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300" },
+    {
+      key: "Still learning",
+      label: "Still learning",
+      count: counts["Still learning"],
+      on: "bg-amber-500 text-white",
+      off: "border-amber-400 text-amber-700 dark:border-amber-600 dark:text-amber-400",
+    },
+    { key: "Looked up", label: "Looked up", count: counts["Looked up"], on: "bg-red-600 text-white", off: "border-red-300 text-red-600 dark:border-red-800 dark:text-red-400" },
+    {
+      key: "Remembered",
+      label: "Remembered",
+      count: counts.Remembered,
+      on: "bg-green-700 text-white",
+      off: "border-green-300 text-green-700 dark:border-green-800 dark:text-green-400",
+    },
   ];
 
   function handleAdd(e: React.FormEvent) {
@@ -182,9 +197,9 @@ export default function WordsPage() {
           </p>
         )}
 
-        {/* 상태 필터: 눌린 것은 네이비로 채운다. 개수는 검색과 상관없이 전체 기준 */}
+        {/* 상태 필터: 네 개가 375px에서도 한 줄에 들어가도록 글자를 작게, All은 내용 너비만, 나머지는 남은 폭을 나눠 쓴다. 개수는 검색과 상관없이 전체 기준 */}
         {ready && store.words.length > 0 && (
-          <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">
+          <div role="group" aria-label="Filter by status" className="flex gap-1.5">
             {FILTERS.map((f) => {
               const on = filter === f.key;
               return (
@@ -193,12 +208,12 @@ export default function WordsPage() {
                   type="button"
                   aria-pressed={on}
                   onClick={() => setFilter(f.key)}
-                  className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors ${
-                    on ? "bg-foreground text-background" : "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  }`}
+                  className={`inline-flex min-h-9 min-w-0 items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 text-xs font-medium transition-colors ${
+                    f.key === "all" ? "shrink-0 px-3" : "flex-1"
+                  } ${on ? `border-transparent ${f.on}` : f.off}`}
                 >
                   {f.label}
-                  {f.count !== undefined && <span className={`font-score text-sm ${on ? "text-background/70" : "text-zinc-500 dark:text-zinc-400"}`}>{f.count}</span>}
+                  {f.count !== undefined && <span className={`font-score text-xs ${on ? "text-white/80" : "opacity-70"}`}>{f.count}</span>}
                 </button>
               );
             })}
