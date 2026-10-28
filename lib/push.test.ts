@@ -56,6 +56,12 @@ test("parseSubscription accepts a browser subscription and rejects junk", () => 
   assert.deepEqual(parsed, { ...SUB, addedAt: NOW.toISOString() });
   assert.equal(parseSubscription(null), null);
   assert.equal(parseSubscription({ endpoint: "http://insecure.example/x", keys: SUB.keys }), null); // https만
+  // 실제 푸시 서비스 도메인만 받는다 (남의 서버로 요청을 보내는 중계기가 되지 않게)
+  assert.equal(parseSubscription({ endpoint: "https://evil.example/collect", keys: SUB.keys }), null);
+  assert.equal(parseSubscription({ endpoint: "https://web.push.apple.com:8443/abc", keys: SUB.keys }), null); // 포트 지정 금지
+  assert.equal(parseSubscription({ endpoint: "https://notpush.apple.com.evil.example/x", keys: SUB.keys }), null);
+  assert.notEqual(parseSubscription({ endpoint: "https://updates.push.services.mozilla.com/wpush/v2/abc", keys: SUB.keys }), null);
+  assert.notEqual(parseSubscription({ endpoint: "https://wns2-bl2p.notify.windows.com/w/?token=abc", keys: SUB.keys }), null);
   assert.equal(parseSubscription({ endpoint: SUB.endpoint, keys: { p256dh: "a b", auth: "x" } }), null); // 키에 공백
   assert.equal(parseSubscription({ endpoint: SUB.endpoint }), null);
   // 브라우저 구독 객체에 있는 다른 필드(expirationTime 등)는 버린다
@@ -76,7 +82,7 @@ test("addSubscription keeps one record per endpoint; removeSubscription drops it
 });
 
 test("canAddSubscription caps the list at 10 devices but always allows re-registering a known one", () => {
-  const make = (i: number) => parseSubscription({ ...SUB, endpoint: `https://push.example/device-${i}` }, NOW)!;
+  const make = (i: number) => parseSubscription({ ...SUB, endpoint: `https://fcm.googleapis.com/fcm/send/device-${i}` }, NOW)!;
   const full = Array.from({ length: MAX_SUBSCRIPTIONS }, (_, i) => make(i));
   assert.equal(MAX_SUBSCRIPTIONS, 10);
   assert.equal(canAddSubscription(full.slice(0, 9), make(99)), true);

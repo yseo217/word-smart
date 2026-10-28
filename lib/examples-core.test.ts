@@ -107,6 +107,9 @@ test("pickDictionaryExample picks an example containing the word and tidies punc
   assert.equal(r.sentence, "A drought hinders the growth of plants.");
   assert.equal(r.source.license, "CC BY-SA 3.0");
   assert.equal(r.source.url, "https://en.wiktionary.org/wiki/hinder");
+  // 사전 API가 준 출처가 https가 아니면 믿지 않고 위키낱말사전 단어 페이지로 바꾼다 (2026-10-28 보안 점검)
+  const odd = pickDictionaryExample([{ ...dictionary[0], sourceUrls: ["javascript:alert(1)"] }], "hinder", [], {}, () => 0);
+  assert.equal(odd.ok && odd.source.url, "https://en.wiktionary.org/wiki/hinder");
 });
 
 test("pickDictionaryExample honours skip and handles bad input", () => {
