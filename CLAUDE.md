@@ -21,7 +21,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 
 ## 구조
 
-- `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API), `api/push/*`(푸시 구독·보내기·시험). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`, `reminders`).
+- `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API), `api/push/*`(푸시 구독·보내기·시험). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`, `reminders`, `speak-button`).
 - `lib/` 순수 로직과 테스트. 브라우저 API는 `lib/use-store.ts`에만 있다.
   - `store.ts` 저장 데이터 모양·`parseStore`·단어 추가/삭제 · `words.ts` 입력 검사 · `quiz.ts` 회차·응답·어려운 단어 규칙 · `kst.ts` 한국 시간 날짜
   - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `word-freq.ts` 빈도 목록 변환 규칙 · `push.ts` 알림 규칙(순수) · `push-store.ts`/`push-send.ts` 구독 저장·보내기(서버) · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `backup.ts` · `stats.ts`

@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { addWords, removeWord, type SkippedItem } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
 import BackupNotice from "../backup-notice";
+import SpeakButton from "../speak-button";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
@@ -242,8 +243,8 @@ export default function WordsPage() {
 
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {visibleWords.map((word) => (
-            <li key={word.id} className="flex items-center justify-between gap-3 px-3">
-              <span lang="en" className="min-w-0 break-words py-3 text-lg">
+            <li key={word.id} className="flex items-center gap-2 px-3">
+              <span lang="en" className="min-w-0 flex-1 break-words py-3 text-lg">
                 {word.text}
                 {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-29: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
                 {(() => {
@@ -251,11 +252,13 @@ export default function WordsPage() {
                   return status && <sup className={`ml-1 whitespace-nowrap text-[10px] font-medium ${status.className}`}>{status.label}</sup>;
                 })()}
               </span>
+              {/* 발음 듣기 (2026-10-30 UX 개선): 복습을 시작하지 않아도 목록에서 바로 듣는다. 미지원 브라우저에서는 버튼이 숨는다 */}
+              <SpeakButton text={word.text} compact />
               <button
                 type="button"
                 onClick={() => handleRemove(word.id, word.text)}
                 aria-label={`Delete ${word.text}`}
-                className="min-h-11 shrink-0 rounded-lg px-3 text-sm text-red-600 dark:text-red-400"
+                className="-ml-1 min-h-11 shrink-0 rounded-lg px-3 text-sm text-red-600 dark:text-red-400"
               >
                 Delete
               </button>

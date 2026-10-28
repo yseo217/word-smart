@@ -3,12 +3,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 // 단어 발음 듣기 (PRD 5번 nice): 브라우저 기본 음성(speechSynthesis)으로 영어(미국식)를 누를 때만 읽어준다.
+// 복습 화면(큰 테두리 버튼)과 단어장·Still Learning 목록(compact: 테두리 없는 작은 아이콘, 터치 영역 44px 유지)에서 같이 쓴다 (2026-10-30 UX 개선).
 // 음성 파일은 가져오지 않고, 브라우저가 지원하지 않으면 버튼을 숨긴다.
 const noop = () => () => {};
 const supported = () => typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
 const notOnServer = () => false;
 
-export default function SpeakButton({ text }: { text: string }) {
+export default function SpeakButton({ text, compact = false }: { text: string; compact?: boolean }) {
   const canSpeak = useSyncExternalStore(noop, supported, notOnServer);
 
   // 단어가 바뀌거나 화면을 나가면 읽던 것을 멈춘다 (PRD 5번 nice).
@@ -37,9 +38,13 @@ export default function SpeakButton({ text }: { text: string }) {
       onClick={speak}
       aria-label={`Hear ${text}`}
       title="Hear the word"
-      className="flex size-11 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+      className={
+        compact
+          ? "flex size-11 shrink-0 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          : "flex size-11 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+      }
     >
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width={compact ? 18 : 22} height={compact ? 18 : 22} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M11 5 6 9H3v6h3l5 4z" />
         <path d="M15.5 8.5a5 5 0 0 1 0 7" />
         <path d="M18.5 5.5a9 9 0 0 1 0 13" />

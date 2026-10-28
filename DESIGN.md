@@ -47,9 +47,9 @@
 | 탭 / 주소 | 위에서 아래로 보이는 것 | 파일 |
 |---|---|---|
 | **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 오늘 응답이 있으면 결과 한 줄 "Knew it N · Looked up N"(녹색·빨간색, 2026-10-30 UX 개선), 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
-| **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Knew it N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-29 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I know it / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Knew it 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `speak-button.tsx`, `example-cache.ts` |
-| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-29 UX 개선) · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-29 UX 개선(Remembered 단추와 색은 2026-10-30 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 2026-10-28 UX 개선. 2026-10-29에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
-| **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
+| **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Knew it N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-29 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I know it / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Knew it 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `example-cache.ts`, `app/speak-button.tsx`(공용) |
+| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-29 UX 개선) · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-29 UX 개선(Remembered 단추와 색은 2026-10-30 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 스피커 버튼(발음 듣기, 2026-10-30 UX 개선), 2026-10-28 UX 개선. 2026-10-29에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
+| **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, 스피커 버튼(발음 듣기, 2026-10-30 UX 개선), Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Knew it % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
 | **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-29 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
 
@@ -278,7 +278,7 @@ type Store = {
 `https://www.google.com/search?q=<단어>+meaning+pronunciation`을 새 탭(`target="_blank"`, `rel="noopener noreferrer"`)으로 연다. 뜻은 앱이 만들지 않는다.
 
 ### 5.5 발음 듣기 (nice) — 구현됨
-복습 화면의 단어 옆 스피커 버튼(`app/review/speak-button.tsx`). 누를 때만 브라우저 기본 음성(`speechSynthesis`)으로 영어(`en-US`, 속도 0.9)를 읽어준다. 음성 파일은 가져오지 않고, `speechSynthesis`가 없는 브라우저에서는 버튼을 그리지 않는다. 음성 목록은 기기마다 달라서 미국식 영어 음성이 없으면 다른 영어 음성을 쓴다.
+복습 화면의 단어 옆과 단어장·Still Learning 목록의 스피커 버튼(`app/speak-button.tsx`, 목록에서는 작은 모양). 누를 때만 브라우저 기본 음성(`speechSynthesis`)으로 영어(`en-US`, 속도 0.9)를 읽어준다. 음성 파일은 가져오지 않고, `speechSynthesis`가 없는 브라우저에서는 버튼을 그리지 않는다. 음성 목록은 기기마다 달라서 미국식 영어 음성이 없으면 다른 영어 음성을 쓴다.
 
 ## 6. 예문 가져오기
 
@@ -453,7 +453,7 @@ app/
   review/page.tsx       복습 화면
   review/example-card.tsx   예문 카드 (강조, 출처, Another example, 오프라인 안내)
   review/example-cache.ts   3단어 예문 미리 요청·캐시 (useSyncExternalStore)
-  review/speak-button.tsx   발음 듣기 버튼 (Web Speech API)
+  speak-button.tsx          발음 듣기 버튼 (Web Speech API, 복습·단어장·Still Learning 공용)
   hard/page.tsx         어려운 단어 목록 (Still Learning)
   stats/page.tsx        통계
   backup/page.tsx       백업 (내보내기·가져오기·전체 초기화)
@@ -618,3 +618,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 2.3 | 2026-10-30 | UX 개선: 단어장 상태 필터에 Remembered 단추 추가, 네 개 한 줄 배열, 단추를 상태색(황·빨강·녹)으로 (0.2) | Iron man |
 | 2.4 | 2026-10-30 | UX 개선: Today 카드에 오늘 결과 한 줄(Remembered N · Looked up N) (0.2), 테스트 116개 | Iron man |
 | 2.5 | 2026-10-30 | 화면 문구: "Remembered"를 "Knew it"으로, 복습 버튼 "I remember"를 "I know it"으로 통일 (0.2, 4장, 6장) | Iron man |
+| 2.6 | 2026-10-30 | UX 개선: 단어장·Still Learning 목록의 단어 옆에 스피커 버튼(발음 듣기). 스피커 조각을 `app/speak-button.tsx`로 옮겨 공용화 (0.2) | Iron man |
