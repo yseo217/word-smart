@@ -48,7 +48,7 @@
 |---|---|---|
 | **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 오늘 응답이 있으면 결과 한 줄 "Knew it N · Looked up N"(녹색·빨간색, 2026-10-28 UX 개선), 연속 복습 2일 이상이면 "N days in a row"(오늘 아직 안 했으면 " · keep it going today" 덧붙임, 2026-10-29 UX 개선), 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
 | **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 5" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Knew it N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-28 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I know it / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Knew it 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `example-cache.ts`, `app/speak-button.tsx`(공용) |
-| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-28 UX 개선) · 결과 안내와 건너뛴 목록(10개까지, 1분 뒤 자동으로 사라짐 — 2026-10-30) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-28 UX 개선(Remembered 단추와 색은 2026-10-28 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), 2026-10-28 UX 개선. 2026-10-28에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
+| **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-28 UX 개선) · 결과 안내와 건너뛴 목록(10개까지, 1분 뒤 자동으로 사라짐 — 2026-10-30) · "Your words N"과 검색 칸 · 순서 단추 [A–Z / Random](2026-10-30: Random은 누를 때마다 새로 섞고 섞은 뒤 추가한 단어는 끝에, A–Z나 화면 재진입이면 알파벳 순) · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-28 UX 개선(Remembered 단추와 색은 2026-10-28 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자, 단어 아래 사전 뜻 한 줄(Merriam-Webster shortdef, 2026-10-30. `app/words/definitions.ts`가 뜻 없는 단어를 10개씩 `/api/define`에 물어 저장),  "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), 2026-10-28 UX 개선. 2026-10-28에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Knew it % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
 | **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-28 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] · 맨 아래 작은 "Layout info" 한 줄(기기 화면·뷰포트·safe-area 값, 문제 확인용, 2026-10-30) | `app/backup/page.tsx`, `layout-info.tsx` |
@@ -216,6 +216,7 @@ type Word = {
   firstAnswer?: Answer;  // 첫 응답 (기억률 계산용)
   missTotal: number;     // "모른다" 누적 횟수
   knownStreak: number;   // 연속 "안다" 횟수
+  definition?: string | null; // 단어장에 보여주는 사전 뜻(Merriam-Webster, 2026-10-30). undefined = 아직 안 물음, null = 사전에 없음. 복습 화면에는 안 보여줌
 };
 
 type ExampleKind = "voa" | "dictionary" | "none";
@@ -464,6 +465,8 @@ app/
   stats/page.tsx        통계
   backup/page.tsx       백업 (내보내기·가져오기·전체 초기화)
   api/example/route.ts  예문 API (서버). lib/examples.ts를 부른다
+  api/define/route.ts   단어 뜻 API (서버, 2026-10-30). 최대 10단어, Merriam-Webster shortdef (lib/mw.ts, lib/mw-fetch.ts)
+  words/definitions.ts  단어장의 뜻 채우기 (뜻 없는 단어를 10개씩 /api/define에 묻고 저장)
   api/push/subscribe/route.ts  푸시 구독 등록(POST)·해제(DELETE)
   api/push/send/route.ts       등록된 기기 전부에 알림 보내기 (예약 서비스가 비밀 값과 함께 부른다)
   api/push/test/route.ts       이 기기에만 시험 알림
@@ -476,7 +479,8 @@ lib/                    순수 로직. 파일마다 *.test.ts가 짝으로 있�
   forms.ts              단어 변화형 찾기·강조 정규식
   examples-core.ts      예문 고르기 규칙 (VOA 후보·앞뒤 문장·300자·수준, 사전 응답 고르기) — 순수 함수, 테스트 대상
   examples.ts           예문 출처 순서와 실제 호출 (모음 JSON 읽기, Merriam-Webster·Free Dictionary fetch, 각 4초 제한) — 서버에서만
-  mw.ts                 Merriam-Webster 응답에서 예문 고르기 (표기 걷어내기, 문장 우선) — 순수 로직
+  mw.ts                 Merriam-Webster 응답에서 예문·짧은 뜻 고르기 (표기 걷어내기, 문장 우선) — 순수 로직
+  mw-fetch.ts           Merriam-Webster API 호출 (서버, 예문과 뜻이 같이 씀)
   level.ts              단어·문장 수준 계산 (6.6)
   push.ts               알림 규칙: 시각, 문구, 구독 정보 검사 (13장, 순수)
   push-store.ts         구독 목록 읽기·쓰기: Vercel Blob 또는 .local/ 파일 (서버, 테스트 없음)
@@ -636,3 +640,5 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 3.4 | 2026-10-30 | 회당 출제 3단어 → 5단어(PRD 2.0): 0.3·0.6·5.1·6.2·6.5·9장 | Iron man |
 | 3.5 | 2026-10-30 | 홈 화면 앱에서 body 높이를 100vh로(2장): 반투명 상태 표시줄 때문에 100%가 모자라 탭 바 아래에 바탕색 띠가 남던 문제 | Iron man |
 | 3.6 | 2026-10-30 | 단어장 결과 안내·건너뛴 목록이 1분 뒤 사라지게(0.2) — 안내가 계속 남는다는 사용자 보고 | Iron man |
+| 3.7 | 2026-10-30 | 단어장에 사전 뜻 한 줄: Word.definition(4장), /api/define·words/definitions.ts(9장), 0.2 | Iron man |
+| 3.8 | 2026-10-30 | 단어장에 A–Z / Random 순서 단추(0.2, lib/quiz.ts shuffled) | Iron man |

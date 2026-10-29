@@ -56,6 +56,21 @@ export function mwExamples(entries: unknown, ref: MwReference, word: string): { 
   return out;
 }
 
+// 단어장에 보여줄 짧은 뜻 하나 (2026-10-30): 응답의 shortdef 첫 항목. 표제어가 그 단어인 항목을 먼저, 없으면 아무 항목이나.
+// 여러 품사가 있으면 첫 항목(MW가 가장 흔한 쓰임을 앞에 둔다). 뜻이 없으면 null.
+export function mwShortDefinition(entries: unknown, word: string): string | null {
+  if (!Array.isArray(entries)) return null;
+  const headword = word.toLowerCase();
+  const objs = (entries as unknown[]).filter((e): e is MwEntry & { shortdef?: unknown } => typeof e === "object" && e !== null);
+  const own = objs.filter((e) => (e.meta?.id ?? "").split(":")[0].toLowerCase() === headword);
+  for (const e of [...own, ...objs]) {
+    const defs = Array.isArray(e.shortdef) ? (e.shortdef as unknown[]).filter((d): d is string => typeof d === "string" && d.trim().length > 0) : [];
+    // "… —often used before another noun" 같은 용법 메모는 긴 줄표 앞에서 잘라 뜻만 남긴다
+    if (defs.length > 0) return cleanMwText(defs[0].split(/\s*—/)[0]).trim() || null;
+  }
+  return null;
+}
+
 const isSentence = (t: string) => /^[A-Z“"]/.test(t) && /[.!?]["”’)]?$/.test(t);
 
 // 쓸 수 있는 예문 하나를 무작위로 고른다. 완전한 문장을 먼저 보고, 없으면 "ubiquitous celebrities" 같은 구(句)도 받는다.
