@@ -41,22 +41,33 @@
   }
 }
 
+/* 앱 틀: 문서 자체는 스크롤하지 않고(아이폰 홈 화면 앱의 고무줄 당김 방지) 가운데 .shell만 스크롤한다 (2026-10-29) */
+html,
 body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  position: fixed; /* iOS에서 문서 고무줄 당김을 확실히 막는다 */
+  inset: 0;
   background-color: var(--background);
   background-image: repeating-linear-gradient(90deg, transparent 0 9px, var(--stripe) 9px 10px);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
+.shell {
+  overflow-y: auto;
+  overscroll-behavior-y: contain; /* 본문이 끝까지 가도 띠·탭 바로 당김이 번지지 않게 */
+  -webkit-overflow-scrolling: touch;
+}
+
 /* 화면 제목은 하이컨트라스트 세리프 (next/font가 html에 넣어 주는 변수를 직접 쓴다) */
 h1 {
   font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
   font-weight: 700;
-}
-
-/* 하단 탭 바 높이만큼 본문 아래를 비운다 */
-main {
-  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 
 /* 상단 네이비 띠 */

@@ -32,14 +32,14 @@
 
 ```
 ┌──────────────────────────────┐
-│        WORD SMART (네이비 띠)  │  ← app/layout.tsx 의 .band
+│        WORD SMART (네이비 띠)  │  ← app/layout.tsx 의 .band (화면에 고정. 2026-10-29: 띠·탭 바는 고정하고 가운데 .shell만 스크롤)
 ├──────────────────────────────┤
 │  제목                [링크]   │  ← 화면마다: Word List→Backup, Still Learning→Stats
 │                              │
 │  (화면 내용: 흰 패널)          │  ← <main>, 아래는 탭 바 높이만큼 비워 둠
 │                              │
 ├──────────────────────────────┤
-│  N/5    A–Z        12        │  ← app/tab-bar.tsx (fixed, safe-area 여백). Still Learning 탭의 숫자는 쌓인 단어 수
+│  N/5    A–Z        12        │  ← app/tab-bar.tsx (문서 흐름 안, 항상 보임, safe-area 여백). Still Learning 탭의 숫자는 쌓인 단어 수
 │ Today  Word List  Still L.   │
 └──────────────────────────────┘
 ```
@@ -622,3 +622,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 2.7 | 2026-10-29 | UX 개선: Today 카드에 연속 복습 일수 "N days in a row" (0.2), 테스트 117개 | Iron man |
 | 2.8 | 2026-10-29 | 11장에 배포 주소와 GitHub 저장소 기록 | Iron man |
 | 2.9 | 2026-10-29 | Blob 인증을 BLOB_STORE_ID + OIDC로도 되게(13.3·13.4·13.5): 저장소 연결 시 토큰 대신 저장소 ID가 생김 | Iron man |
+| 3.0 | 2026-10-29 | 앱 틀 변경(0.2, 2장): 띠·탭 바 고정, 가운데 .shell만 스크롤. 아이폰에서 띠가 당겨지던 것과 본문 아래 빈 여백 해결 | Iron man |
