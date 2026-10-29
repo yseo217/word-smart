@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { backupFileName, daysAgoText, daysSinceBackup, makeBackup, markBackedUp, parseBackup } from "@/lib/backup";
 import { useStore } from "@/lib/use-store";
 import { turnOffPushOnThisDevice } from "../push-client";
-import LayoutInfo from "./layout-info";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
@@ -154,9 +153,6 @@ export default function BackupPage() {
           Delete all data…
         </button>
       </section>
-
-      {/* 기기 레이아웃 정보 (2026-10-30, 탭 바 아래 빈 띠 원인 확인용) */}
-      <LayoutInfo />
     </main>
   );
 }

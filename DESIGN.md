@@ -51,7 +51,7 @@
 | **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-28 UX 개선) · 결과 안내와 건너뛴 목록(10개까지, 1분 뒤 자동으로 사라짐 — 2026-10-30) · "Your words N"과 검색 칸 · 순서 단추 [A–Z / Random](2026-10-30: Random은 누를 때마다 새로 섞고 섞은 뒤 추가한 단어는 끝에, A–Z나 화면 재진입이면 알파벳 순) · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-28 UX 개선(Remembered 단추와 색은 2026-10-28 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자, 단어 아래 사전 뜻 한 줄(16px 회색, 두 줄까지. Merriam-Webster shortdef, 2026-10-30. `app/words/definitions.ts`가 뜻 없는 단어를 10개씩 `/api/define`에 물어 저장),  "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), 2026-10-28 UX 개선. 2026-10-28에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Knew it % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
-| **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-28 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] · 맨 아래 작은 "Layout info" 한 줄(기기 화면·뷰포트·safe-area 값, 문제 확인용, 2026-10-30) | `app/backup/page.tsx`, `layout-info.tsx` |
+| **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-28 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
 
 ### 0.3 데이터 흐름 — 입력 → 처리 → 출력
 
@@ -642,3 +642,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 3.6 | 2026-10-30 | 단어장 결과 안내·건너뛴 목록이 1분 뒤 사라지게(0.2) — 안내가 계속 남는다는 사용자 보고 | Iron man |
 | 3.7 | 2026-10-30 | 단어장에 사전 뜻 한 줄: Word.definition(4장), /api/define·words/definitions.ts(9장), 0.2 | Iron man |
 | 3.8 | 2026-10-30 | 단어장에 A–Z / Random 순서 단추(0.2, lib/quiz.ts shuffled) | Iron man |
+| 3.9 | 2026-10-30 | Backup 화면의 Layout info 줄 제거(탭 바 아래 띠 원인을 찾아 3.5에서 고침) | Iron man |
