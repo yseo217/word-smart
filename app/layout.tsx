@@ -37,13 +37,17 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable} ${oswald.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <div className="band">
+    <html lang="en" className={`${playfair.variable} ${inter.variable} ${oswald.variable} antialiased`}>
+      {/* 앱 틀 (2026-10-29): 띠와 탭 바는 화면에 고정하고 가운데 .shell만 스크롤한다. 아이폰 홈 화면 앱에서 페이지 전체가 고무줄처럼
+          당겨지며 띠가 따라 움직이던 것을 막고, 본문 아래에 탭 바 높이만큼 비워 두던 여백도 없앤다 (globals.css). */}
+      <body className="flex flex-col">
+        <div className="band shrink-0">
           <p className="mx-auto w-full max-w-md px-4 py-3 text-center font-display text-base font-black uppercase tracking-[0.3em]">Word Smart</p>
         </div>
-        <SaveWarning />
-        {children}
+        <div className="shell flex min-h-0 flex-1 flex-col">
+          <SaveWarning />
+          {children}
+        </div>
         <TabBar />
       </body>
     </html>

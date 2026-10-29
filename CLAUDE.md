@@ -84,7 +84,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 - 앱 화면 문구는 영어, 문서와 코드 주석은 한국어. PRD의 따옴표 문구는 뜻이고 실제 영어 문구는 코드를 따른다.
 - 디자인은 네이비 핀 스트라이프(바탕색·줄무늬·회색은 `app/globals.css`에서만 정의. 경고·오류·강조 같은 상태색은 Tailwind 기본색 amber·red·green을 화면 코드에서 바로 쓴다). 글꼴은 Playfair Display(제목) / Inter(본문) / Oswald(숫자, `font-score`). 구단 로고·이름 같은 상표는 쓰지 않는다.
 - 복습 상태 용어와 색은 모든 화면에서 같게 쓴다: **Knew it**(녹색 green) / **Looked up**(빨간색 red) / **Still learning**(황색 amber). 복습 버튼은 "I know it / Look it up". "Remembered"는 더 쓰지 않는다.
-- 스마트폰 가로 375px에서 가로 스크롤이 없어야 한다. 하단 탭 바는 `fixed`이고 `main`에 그만큼 아래 여백이 있다.
+- 스마트폰 가로 375px에서 가로 스크롤이 없어야 한다. 상단 띠와 하단 탭 바는 `body`(고정)의 첫·끝 자식으로 항상 보이고, 가운데 `.shell`만 스크롤한다(`app/layout.tsx`, `globals.css`). 본문에 탭 바 높이만큼 여백을 두지 않는다.
 
 **시간**
 - 하루는 한국 시간(KST) 0시에 바뀐다. 날짜는 항상 `lib/kst.ts`로 계산한다.

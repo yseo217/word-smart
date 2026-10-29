@@ -36,7 +36,7 @@ export default function TabBar() {
   };
 
   return (
-    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-background pb-[env(safe-area-inset-bottom)] dark:border-zinc-800">
+    <nav aria-label="Main" className="shrink-0 border-t border-zinc-200 bg-background pb-[env(safe-area-inset-bottom)] dark:border-zinc-800">
       <ul className="mx-auto grid w-full max-w-md grid-cols-3">
         {TABS.map((tab) => {
           const active = tab.match(pathname);
