@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { addWords, removeWord, type SkippedItem } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
 import BackupNotice from "../backup-notice";
@@ -11,6 +11,8 @@ type Notice = { kind: "ok" | "error"; text: string } | null;
 
 // 건너뛴 단어가 많을 때 화면에 보여주는 개수 (나머지는 "… and N more"로 접는다, PRD 5번 ①)
 const MAX_SKIPPED_SHOWN = 10;
+// 결과 안내와 건너뛴 목록은 1분 뒤 저절로 사라진다 (2026-10-30, 사용자 요청: 안내가 계속 남아 있었음)
+const NOTICE_TTL_MS = 60_000;
 
 export default function WordsPage() {
   const { ready, store, corrupt, update } = useStore();
@@ -18,6 +20,16 @@ export default function WordsPage() {
   const [notice, setNotice] = useState<Notice>(null);
   const [skipped, setSkipped] = useState<SkippedItem[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // 안내가 뜨면 1분 뒤에 지운다. 새 안내가 뜨면 시계를 다시 센다 (타이머 안에서만 상태를 바꾸므로 효과 규칙에 맞는다).
+  useEffect(() => {
+    if (!notice && skipped.length === 0) return;
+    const timer = setTimeout(() => {
+      setNotice(null);
+      setSkipped([]);
+    }, NOTICE_TTL_MS);
+    return () => clearTimeout(timer);
+  }, [notice, skipped]);
 
   // 목록은 알파벳 순으로 보여주고, 검색 칸에 적은 글자가 들어 있는 단어만 남긴다 (저장 순서는 입력 순서 그대로).
   const [query, setQuery] = useState("");
