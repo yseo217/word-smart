@@ -304,7 +304,7 @@ export default function WordsPage() {
                 </span>
                 {/* 사전 뜻 한 줄 (2026-10-30, Merriam-Webster). 아직 못 받았거나 사전에 없으면 비움 */}
                 {word.definition && (
-                  <p lang="en" className="line-clamp-2 text-xs leading-snug text-zinc-500 dark:text-zinc-400">
+                  <p lang="en" className="line-clamp-2 text-sm leading-snug text-zinc-600 dark:text-zinc-300">
                     {word.definition}
                   </p>
                 )}
