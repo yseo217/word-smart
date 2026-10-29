@@ -1,5 +1,5 @@
 // 복습 화면의 예문 캐시. 컴포넌트 밖(외부 저장소)에 두어서, 화면은 구독만 하고 요청은 여기서 한다.
-// 회차의 3단어를 한꺼번에 요청해 두고 도착하는 대로 보여준다 (DESIGN.md 6.5).
+// 회차의 단어(WORDS_PER_ROUND개)를 한꺼번에 요청해 두고 도착하는 대로 보여준다 (DESIGN.md 6.5).
 import type { ExampleResult } from "@/lib/examples-core";
 
 export type ExampleState =

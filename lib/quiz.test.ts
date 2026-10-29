@@ -68,13 +68,13 @@ test("startRound with no words", () => {
   assert.equal(store.progress.current, undefined);
 });
 
-test("startRound picks 3 words and records today's date", () => {
-  const { store, result } = startRound(withWords("a", "b", "c", "d"), NOW, first);
+test("startRound picks WORDS_PER_ROUND (5) words and records today's date", () => {
+  const { store, result } = startRound(withWords("a", "b", "c", "d", "e", "f"), NOW, first);
   assert.equal(result, "started");
   assert.equal(store.progress.date, "2026-10-25");
-  assert.equal(store.progress.current?.wordIds.length, 3);
+  assert.equal(store.progress.current?.wordIds.length, 5);
   assert.equal(store.progress.current?.answered, 0);
-  assert.equal(currentWord(store)?.text, "a"); // list order: a, b, c, d
+  assert.equal(currentWord(store)?.text, "a"); // list order: a, b, c, d, e, f
 });
 
 test("startRound continues an unfinished round instead of starting a new one", () => {
