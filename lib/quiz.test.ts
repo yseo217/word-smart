@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { kstDate } from "./kst.ts";
 import {
+  shuffled,
   answerCurrent,
   completedToday,
   currentWord,
@@ -219,4 +220,15 @@ test("googleSearchUrl encodes the word", () => {
     googleSearchUrl("don't"),
     "https://www.google.com/search?q=don't%20meaning%20pronunciation",
   );
+});
+
+test("shuffled returns a permutation without touching the original", () => {
+  const items = ["a", "b", "c", "d", "e"];
+  const seq = [0.9, 0.1, 0.5, 0.3];
+  let k = 0;
+  const out = shuffled(items, () => seq[k++ % seq.length]);
+  assert.deepEqual([...out].sort(), items); // 같은 원소
+  assert.notDeepEqual(out, items); // 순서는 바뀜
+  assert.deepEqual(items, ["a", "b", "c", "d", "e"]); // 원본 그대로
+  assert.deepEqual(shuffled([], () => 0), []);
 });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { shuffled } from "@/lib/quiz";
 import { addWords, removeWord, type SkippedItem } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
 import BackupNotice from "../backup-notice";
@@ -37,7 +38,15 @@ export default function WordsPage() {
 
   // 목록은 알파벳 순으로 보여주고, 검색 칸에 적은 글자가 들어 있는 단어만 남긴다 (저장 순서는 입력 순서 그대로).
   const [query, setQuery] = useState("");
-  const sortedWords = useMemo(() => [...store.words].sort((a, b) => a.text.localeCompare(b.text, "en")), [store.words]);
+  // 순서: 기본은 알파벳 순. Shuffle 단추를 누르면 그때 섞은 순서를 기억해 두고, A–Z 단추나 화면을 다시 열면 알파벳 순으로 돌아간다 (2026-10-30).
+  // 섞은 뒤에 추가된 단어는 끝에 붙는다.
+  const [shuffleOrder, setShuffleOrder] = useState<string[] | null>(null);
+  const sortedWords = useMemo(() => {
+    const alpha = [...store.words].sort((a, b) => a.text.localeCompare(b.text, "en"));
+    if (!shuffleOrder) return alpha;
+    const rank = new Map(shuffleOrder.map((id, i) => [id, i]));
+    return alpha.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
+  }, [store.words, shuffleOrder]);
   const needle = query.trim().toLowerCase();
 
   // 각 단어의 복습 상태 글자와 색. Still Learning 목록에 있으면 황색, 마지막 답이 "안다"면 녹색, "모른다"면 빨간색 (상태색은 Tailwind 기본색, CLAUDE.md).
@@ -226,6 +235,30 @@ export default function WordsPage() {
           <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
             No words yet. Add your first English word above.
           </p>
+        )}
+
+        {/* 순서 단추 (2026-10-30): Shuffle은 누를 때마다 새로 섞고, A–Z는 알파벳 순으로 되돌린다. 눌린 쪽을 네이비로 채운다 */}
+        {ready && store.words.length > 1 && (
+          <div role="group" aria-label="Order" className="flex gap-1.5">
+            {(
+              [
+                { key: "shuffle", label: "Shuffle", on: shuffleOrder !== null, act: () => setShuffleOrder(shuffled(store.words).map((w) => w.id)) },
+                { key: "alpha", label: "A–Z", on: shuffleOrder === null, act: () => setShuffleOrder(null) },
+              ] as const
+            ).map((b) => (
+              <button
+                key={b.key}
+                type="button"
+                aria-pressed={b.on}
+                onClick={b.act}
+                className={`inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-medium transition-colors ${
+                  b.on ? "border-transparent bg-foreground text-background" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                }`}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* 상태 필터: 네 개가 375px에서도 한 줄에 들어가도록 글자를 작게, All은 내용 너비만, 나머지는 남은 폭을 나눠 쓴다. 개수는 검색과 상관없이 전체 기준 */}
