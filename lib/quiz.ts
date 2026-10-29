@@ -3,7 +3,7 @@ import { kstDate } from "./kst.ts";
 import type { Answer, ExampleKind, HardItem, Log, Progress, Store, Word } from "./store.ts";
 
 export const ROUNDS_PER_DAY = 5;
-export const WORDS_PER_ROUND = 3;
+export const WORDS_PER_ROUND = 5; // 2026-10-30: 3 → 5 (사용자 결정, PRD 3번·5번 ② 확정)
 export const MISS_LIMIT = 3; // "모른다" 누적 3번이면 어려운 단어 목록에 넣는다
 export const KNOWN_STREAK_TO_CLEAR = 3; // 목록에 있는 단어를 연속 3번 "안다"면 뺀다
 

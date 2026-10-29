@@ -1,6 +1,6 @@
 # Word Smart 설계 문서
 
-> **한 줄 요약**: 폰 브라우저에서 하루 5회, 3단어씩 VOA 예문과 함께 묻는 단어 복습 앱을 Next.js 하나로 만든다. 학습 데이터는 기기 안에만 둔다.
+> **한 줄 요약**: 폰 브라우저에서 하루 5회, 5단어씩 VOA 예문과 함께 묻는 단어 복습 앱을 Next.js 하나로 만든다. 학습 데이터는 기기 안에만 둔다.
 >
 > **프로젝트**: word-smart 0.1.0 · **작성자**: Iron man · **작성일**: 2026-10-25 · **상태**: 구현 반영 중 (10번 "아직 정하지 못한 것" 참고)
 > **근거 문서**: `PRD.md`(기획, 최상위 기준) · `PLAN.md`(계획, 작업 순서) · `CLAUDE.md`(작업 규칙). 기획서와 어긋나면 기획서가 우선이다.
@@ -47,7 +47,7 @@
 | 탭 / 주소 | 위에서 아래로 보이는 것 | 파일 |
 |---|---|---|
 | **Today** `/` | 제목 "Today" · 설명 한 줄 · 카드[오늘 횟수 N/5, 오늘 응답이 있으면 결과 한 줄 "Knew it N · Looked up N"(녹색·빨간색, 2026-10-28 UX 개선), 연속 복습 2일 이상이면 "N days in a row"(오늘 아직 안 했으면 " · keep it going today" 덧붙임, 2026-10-29 UX 개선), 버튼: Start review / Continue review / Done for today. 단어장이 비어 있으면 "Add words first" 안내와 Word List 링크] · 알림 띠[제목·시각 없이 한 줄(2026-10-26 사용자 요청): 종 아이콘(켜지면 네이비) + 상태 글 + 알약 버튼. 끈 상태 "Get a nudge five times a day." + Turn on reminders / 켠 상태 "On for this device." + Send a test·Turn off / 홈 화면 추가 안내 / 차단 안내 / 미지원 안내 / 서버 설정 전 안내. 켜거나 끈 직후 안내 한 줄] (13장) | `app/page.tsx`, `app/today-progress.tsx` |
-| **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 3" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Knew it N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-28 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I know it / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Knew it 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `example-cache.ts`, `app/speak-button.tsx`(공용) |
+| **복습** `/review` (Today 탭에 속함) | 제목 "Review"와 오른쪽 "Today N/5" · "k / 5" · 단어(크게) + 스피커 버튼, 단어 아래 이력 한 줄("New word" / "Knew it N in a row" 녹색 / "Looked up N times" 빨간색 / "Still learning · looked up N times" 황색, 2026-10-28 UX 개선) · 예문 카드[앞문장 흐리게, 문장(단어 강조), 뒷문장, 출처·라이선스, Another example] · "Does it ring a bell?" · 버튼 2개 [I know it / Look it up] · 안내 두 줄. Look it up 뒤에는 버튼이 [Open Google / Next]로 바뀜. 회차 끝: 요약 카드[Round complete!, N/5, (어제로 계산됨), 이 회차의 단어 3개와 결과(Knew it 녹색 / Looked up 빨간색, 2026-10-28 UX 개선), Still Learning 추가·제외, One more round / Home] | `app/review/page.tsx`, `example-card.tsx`, `example-cache.ts`, `app/speak-button.tsx`(공용) |
 | **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-28 UX 개선) · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-28 UX 개선(Remembered 단추와 색은 2026-10-28 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), 2026-10-28 UX 개선. 2026-10-28에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Knew it % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
@@ -61,7 +61,7 @@
              ─▶ localStorage 저장(use-store.update) ─▶ 목록 갱신 + "Added N / Skipped M" 안내
 
 ② 복습 한 단어
-   /review 진입 ─▶ startRound(오늘 날짜 KST, 3단어 가중치 뽑기) ─▶ 진행 상태 저장
+   /review 진입 ─▶ startRound(오늘 날짜 KST, 5단어 가중치 뽑기) ─▶ 진행 상태 저장
    화면에 단어 표시 ─┬▶ (동시에) /api/example?word=… 요청 3개 ─▶ 예문 카드
                    └▶ 버튼 ─▶ answerCurrent(안다/모른다, 예문 종류) ─▶ 단어 카운터·Still Learning·응답 기록·회차 기록 갱신 ─▶ 저장
    3번째 응답 ─▶ 회차 완료(오늘 횟수 +1, 자정 넘김이면 어제) ─▶ 요약 화면
@@ -145,11 +145,11 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | L0 단위 | `lib/*.ts` 규칙 전부 | `npm test` (node:test, 115개) | 자동 |
 | L1 API | `/api/example` 정상·400·없음 · `/api/push/send` 비밀 값 없으면 401, 알림 시각이 아니면 `off_hours`로 안 보냄, 서버 설정 전이면 503 · `/api/push/subscribe` 잘못된 구독 400, 상한 초과 409 · `/api/push/test` 미등록 404, 기기가 구독을 끊었으면 410(목록에서 지움), 푸시 서비스가 거부하면 502, 서버 설정 전 503 | `curl` 또는 브라우저 | 수동 (개발 중 확인) |
 | L2 화면 | 0.5 체크리스트 | 내장 브라우저에서 눌러 확인 | 수동 |
-| L3 흐름 | 단어 등록 → 복습 3단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
+| L3 흐름 | 단어 등록 → 복습 5단어 → 요약 → Still Learning → 통계 → 백업 왕복 → 알림 켜고 Send a test 수신 | 폰에서 직접 | PLAN 19~20·24·26번 |
 
 ## 1. 한눈에 보기
 
-스마트폰 브라우저에서 쓰는 Next.js 웹 앱이다. 사용자가 **단어장**에 영어 단어를 입력하면, 앱이 하루 최대 5번, 한 번에 3단어씩 **영어 예문**(VOA 기사, 없으면 사전 예문)과 함께 "아는지" 묻는다.
+스마트폰 브라우저에서 쓰는 Next.js 웹 앱이다. 사용자가 **단어장**에 영어 단어를 입력하면, 앱이 하루 최대 5번, 한 번에 5단어씩 **영어 예문**(VOA 기사, 없으면 사전 예문)과 함께 "아는지" 묻는다.
 
 | 구분 | 어디서 처리하나 | 하는 일 |
 |---|---|---|
@@ -248,7 +248,7 @@ type Store = {
 2. 진행 중인 회차(`current`)가 있으면 이어서 한다.
 3. 단어장이 비어 있으면 '단어를 먼저 등록해 주세요'를 보여준다(단어가 없으면 횟수와 상관없이 복습할 수 없으므로 완료 판정보다 먼저 본다. 2026-10-27 코드 순서에 맞춤).
 4. `completed`가 5이면 '오늘 복습 완료'를 보여주고 시작하지 않는다.
-5. 아니면 3단어를 뽑아 `current`에 저장한다.
+5. 아니면 5단어(`WORDS_PER_ROUND`, 2026-10-30에 3에서 늘림)를 뽑아 `current`에 저장한다.
 
 ### 5.2 단어 뽑기
 - 단어마다 가중치를 준다. `lastAnswer`가 `unknown`이거나 어려운 단어 목록(`hard`)에 있으면 2, 아니면 1 (둘 다여도 2).
@@ -310,7 +310,7 @@ type Store = {
   source: { name: "Wiktionary (Free Dictionary API)", url: string, license: "CC BY-SA 3.0" } }  // 1문장 (id는 dict:…)
 { ok: false }                                                      // 예문 없음
 ```
-잘못된 단어(단어장 규칙 위반)는 400으로 거부한다. 화면은 회차가 시작되면 3단어의 예문을 한꺼번에 요청해 캐시(`app/review/example-cache.ts`)에 두고, 회차가 끝나거나 복습 화면을 떠나면 비운다(2026-10-27: 중간에 나가도 옛 예문·"더 없음" 상태가 남지 않게). '다른 예문 보기'를 불러오는 동안은 직전 예문을 그대로 보여주고 버튼만 "Finding…"이 되며, 그때 답하면 직전 예문의 종류를 기록한다. 요청이 실패하고 브라우저가 오프라인이면 처음이든 '다른 예문 보기'든 오프라인 문구를 보인다.
+잘못된 단어(단어장 규칙 위반)는 400으로 거부한다. 화면은 회차가 시작되면 5단어의 예문을 한꺼번에 요청해 캐시(`app/review/example-cache.ts`)에 두고, 회차가 끝나거나 복습 화면을 떠나면 비운다(2026-10-27: 중간에 나가도 옛 예문·"더 없음" 상태가 남지 않게). '다른 예문 보기'를 불러오는 동안은 직전 예문을 그대로 보여주고 버튼만 "Finding…"이 되며, 그때 답하면 직전 예문의 종류를 기록한다. 요청이 실패하고 브라우저가 오프라인이면 처음이든 '다른 예문 보기'든 오프라인 문구를 보인다.
 `skip`은 '다른 예문 보기'를 눌렀을 때 이미 본 예문을 빼기 위한 값이다. 더 찾았는데 없으면(`ok: false`) 화면은 마지막 예문을 그대로 두고 "No more examples"만 표시한다(`example-cache`의 `exhausted`). 한 단어당 '다른 예문 보기'는 5번까지(`MAX_ANOTHER`)이며, 넘으면 요청하지 않고 같은 표시를 한다.
 
 ### 6.3 서버가 하는 일 (순서대로)
@@ -353,7 +353,7 @@ type VoaCorpus = {
 **현재 사정 (2026-10-25 확인)**: 사이트맵에 주소가 67,359개이고 그중 스크립트가 받는 슬러그 있는 기사 주소는 32,737개다. 1.1초 간격으로 받으면 모두 받는 데 약 10시간이 걸리므로, 최근 기사 일부부터 모으는 것으로 시작한다. (범위와 파일 크기는 10번)
 
 ### 6.5 미리 불러오기
-복습을 시작하면 3단어의 예문을 한꺼번에 요청하고, 도착하는 대로 보여준다. VOA 모음은 서버 안의 검색이라 빠르고, 사전 호출만 시간이 걸린다.
+복습을 시작하면 5단어의 예문을 한꺼번에 요청하고, 도착하는 대로 보여준다. VOA 모음은 서버 안의 검색이라 빠르고, 사전 호출만 시간이 걸린다.
 
 ### 6.6 예문 수준 맞추기
 
@@ -458,7 +458,7 @@ app/
   words/page.tsx        단어장 (Word List)
   review/page.tsx       복습 화면
   review/example-card.tsx   예문 카드 (강조, 출처, Another example, 오프라인 안내)
-  review/example-cache.ts   3단어 예문 미리 요청·캐시 (useSyncExternalStore)
+  review/example-cache.ts   회차 단어 예문 미리 요청·캐시 (useSyncExternalStore)
   speak-button.tsx          발음 듣기 버튼 (Web Speech API, 복습·단어장·Still Learning 공용)
   hard/page.tsx         어려운 단어 목록 (Still Learning)
   stats/page.tsx        통계
@@ -633,3 +633,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 3.1 | 2026-10-29 | 예문 출처에 Merriam-Webster 사전 API 추가(6.1·6.2·6.3·6.6·6.7·9장·11장, 0.3·0.4), 사전 대기 6초 → 각 4초 | Iron man |
 | 3.2 | 2026-10-29 | 탭 바 홈 바 여백을 최대 20px로 제한하고 높이를 48px로(아이폰 에어·iOS 27에서 탭 아래 짙은 띠가 두꺼움) | Iron man |
 | 3.3 | 2026-10-30 | Backup 화면 맨 아래에 기기 레이아웃 정보 한 줄(화면·뷰포트 높이, safe-area, 실행 모드) — 탭 바 아래 빈 띠 원인 확인용, 원인을 찾으면 뺀다 | Iron man |
+| 3.4 | 2026-10-30 | 회당 출제 3단어 → 5단어(PRD 2.0): 0.3·0.6·5.1·6.2·6.5·9장 | Iron man |

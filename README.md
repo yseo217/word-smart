@@ -1,8 +1,8 @@
 # Word Smart
 
-**혼자 쓰는 영어 단어 복습 웹 앱.** 단어장에 넣은 단어를 하루 5회, 회당 3단어씩 실제 기사(VOA Learning English) 예문과 함께 "기억나는지" 묻고, 자주 틀리는 단어는 Still Learning 목록에 모아 더 자주 낸다. 로그인이 없고 학습 기록은 브라우저 안(`localStorage`)에만 둔다.
+**혼자 쓰는 영어 단어 복습 웹 앱.** 단어장에 넣은 단어를 하루 5회, 회당 5단어씩 실제 기사(VOA Learning English) 예문과 함께 "기억나는지" 묻고, 자주 틀리는 단어는 Still Learning 목록에 모아 더 자주 낸다. 로그인이 없고 학습 기록은 브라우저 안(`localStorage`)에만 둔다.
 
-*A personal English-vocabulary review web app: five 3-word rounds a day, each word shown inside a real VOA Learning English sentence. No account, all learning data stays in the browser.*
+*A personal English-vocabulary review web app: five 5-word rounds a day, each word shown inside a real VOA Learning English sentence. No account, all learning data stays in the browser.*
 
 - **배포 주소**: https://word-smart-dusky.vercel.app (스마트폰에서 홈 화면에 추가하면 앱처럼 열린다)
 - **심사·기획 자료**: [`PRD.md`](PRD.md)(기획서, 최상위 기준) · [`PLAN.md`](PLAN.md)(계획서, 작업 목록) · [`DESIGN.md`](DESIGN.md)(설계) · [`CHECK.md`](CHECK.md)(점검) · [`CLAUDE.md`](CLAUDE.md)(작업 규칙)
@@ -12,7 +12,7 @@
 | 화면 | 하는 일 |
 |---|---|
 | **Today** | 오늘 끝낸 회차 N/5, 오늘 결과(Knew it N · Looked up N), 연속 복습 일수, 복습 시작 버튼, 알림 켜기/끄기 |
-| **Review** | 단어 하나와 예문(묻는 단어 강조, 출처 표시) → "I know it" / "Look it up"(구글 검색 새 탭). 3단어를 마치면 회차 요약 |
+| **Review** | 단어 하나와 예문(묻는 단어 강조, 출처 표시) → "I know it" / "Look it up"(구글 검색 새 탭). 5단어를 마치면 회차 요약 |
 | **Word List** | 영어 단어 등록(여러 개 한꺼번에, 중복·잘못된 입력은 건너뛰고 알려줌), 알파벳 순 목록, 검색, 상태 필터, 발음 듣기, 삭제, 백업 링크 |
 | **Still Learning** | "Look it up"을 누적 3번 누른 단어 목록. 연속 3번 "I know it"이면 자동으로 빠진다. 통계 링크 |
 | **Stats** | 이번 주 회차 수, 최근 4주 복습한 날, 기억률(Knew it %), 예문 제공률 |
