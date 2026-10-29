@@ -36,7 +36,7 @@ export default function TabBar() {
   };
 
   return (
-    <nav aria-label="Main" className="shrink-0 border-t border-zinc-200 bg-background pb-[env(safe-area-inset-bottom)] dark:border-zinc-800">
+    <nav aria-label="Main" className="shrink-0 border-t border-zinc-200 bg-background tab-bar dark:border-zinc-800">
       <ul className="mx-auto grid w-full max-w-md grid-cols-3">
         {TABS.map((tab) => {
           const active = tab.match(pathname);
@@ -45,7 +45,7 @@ export default function TabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 border-t-2 text-xs font-medium ${
+                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 border-t-2 text-xs font-medium ${
                   active ? "border-foreground text-foreground" : "border-transparent text-zinc-500 dark:text-zinc-400"
                 }`}
               >
