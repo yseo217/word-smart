@@ -69,7 +69,7 @@
 ③ 예문 (서버)
    단어 ─▶ validateWord(같은 규칙) ─▶ VOA 문장 모음에서 변화형·고유명사 규칙으로 후보 찾기 ─▶ 수준 규칙(목록 없으면 통과)
       ─▶ 있으면: 무작위 1개 + 앞/뒤 문장(300자 이내) ─▶ {sentence, before, after, pattern, source}
-      ─▶ 없으면: Free Dictionary API(6초) ─▶ 예문 1문장 ─▶ 그것도 없으면 {ok:false}
+      ─▶ 없으면: Merriam-Webster Learner's·Collegiate(동시에, 4초) ─▶ 없으면 Free Dictionary API(4초) ─▶ 예문 1문장 ─▶ 그것도 없으면 {ok:false}
    브라우저는 응답을 example-cache에 두고, pattern으로 단어를 굵게·색으로 강조
 
 ③-1 "모른다" (Look it up)
@@ -107,7 +107,8 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 | **Web App Manifest + 아이콘** | 홈 화면 추가 | 폰 홈 화면에 아이콘을 두고 앱처럼 전체 화면으로 열리게 하는 설정 파일 | 사용 중 |
 | **Web Speech API** | 발음 듣기 | 브라우저에 이미 들어 있는 "읽어 주기" 기능. 음성 파일을 따로 받지 않는다 | 사용 중 |
 | **Web Share API** | 백업 내보내기 | 아이폰의 공유 창(파일·메일로 보내기)을 띄우는 브라우저 기능. 안 되면 다운로드로 대체 | 사용 중 |
-| **Free Dictionary API** | 사전 예문 | 키 없이 쓰는 무료 사전 서비스(Wiktionary 기반). 느리거나 오류일 수 있어 6초만 기다린다 | 사용 중 |
+| **Merriam-Webster 사전 API** | 사전 예문 (2026-10-29 추가) | Learner's(학습자용 쉬운 예문)와 Collegiate(어려운 단어) 두 사전. 비상업 무료 키, 하루 1,000회. 4초만 기다린다 | 사용 중 |
+| **Free Dictionary API** | 사전 예문 | 키 없이 쓰는 무료 사전 서비스(Wiktionary 기반). 느리거나 오류일 수 있어 4초만 기다린다. MW에 없을 때만 | 사용 중 |
 | **VOA 문장 모음** (`data/voa-sentences.json`) | 기사 예문 | VOA Learning English 기사를 미리 문장으로 잘라 둔 파일. 퍼블릭 도메인이라 저장해도 된다 | 사용 중 |
 | **단어 빈도 목록** (`data/word-freq.json`) | 예문 수준 규칙 | 영어 단어 20,000개가 얼마나 흔한지 순위를 적은 표(OpenSubtitles 자막 기반, CC BY-SA 4.0). 이게 있어서 "예문이 단어보다 어렵지 않게" 규칙이 켜진다 | 사용 중 |
 | **node:test** | 단위 테스트 | Node.js에 들어 있는 테스트 도구. 추가 설치 없이 `npm test`로 규칙 115개를 검사 | 사용 중 |
@@ -154,7 +155,7 @@ Vercel 배포를 위해 **Next.js 16**을 기본으로 쓴다. 그 위에 실제
 |---|---|---|
 | 화면 | 브라우저 (Next.js 클라이언트 컴포넌트) | 단어장, 복습, 목록, 통계, 백업 화면 |
 | 데이터 저장 | 브라우저 `localStorage` | 단어장, 응답 기록, 어려운 단어 목록, 진행 상태 |
-| 예문 가져오기 | Next.js 서버 (`/api/example`) | VOA 문장 모음에서 찾기, 없으면 Free Dictionary API 호출 |
+| 예문 가져오기 | Next.js 서버 (`/api/example`) | VOA 문장 모음에서 찾기, 없으면 Merriam-Webster 두 사전, 그래도 없으면 Free Dictionary API 호출 |
 | 알림 보내기 | Next.js 서버 (`/api/push/*`) + Vercel Blob + cron-job.org | 구독 정보 보관, 정해진 시각에 고정 문구 알림 (13장) |
 
 핵심 원칙 두 가지는 이렇다.
@@ -287,8 +288,9 @@ type Store = {
 예문 출처는 두 개이고, 순서대로 찾는다.
 
 1. **VOA 문장 모음**: VOA Learning English 기사를 미리 문장 단위로 모아 앱에 넣어 둔 파일 (6.4)
-2. **Free Dictionary API**: 모음에서 쓸 수 있는 예문을 못 찾았을 때(단어가 없거나, 수준이 맞는 문장이 없거나, '다른 예문 보기'로 다 봤을 때)만 서버가 호출하는 사전 예문 (키 불필요)
-3. 둘 다 없으면 "예문 없음"을 보여주고 퀴즈는 계속한다.
+2. **Merriam-Webster 사전 API** (2026-10-29 추가): 모음에서 쓸 수 있는 예문을 못 찾았을 때(단어가 없거나, 수준이 맞는 문장이 없거나, '다른 예문 보기'로 다 봤을 때)만 서버가 호출한다. Learner's 사전(학습자용 쉬운 예문)과 Collegiate 사전(어려운 단어)을 동시에 묻고 Learner's를 먼저 쓴다. 무료 키 두 개(`MW_LEARNERS_KEY`, `MW_COLLEGIATE_KEY`)가 필요하고, 없는 사전은 건너뛴다
+3. **Free Dictionary API**: Merriam-Webster에도 없을 때 호출하는 사전 예문 (키 불필요)
+4. 모두 없으면 "예문 없음"을 보여주고 퀴즈는 계속한다.
 
 어려운 단어는 VOA에 없을 수 있다. 그때는 사전 예문이나 "예문 없음"이 나오는 것이 정상이다.
 
@@ -303,7 +305,9 @@ type Store = {
   pattern: string,                                     // 화면에서 단어를 강조할 정규식 소스 (lib/forms.ts, sentence에만 적용)
   source: { name: "VOA Learning English", url: string, license: "Public domain" } }
 { ok: true, kind: "dictionary", id: string, sentence: string, pattern: string,
-  source: { name: "Wiktionary (Free Dictionary API)", url: string, license: "CC BY-SA 3.0" } }  // 1문장
+  source: { name: "Merriam-Webster Learner's Dictionary" | "Merriam-Webster Dictionary", url: 사전 단어 페이지, license: "© Merriam-Webster" } }  // 1문장 (id는 mwl:… / mwc:…)
+{ ok: true, kind: "dictionary", id: string, sentence: string, pattern: string,
+  source: { name: "Wiktionary (Free Dictionary API)", url: string, license: "CC BY-SA 3.0" } }  // 1문장 (id는 dict:…)
 { ok: false }                                                      // 예문 없음
 ```
 잘못된 단어(단어장 규칙 위반)는 400으로 거부한다. 화면은 회차가 시작되면 3단어의 예문을 한꺼번에 요청해 캐시(`app/review/example-cache.ts`)에 두고, 회차가 끝나거나 복습 화면을 떠나면 비운다(2026-10-27: 중간에 나가도 옛 예문·"더 없음" 상태가 남지 않게). '다른 예문 보기'를 불러오는 동안은 직전 예문을 그대로 보여주고 버튼만 "Finding…"이 되며, 그때 답하면 직전 예문의 종류를 기록한다. 요청이 실패하고 브라우저가 오프라인이면 처음이든 '다른 예문 보기'든 오프라인 문구를 보인다.
@@ -313,9 +317,10 @@ type Store = {
 1. `word`를 단어장 입력 검사(3번)와 같은 규칙으로 검사한다. 맞지 않으면 거부한다.
 2. VOA 문장 모음에서 단어 또는 그 변화형(7번)이 든 문장을 찾는다. `skip`에 있는 것은 빼고, **문장 수준이 단어 수준 이하인 것만 남긴다**(6.6).
 3. 찾았으면 무작위로 하나 고르고, 그 문장의 앞 문장과 뒷 문장 중 **더 긴 쪽**을 붙인다. 합쳐서 300자를 넘으면 다른 쪽을 쓰고, 둘 다 넘으면 찾은 문장만 쓴다. 한쪽이 없으면 있는 쪽만 쓴다.
-4. 못 찾았으면 `https://api.dictionaryapi.dev/api/v2/entries/en/<단어>`를 호출해 `example`이 있는 항목 중, 단어(변화형)가 보통 단어로 들어 있고 300자 이하이며 **수준이 맞는 것**(6.6) 하나를 무작위로 고른다. 첫 글자를 대문자로 바꾸고 끝에 마침표가 없으면 붙인다. 출처는 응답의 `sourceUrls` 첫 주소(https가 아니거나 없으면 Wiktionary 단어 페이지로 대체, 2026-10-28)와 라이선스 "CC BY-SA 3.0"(Wiktionary 고정값. 응답의 `license`는 쓰지 않는다)으로 돌려준다. 요청에는 `User-Agent: WordSmart example/0.1 (personal learning project)`를 붙인다.
-5. 그래도 없거나, 사전 서비스가 오류(530 등)를 내거나 네트워크가 끊기면 `{ ok: false }`를 돌려준다. 예문을 지어내지 않는다.
-6. 서버 코드는 받은 단어를 `console` 등 로그에 쓰지 않는다(PRD 7번). 주소에 단어가 들어가는 것은 피할 수 없으므로 배포 서비스의 요청 로그에는 남을 수 있다.
+4. 못 찾았으면 Merriam-Webster API(`https://www.dictionaryapi.com/api/v3/references/<learners|collegiate>/json/<단어>?key=…`) 두 개를 동시에 호출한다(각 4초). 응답의 예문(`vis`)에서 MW 표기(`{it}…{/it}`, `[=동의어]`, `{bc}` 등)를 걷어내고, 단어(변화형)가 보통 단어로 들어 있고 300자 이하이며 수준이 맞는 것 중 완전한 문장을 먼저, 없으면 구(句)를 고른다. 인용문 조각(…)은 뺀다. 표제어가 그 단어인 항목을 먼저 본다. Learner's에 있으면 그것을, 없으면 Collegiate를 쓴다(`lib/mw.ts`). 출처는 사전 이름과 단어 페이지 링크(Learner's는 britannica.com), "© Merriam-Webster".
+5. 그래도 없으면 `https://api.dictionaryapi.dev/api/v2/entries/en/<단어>`를 호출해(4초) `example`이 있는 항목 중, 단어(변화형)가 보통 단어로 들어 있고 300자 이하이며 **수준이 맞는 것**(6.6) 하나를 무작위로 고른다. 첫 글자를 대문자로 바꾸고 끝에 마침표가 없으면 붙인다. 출처는 응답의 `sourceUrls` 첫 주소(https가 아니거나 없으면 Wiktionary 단어 페이지로 대체, 2026-10-28)와 라이선스 "CC BY-SA 3.0"(Wiktionary 고정값. 응답의 `license`는 쓰지 않는다)으로 돌려준다. 요청에는 `User-Agent: WordSmart example/0.1 (personal learning project)`를 붙인다.
+6. 그래도 없거나, 사전 서비스가 오류(530 등)를 내거나 네트워크가 끊기면 `{ ok: false }`를 돌려준다. 예문을 지어내지 않는다.
+7. 서버 코드는 받은 단어와 사전 API 키를 `console` 등 로그에 쓰지 않는다(PRD 7번). 주소에 단어가 들어가는 것은 피할 수 없으므로 배포 서비스의 요청 로그에는 남을 수 있다.
 
 ### 6.4 VOA 문장 모음 만들기
 
@@ -380,7 +385,7 @@ type VoaCorpus = {
 
 **적용 위치**
 - VOA 문장 모음: 각 문장의 수준은 **요청할 때 계산**한다(모음에는 저장하지 않는다. 빈도 목록이나 숫자를 바꿔도 모음을 다시 만들 필요가 없도록). 서버는 단어 수준 이하인 문장만 후보로 삼는다.
-- 사전 예문(Free Dictionary): 호출할 때마다 같은 방법으로 계산한다. 보통 짧아서 대부분 통과한다.
+- 사전 예문(Merriam-Webster, Free Dictionary): 호출할 때마다 같은 방법으로 계산한다. 보통 짧아서 대부분 통과한다.
 - 앞뒤 문장을 붙인 결과가 기준을 넘으면 붙인 문장을 빼고 원래 문장만 쓴다(300자 규칙과 달리 반대쪽 문장을 대신 시도하지는 않는다). 원래 문장도 넘으면 그 예문은 쓰지 않는다.
 
 **미리 알아둘 영향**: 수준이 낮은(흔한) 단어에는 VOA 문장이 많이 통과하고, 수준이 높은 단어는 VOA에서 애초에 드물어 "예문 없음"이 나올 가능성이 큽니다. 이 규칙 때문에 "예문 없음"이 더 늘 수 있다.
@@ -397,7 +402,8 @@ type VoaCorpus = {
 | 후보 | 결과 |
 |---|---|
 | **VOA Learning English** | 채택(1순위). 텍스트, MP3, 사진, 영상이 퍼블릭 도메인이고 출처를 밝히면 재게시 가능 ([안내](https://learningenglish.voanews.com/p/6861.html)). 단, 통신사 기사는 제외. 검색 기능은 `robots.txt`가 막음 ([robots.txt](https://learningenglish.voanews.com/robots.txt)) |
-| **Free Dictionary API** | 채택(2순위). 키 불필요, 데이터는 CC BY-SA 3.0. 20단어 시험에서 10단어에 예문이 있었고 5번은 서버 오류(530)였다 ([사이트](https://dictionaryapi.dev/)) |
+| **Merriam-Webster 사전 API** | 채택(2순위, 2026-10-29). 비상업 무료 키(하루 1,000회), Learner's·Collegiate 두 사전. 어려운 단어에도 편집자가 쓴 예문이 있다. 출처 표시 조건 ([사이트](https://dictionaryapi.com/)) |
+| **Free Dictionary API** | 채택(3순위). 키 불필요, 데이터는 CC BY-SA 3.0. 20단어 시험에서 10단어에 예문이 있었고 5번은 서버 오류(530)였다 ([사이트](https://dictionaryapi.dev/)) |
 | Wikinews | 보류. 키 불필요, CC BY, 검색 API로 20단어 중 19개에서 기사가 나왔다. 필요하면 나중에 `examples.ts`에 추가할 수 있다 ([저작권 정책](https://en.wikinews.org/wiki/Wikinews:Copyright)) |
 | The Guardian | 보류. 무료 개발자 키(하루 500번, 초당 1번, 본문 제공)는 있으나, 헤드라인·바이라인·로고 표시 의무와 "변경 금지" 조항이 2문장 발췌와 단어 강조에 걸릴 수 있다 ([약관](https://www.theguardian.com/open-platform/terms-and-conditions)) |
 | NewsAPI.org | 제외. 본문이 200자로 잘리고 무료는 개발·테스트용 ([문서](https://newsapi.org/docs/endpoints/everything)) |
@@ -469,7 +475,8 @@ lib/                    순수 로직. 파일마다 *.test.ts가 짝으로 있�
   kst.ts                한국 시간 날짜 계산
   forms.ts              단어 변화형 찾기·강조 정규식
   examples-core.ts      예문 고르기 규칙 (VOA 후보·앞뒤 문장·300자·수준, 사전 응답 고르기) — 순수 함수, 테스트 대상
-  examples.ts           예문 출처 순서와 실제 호출 (모음 JSON 읽기, Free Dictionary fetch, 6초 제한) — 서버에서만
+  examples.ts           예문 출처 순서와 실제 호출 (모음 JSON 읽기, Merriam-Webster·Free Dictionary fetch, 각 4초 제한) — 서버에서만
+  mw.ts                 Merriam-Webster 응답에서 예문 고르기 (표기 걷어내기, 문장 우선) — 순수 로직
   level.ts              단어·문장 수준 계산 (6.6)
   push.ts               알림 규칙: 시각, 문구, 구독 정보 검사 (13장, 순수)
   push-store.ts         구독 목록 읽기·쓰기: Vercel Blob 또는 .local/ 파일 (서버, 테스트 없음)
@@ -517,7 +524,7 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 - **보안 헤더** (2026-10-28 공개 전 점검): `next.config.ts`가 모든 경로에 `Content-Security-Policy: frame-ancestors 'none'`(다른 사이트가 이 앱을 틀에 넣는 클릭재킹 차단)·`X-Frame-Options: DENY`·`X-Content-Type-Options: nosniff`·`Referrer-Policy: strict-origin-when-cross-origin`·`Permissions-Policy`(카메라·마이크·위치 끔)를 붙인다. 스크립트까지 제한하는 엄격한 CSP(nonce)는 Cache Components와 맞지 않아 쓰지 않는다. HTTPS 강제(HSTS)는 Vercel이 붙여 주는 것으로 알고 있으니 배포 뒤 응답 헤더로 확인한다. 인증 없는 API(`/api/example`, `/api/push/subscribe`·`test`)의 호출 횟수 제한은 코드에 없고, 필요하면 Vercel 대시보드의 Firewall 규칙으로 건다.
 - `localStorage`는 **주소마다 따로** 저장된다. 컴퓨터에서 띄운 `localhost` 주소와 Vercel에 배포한 주소는 서로 다른 단어장을 갖는다. 배포 주소를 바꾸면 기록이 사라지므로 백업 기능이 중요하다.
 - 사파리는 오래 쓰지 않은 사이트의 저장 데이터를 지울 수 있다. 홈 화면에 추가해서 쓰면 도움이 될 수 있다. (제가 아는 범위의 내용이라 만들 때 다시 확인한다.)
-- 지금 쓰는 예문 출처(VOA 모음, Free Dictionary API)는 API 키가 필요 없다. 나중에 키가 필요한 서비스를 추가하면 `.env`에 넣고 서버 코드에서만 읽는다. `NEXT_PUBLIC_`으로 시작하는 이름은 쓰지 않는다. 브라우저로 노출되기 때문이다. 단, 푸시 알림의 공개 키 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개해도 되는 값이라 예외다(13.4).
+- 예문 출처 중 VOA 모음과 Free Dictionary API는 API 키가 필요 없고, Merriam-Webster 사전 API는 키 두 개를 `.env`와 Vercel 환경 변수에 두고 서버 코드에서만 읽는다(2026-10-29). 키는 요청 주소에 들어가므로 로그에 남기지 않는다. `NEXT_PUBLIC_`으로 시작하는 이름은 쓰지 않는다. 브라우저로 노출되기 때문이다. 단, 푸시 알림의 공개 키 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개해도 되는 값이라 예외다(13.4).
 - Free Dictionary API는 후원으로 운영되는 서비스라 오류가 날 수 있다(시험에서 20번 중 5번). 그래서 실패해도 "예문 없음"으로 계속 진행한다.
 
 ## 12. 만드는 순서
@@ -623,3 +630,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 2.8 | 2026-10-29 | 11장에 배포 주소와 GitHub 저장소 기록 | Iron man |
 | 2.9 | 2026-10-29 | Blob 인증을 BLOB_STORE_ID + OIDC로도 되게(13.3·13.4·13.5): 저장소 연결 시 토큰 대신 저장소 ID가 생김 | Iron man |
 | 3.0 | 2026-10-29 | 앱 틀 변경(0.2, 2장): 띠·탭 바 고정, 가운데 .shell만 스크롤. 아이폰에서 띠가 당겨지던 것과 본문 아래 빈 여백 해결 | Iron man |
+| 3.0 | 2026-10-29 | 예문 출처에 Merriam-Webster 사전 API 추가(6.1·6.2·6.3·6.6·6.7·9장·11장, 0.3·0.4), 사전 대기 6초 → 각 4초 | Iron man |

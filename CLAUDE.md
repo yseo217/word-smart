@@ -67,7 +67,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 - 외부 서비스 인증이 필요하면 토큰 값을 사용자에게 묻거나 채팅에 출력하지 않고, `.env`에 있는 값을 읽어서 쓴다. 값은 코드나 CLI가 읽고, 채팅·로그·커밋에는 절대 나오지 않게 한다.
   - 예: Supabase를 쓸 상황이 생기면 Supabase CLI를 설치해 `.env`의 `SUPABASE_ACCESS_TOKEN`으로 작업한다.
   - 예: Vercel 프로덕션 배포는 사용자가 터미널에서 Vercel CLI로 직접 실행한다(PRD 9번 18, DESIGN 11장). 에이전트가 Vercel 작업을 해야 할 때는 `.env`의 `VERCEL_TOKEN`으로 인증하고, 값은 출력하지 않는다.
-- 지금 쓰는 예문 출처(VOA 문장 모음, Free Dictionary API)는 API 키가 필요 없다.
+- 예문 출처 중 VOA 문장 모음과 Free Dictionary API는 API 키가 필요 없다. Merriam-Webster 사전 API 키(`MW_LEARNERS_KEY`, `MW_COLLEGIATE_KEY`)는 `.env`와 Vercel 환경 변수에만 두고 서버 코드만 읽는다. 키가 주소에 들어가므로 요청 주소를 로그에 남기지 않는다.
 - 푸시 알림의 비밀 값(`VAPID_PRIVATE_KEY`, `PUSH_CRON_SECRET`, Blob 연결 정보 `BLOB_STORE_ID`·`BLOB_READ_WRITE_TOKEN`)도 `.env`와 Vercel 환경 변수에만 둔다. 관리용 토큰(`GITHUB_TOKEN`, `VERCEL_TOKEN`, `CRONJOB_API_KEY`, `SUPABASE_ACCESS_TOKEN`)은 `.env`에만 두고 Vercel 환경 변수로 올리지 않는다. Vercel 환경 변수는 PowerShell 파이프로 `vercel env add`에 넣지 않는다(값이 깨진다, 2026-10-29). Vercel REST API나 대시보드로 넣고 길이를 확인한다. `NEXT_PUBLIC_VAPID_PUBLIC_KEY`는 공개 키라 화면 코드에 들어가도 된다. `VAPID_SUBJECT`에는 이메일(`mailto:`)이 아니라 배포 주소(https)를 쓴다.
 
 **데이터와 개인정보**
@@ -75,10 +75,10 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 - 외부 요청의 `User-Agent`나 어디에도 사용자 이메일·개인 연락처를 넣지 않는다. 식별용 이름은 `WordSmart …/0.1 (personal learning project)` 꼴만 쓴다.
 
 **예문 출처**
-- 순서는 VOA 문장 모음 → Free Dictionary API → "No example". 예문을 지어내지 않는다.
+- 순서는 VOA 문장 모음 → Merriam-Webster Learner's → Merriam-Webster Collegiate → Free Dictionary API → "No example". 예문을 지어내지 않는다. 사전 응답 파싱은 `lib/mw.ts`(순수)에 두고 테스트를 쓴다.
 - VOA 사이트의 검색(`/s?k=`)은 `robots.txt`가 막으므로 호출하지 않는다. 모음은 공개 `sitemap.xml`로 만들고, 요청은 1초 이상 간격을 둔다.
 - 통신사(AP, Reuters, AFP) 기사는 모음에 넣지 않는다(`scripts/build-voa-corpus.mjs`의 크레디트 규칙). 기사 전체를 저장하거나 보여주지 않는다.
-- 사전 API는 한 번에 최대 6초, '다른 예문 보기'는 단어당 5번까지.
+- 사전 API는 각각 최대 4초(MW 두 사전은 동시에), '다른 예문 보기'는 단어당 5번까지.
 
 **화면과 문구**
 - 앱 화면 문구는 영어, 문서와 코드 주석은 한국어. PRD의 따옴표 문구는 뜻이고 실제 영어 문구는 코드를 따른다.

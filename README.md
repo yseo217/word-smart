@@ -18,7 +18,7 @@
 | **Stats** | 이번 주 회차 수, 최근 4주 복습한 날, 기억률(Knew it %), 예문 제공률 |
 | **Backup** | 학습 데이터 파일로 내보내기(아이폰은 공유 시트)·가져오기, 전체 초기화 |
 
-**예문 규칙**: VOA 문장 모음(퍼블릭 도메인, 통신사 기사 제외) → 없으면 Free Dictionary API → 그래도 없으면 "No example". 예문을 지어내지 않는다. 예문의 수준이 묻는 단어의 수준을 넘지 않도록 단어 빈도 목록으로 거른다.
+**예문 규칙**: VOA 문장 모음(퍼블릭 도메인, 통신사 기사 제외) → 없으면 Merriam-Webster 사전(Learner's → Collegiate) → 그래도 없으면 Free Dictionary API → 그래도 없으면 "No example". 예문을 지어내지 않는다. 예문의 수준이 묻는 단어의 수준을 넘지 않도록 단어 빈도 목록으로 거른다.
 
 **알림**: 한국 시간 9·11·13·17·19시에 "Time for Nth round" 푸시 알림(웹 푸시, 아이폰은 홈 화면에 추가한 뒤 켤 수 있다).
 
@@ -36,7 +36,7 @@ npm run lint    # ESLint
 npm run build   # 프로덕션 빌드
 ```
 
-알림 기능까지 쓰려면 `.env`에 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`·`PUSH_CRON_SECRET`이 필요하다(값은 저장소에 없다. 만드는 법은 `DESIGN.md` 13장). 예문 기능은 API 키가 필요 없다.
+알림 기능까지 쓰려면 `.env`에 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`·`VAPID_SUBJECT`·`PUSH_CRON_SECRET`이 필요하다(값은 저장소에 없다. 만드는 법은 `DESIGN.md` 13장). 예문의 Merriam-Webster 사전은 무료 키 `MW_LEARNERS_KEY`·`MW_COLLEGIATE_KEY`(dictionaryapi.com)가 필요하고, 없으면 VOA 모음과 Free Dictionary만 쓴다.
 
 데이터 파일을 다시 만드는 스크립트(개발 컴퓨터에서만 실행):
 
@@ -54,6 +54,7 @@ node scripts/make-icons.mjs                          # PWA 아이콘
 ## 자료 출처
 
 - VOA Learning English 기사 문장 (`data/voa-sentences.json`): 퍼블릭 도메인. 통신사(AP·Reuters·AFP) 기사는 제외.
+- Merriam-Webster 사전 API 예문: © Merriam-Webster. 비상업·개인용 무료 키로 받고 출처와 사전 페이지 링크를 표시한다.
 - Free Dictionary API 예문: CC BY-SA 3.0 (Wiktionary).
 - 단어 빈도 목록 (`data/word-freq.json`): hermitdave/FrequencyWords의 OpenSubtitles 2018 영어 목록 상위 20,000단어, CC BY-SA 4.0. 출처 정보는 `data/word-freq.meta.json`.
 - 아이콘 글꼴 (`scripts/fonts/PlayfairDisplay-Black.ttf`): Playfair Display, SIL Open Font License 1.1 (`scripts/fonts/OFL.txt`). 아이콘의 W 글자를 그릴 때만 쓴다.
