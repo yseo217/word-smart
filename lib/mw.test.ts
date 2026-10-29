@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cleanMwText, mwExamples, pickMwExample } from "./mw.ts";
+import { cleanMwText, mwExamples, mwShortDefinition, pickMwExample } from "./mw.ts";
 
 const first = () => 0;
 const NO_FREQ = {}; // 빈도 목록이 비어 있으면 수준 규칙은 꺼진다
@@ -57,4 +57,18 @@ test("pickMwExample prefers full sentences, skips seen ids and quote fragments, 
   // Collegiate 출처는 merriam-webster.com 단어 페이지
   const r3 = pickMwExample([entry("vex", ["It {it}vexed{/it} her."])], "collegiate", "vex", [], NO_FREQ, first);
   assert.equal(r3.ok && r3.source.url, "https://www.merriam-webster.com/dictionary/vex");
+});
+
+test("mwShortDefinition takes the headword entry's first short definition and drops usage notes", () => {
+  const entries = [
+    { meta: { id: "cat burglar" }, shortdef: ["a thief who climbs in through a window"] },
+    { meta: { id: "cat:1" }, shortdef: ["a small animal that is often kept as a pet —often used before another noun", "a lion or tiger"] },
+  ];
+  assert.equal(mwShortDefinition(entries, "cat"), "a small animal that is often kept as a pet");
+  // 표제어 항목이 없으면 다른 항목의 뜻이라도 쓴다
+  assert.equal(mwShortDefinition([{ meta: { id: "cat burglar" }, shortdef: ["a thief"] }], "cat"), "a thief");
+  // 철자 제안(문자열 배열)이나 뜻이 빈 항목은 null
+  assert.equal(mwShortDefinition(["cot", "cut"], "cxt"), null);
+  assert.equal(mwShortDefinition([{ meta: { id: "x" }, shortdef: [] }], "x"), null);
+  assert.equal(mwShortDefinition(null, "x"), null);
 });

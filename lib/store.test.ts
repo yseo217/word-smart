@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addWord, addWords, emptyStore, newId, parseStore, removeWord, withFirstUse, type Store } from "./store.ts";
+import { addWord, addWords, emptyStore, newId, parseStore, removeWord, setDefinitions, withFirstUse, type Store } from "./store.ts";
 
 const NOW = new Date("2026-10-25T00:00:00.000Z");
 
@@ -273,4 +273,18 @@ test("withFirstUse stamps the first-use time once and parseStore keeps it", () =
 test("newId gives different ids", () => {
   const ids = new Set(Array.from({ length: 200 }, () => newId()));
   assert.equal(ids.size, 200);
+});
+
+test("setDefinitions fills only words without a definition and keeps the store object when nothing changes", () => {
+  const store = withWords("cat", "dog");
+  const byText = (s: Store, text: string) => s.words.find((w) => w.text === text);
+  const filled = setDefinitions(store, { cat: "a small animal", dog: "" });
+  assert.equal(byText(filled, "cat")?.definition, "a small animal");
+  assert.equal(byText(filled, "dog")?.definition, null); // 빈 뜻은 "사전에 없음"
+  assert.equal(setDefinitions(filled, { cat: "something else" }), filled); // 이미 있으면 그대로, 같은 객체
+  assert.equal(setDefinitions(store, { bird: "x" }), store); // 해당 단어 없음 → 같은 객체
+  // 저장본을 읽을 때 뜻은 그대로, 너무 길면 300자로 자른다
+  const parsed = parseStore(JSON.stringify({ ...filled, words: [{ ...filled.words[0], definition: "y".repeat(400) }] })).store;
+  assert.equal(parsed.words[0].definition?.length, 300);
+  assert.equal(byText(parseStore(JSON.stringify(filled)).store, "dog")?.definition, null);
 });

@@ -4,33 +4,12 @@ import corpus from "@/data/voa-sentences.json";
 import freq from "@/data/word-freq.json";
 import { NO_EXAMPLE, pickDictionaryExample, pickVoaExample, type ExampleResult, type VoaCorpus } from "./examples-core.ts";
 import type { FrequencyMap } from "./level.ts";
-import { pickMwExample, type MwReference } from "./mw.ts";
+import { pickMwExample } from "./mw.ts";
+import { fetchMw, MW_TIMEOUT_MS, USER_AGENT } from "./mw-fetch.ts";
 
-const MW_API = "https://www.dictionaryapi.com/api/v3/references/";
 const DICTIONARY_API = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 // 사전마다 최대 4초. MW 두 사전은 동시에 묻는다. (Vercel 함수 제한 10초 안에 VOA → MW 4초 → Free Dictionary 4초가 들어가야 한다)
-const DICTIONARY_TIMEOUT_MS = 4000;
-const USER_AGENT = "WordSmart example/0.1 (personal learning project)"; // 식별용 이름만, 개인 정보는 넣지 않는다 (CLAUDE.md)
-
-// Merriam-Webster 키는 .env와 Vercel 환경 변수에만 있다. 없으면 그 사전은 건너뛴다. 키는 주소에 들어가므로 절대 로그에 남기지 않는다.
-function mwKey(ref: MwReference): string | undefined {
-  return ref === "learners" ? process.env.MW_LEARNERS_KEY : process.env.MW_COLLEGIATE_KEY;
-}
-
-async function fetchMw(ref: MwReference, word: string): Promise<unknown> {
-  const key = mwKey(ref);
-  if (!key) return null;
-  try {
-    const res = await fetch(`${MW_API}${ref}/json/${encodeURIComponent(word)}?key=${encodeURIComponent(key)}`, {
-      signal: AbortSignal.timeout(DICTIONARY_TIMEOUT_MS),
-      headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null; // 시간 초과, 네트워크 오류, 잘못된 응답
-  }
-}
+const DICTIONARY_TIMEOUT_MS = MW_TIMEOUT_MS;
 
 async function fetchFreeDictionary(word: string): Promise<unknown> {
   try {

@@ -21,10 +21,10 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 
 ## 구조
 
-- `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API), `api/push/*`(푸시 구독·보내기·시험). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`, `reminders`, `speak-button`).
+- `app/` 화면. `page.tsx`(Today), `words/`(단어장), `review/`(복습), `hard/`(Still Learning), `stats/`, `backup/`, `api/example/route.ts`(예문 API), `api/define/route.ts`(단어장 뜻 API), `api/push/*`(푸시 구독·보내기·시험). 공용 조각은 `app/*.tsx`(`tab-bar`, `today-progress`, `backup-notice`, `reminders`, `speak-button`).
 - `lib/` 순수 로직과 테스트. 브라우저 API는 `lib/use-store.ts`에만 있다.
   - `store.ts` 저장 데이터 모양·`parseStore`·단어 추가/삭제 · `words.ts` 입력 검사 · `quiz.ts` 회차·응답·어려운 단어 규칙 · `kst.ts` 한국 시간 날짜
-  - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `word-freq.ts` 빈도 목록 변환 규칙 · `push.ts` 알림 규칙(순수) · `push-store.ts`/`push-send.ts` 구독 저장·보내기(서버) · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `backup.ts` · `stats.ts`
+  - `forms.ts` 단어 변화형·강조 · `level.ts` 예문 수준(빈도 목록 없으면 꺼짐) · `word-freq.ts` 빈도 목록 변환 규칙 · `push.ts` 알림 규칙(순수) · `push-store.ts`/`push-send.ts` 구독 저장·보내기(서버) · `examples-core.ts`/`examples.ts` 예문 고르기(순수/서버) · `mw.ts`/`mw-fetch.ts` Merriam-Webster 파싱(순수)/호출(서버) · `backup.ts` · `stats.ts`
 - `data/voa-sentences.json` VOA 문장 모음(퍼블릭 도메인, 스크립트가 만듦) · `data/word-freq.json` 단어 빈도 순위 20,000개(OpenSubtitles 기반, CC BY-SA 4.0, 출처는 `data/word-freq.meta.json`)
 - `scripts/` 개발 컴퓨터에서 직접 실행하는 도구. 배포 서버에서는 돌리지 않는다.
 - `public/sw.js` 서비스 워커. 푸시 알림만 다루고 오프라인 캐시는 하지 않는다 (DESIGN.md 13장).
@@ -83,7 +83,7 @@ Windows PowerShell에서는 `npm.cmd`, `npx.cmd`로 부른다. 작업을 마칠 
 **화면과 문구**
 - 앱 화면 문구는 영어, 문서와 코드 주석은 한국어. PRD의 따옴표 문구는 뜻이고 실제 영어 문구는 코드를 따른다.
 - 디자인은 네이비 핀 스트라이프(바탕색·줄무늬·회색은 `app/globals.css`에서만 정의. 경고·오류·강조 같은 상태색은 Tailwind 기본색 amber·red·green을 화면 코드에서 바로 쓴다). 글꼴은 Playfair Display(제목) / Inter(본문) / Oswald(숫자, `font-score`). 구단 로고·이름 같은 상표는 쓰지 않는다.
-- 복습 상태 용어와 색은 모든 화면에서 같게 쓴다: **Knew it**(녹색 green) / **Looked up**(빨간색 red) / **Still learning**(황색 amber). 복습 버튼은 "I know it / Look it up". "Remembered"는 더 쓰지 않는다.
+- 복습 상태 용어와 색은 모든 화면에서 같게 쓴다: **Knew it**(녹색 green) / **Looked up**(빨간색 red) / **Still learning**(황색 amber). 복습 버튼은 "I know it / Look it up". "Remembered"는 더 쓰지 않는다. 사전 뜻은 단어장에서만 보여주고 복습·Still Learning 화면에는 보여주지 않는다(퀴즈를 지키기 위해).
 - 스마트폰 가로 375px에서 가로 스크롤이 없어야 한다. 상단 띠와 하단 탭 바는 `body`(고정)의 첫·끝 자식으로 항상 보이고, 가운데 `.shell`만 스크롤한다(`app/layout.tsx`, `globals.css`). 본문에 탭 바 높이만큼 여백을 두지 않는다.
 
 **시간**

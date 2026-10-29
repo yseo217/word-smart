@@ -13,7 +13,12 @@ export type Word = {
   firstAnswer?: Answer;
   missTotal: number; // "모른다" 누적 횟수
   knownStreak: number; // 연속 "안다" 횟수
+  // 단어장에 보여주는 사전 뜻 한 줄 (Merriam-Webster, 2026-10-30). 없음(undefined)은 아직 안 찾아본 것, null은 찾아봤지만 사전에 없는 것.
+  // 복습 화면에는 보여주지 않는다 (PRD 5번 ①).
+  definition?: string | null;
 };
+
+export const MAX_DEFINITION_CHARS = 300;
 
 // 그때 예문이 있었는지: VOA 문장, 사전 예문, 없음. 예문 제공률 통계에 쓴다 (PRD 3번·5번 ②).
 export type ExampleKind = "voa" | "dictionary" | "none";
@@ -82,7 +87,22 @@ function toWord(v: unknown): Word | null {
   };
   if (v.lastAnswer === "known" || v.lastAnswer === "unknown") word.lastAnswer = v.lastAnswer;
   if (v.firstAnswer === "known" || v.firstAnswer === "unknown") word.firstAnswer = v.firstAnswer;
+  if (v.definition === null) word.definition = null;
+  else if (typeof v.definition === "string" && v.definition.trim()) word.definition = v.definition.trim().slice(0, MAX_DEFINITION_CHARS);
   return word;
+}
+
+// 사전에서 받아 온 뜻을 단어에 붙인다. 이미 뜻이 있는 단어는 건드리지 않고, 바뀐 것이 없으면 같은 객체를 돌려준다(저장 생략).
+export function setDefinitions(store: Store, definitions: Readonly<Record<string, string | null>>): Store {
+  let changed = false;
+  const words = store.words.map((w) => {
+    if (w.definition !== undefined || !(w.text in definitions)) return w;
+    const d = definitions[w.text];
+    const definition = typeof d === "string" && d.trim() ? d.trim().slice(0, MAX_DEFINITION_CHARS) : null;
+    changed = true;
+    return { ...w, definition };
+  });
+  return changed ? { ...store, words } : store;
 }
 
 // 깨진 항목(손으로 고친 백업, 옛 버전)은 버린다. 하나 때문에 화면 전체가 멈추지 않게 하기 위해서다 (DESIGN.md 4장).

@@ -6,6 +6,7 @@ import { addWords, removeWord, type SkippedItem } from "@/lib/store";
 import { useStore } from "@/lib/use-store";
 import BackupNotice from "../backup-notice";
 import SpeakButton from "../speak-button";
+import { useFillDefinitions } from "./definitions";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
@@ -20,6 +21,9 @@ export default function WordsPage() {
   const [notice, setNotice] = useState<Notice>(null);
   const [skipped, setSkipped] = useState<SkippedItem[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // 뜻이 없는 단어는 사전에서 받아 채운다 (2026-10-30). 단어장에서만 보여주고 복습 화면에는 보여주지 않는다.
+  useFillDefinitions(ready, store.words, update);
 
   // 안내가 뜨면 1분 뒤에 지운다. 새 안내가 뜨면 시계를 다시 센다 (타이머 안에서만 상태를 바꾸므로 효과 규칙에 맞는다).
   useEffect(() => {
@@ -256,14 +260,22 @@ export default function WordsPage() {
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {visibleWords.map((word) => (
             <li key={word.id} className="flex items-center gap-2 px-3">
-              <span lang="en" className="min-w-0 flex-1 break-words py-3 text-lg">
-                {word.text}
-                {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-28: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
-                {(() => {
-                  const status = statusOf(word.id, word.lastAnswer);
-                  return status && <sup className={`ml-1 whitespace-nowrap text-[10px] font-medium ${status.className}`}>{status.label}</sup>;
-                })()}
-              </span>
+              <div className="min-w-0 flex-1 py-2.5">
+                <span lang="en" className="break-words text-lg">
+                  {word.text}
+                  {/* 복습 상태는 단어 오른쪽 위 작은 윗첨자로 (2026-10-28: 아래 줄에 두면 자리를 많이 차지해서). 아직 안 물었으면 비움 */}
+                  {(() => {
+                    const status = statusOf(word.id, word.lastAnswer);
+                    return status && <sup className={`ml-1 whitespace-nowrap text-[10px] font-medium ${status.className}`}>{status.label}</sup>;
+                  })()}
+                </span>
+                {/* 사전 뜻 한 줄 (2026-10-30, Merriam-Webster). 아직 못 받았거나 사전에 없으면 비움 */}
+                {word.definition && (
+                  <p lang="en" className="line-clamp-2 text-xs leading-snug text-zinc-500 dark:text-zinc-400">
+                    {word.definition}
+                  </p>
+                )}
+              </div>
               {/* 발음 듣기 (2026-10-29 UX 개선): 복습을 시작하지 않아도 목록에서 바로 듣는다. 미지원 브라우저에서는 버튼이 숨는다 */}
               <SpeakButton text={word.text} compact />
               <button
