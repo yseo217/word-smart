@@ -38,7 +38,7 @@ export default function WordsPage() {
 
   // 목록은 알파벳 순으로 보여주고, 검색 칸에 적은 글자가 들어 있는 단어만 남긴다 (저장 순서는 입력 순서 그대로).
   const [query, setQuery] = useState("");
-  // 순서: 기본은 알파벳 순. Shuffle 단추를 누르면 그때 섞은 순서를 기억해 두고, A–Z 단추나 화면을 다시 열면 알파벳 순으로 돌아간다 (2026-10-30).
+  // 순서: 기본은 알파벳 순(A–Z). Random 단추를 누르면 그때 섞은 순서를 기억해 두고, A–Z 단추나 화면을 다시 열면 알파벳 순으로 돌아간다 (2026-10-30).
   // 섞은 뒤에 추가된 단어는 끝에 붙는다.
   const [shuffleOrder, setShuffleOrder] = useState<string[] | null>(null);
   const sortedWords = useMemo(() => {
@@ -237,13 +237,13 @@ export default function WordsPage() {
           </p>
         )}
 
-        {/* 순서 단추 (2026-10-30): Shuffle은 누를 때마다 새로 섞고, A–Z는 알파벳 순으로 되돌린다. 눌린 쪽을 네이비로 채운다 */}
+        {/* 순서 단추 (2026-10-30): A–Z는 알파벳 순(기본), Random은 누를 때마다 새로 섞는다. 둘 다 "순서 이름"이라 눌린 쪽이 지금 상태를 말해 준다. 눌린 쪽을 네이비로 채운다 */}
         {ready && store.words.length > 1 && (
           <div role="group" aria-label="Order" className="flex gap-1.5">
             {(
               [
-                { key: "shuffle", label: "Shuffle", on: shuffleOrder !== null, act: () => setShuffleOrder(shuffled(store.words).map((w) => w.id)) },
                 { key: "alpha", label: "A–Z", on: shuffleOrder === null, act: () => setShuffleOrder(null) },
+                { key: "random", label: "Random", on: shuffleOrder !== null, act: () => setShuffleOrder(shuffled(store.words).map((w) => w.id)) },
               ] as const
             ).map((b) => (
               <button

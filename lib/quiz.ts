@@ -188,7 +188,7 @@ export function googleSearchUrl(word: string): string {
   return `https://www.google.com/search?q=${encodeURIComponent(`${word} meaning pronunciation`)}`;
 }
 
-// 배열을 무작위 순서로 섞은 새 배열 (Fisher–Yates). 단어장의 Shuffle 단추에 쓴다 (2026-10-30). 원본은 바꾸지 않는다.
+// 배열을 무작위 순서로 섞은 새 배열 (Fisher–Yates). 단어장의 Random 단추에 쓴다 (2026-10-30). 원본은 바꾸지 않는다.
 export function shuffled<T>(items: readonly T[], rng: () => number = Math.random): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i--) {
