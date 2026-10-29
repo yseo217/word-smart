@@ -51,7 +51,7 @@
 | **Word List** `/words` | 제목 "Word list"와 오른쪽 [Backup] · (조건부) 백업 안내 카드[Back up now / Remind me in 7 days] · 여러 줄 입력칸 · 안내(입력 중에는 "N will be skipped" 미리 보기) · [Add N words](입력 중 추가될 수를 버튼에 미리 표시, 2026-10-28 UX 개선) · 결과 안내와 건너뛴 목록(10개까지) · "Your words N"과 검색 칸 · 상태 필터 알약 버튼 All / Still learning(개수, 황색) / Looked up(개수, 빨간색) / Knew it(개수, 녹색) — 네 개가 375px에서 한 줄, 누른 단추는 그 색으로 채움, 검색과 함께 적용, 2026-10-28 UX 개선(Remembered 단추와 색은 2026-10-28 추가) · 알파벳 순 목록(각 줄: 단어와 그 오른쪽 위 작은 윗첨자 상태 글자 "Still learning"(황색) / "Knew it"(녹색) / "Looked up"(빨간색) — 아직 안 물은 단어는 비움, 상태색은 Tailwind 기본색, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), 2026-10-28 UX 개선. 2026-10-28에 아래 줄에서 윗첨자로 옮겨 한 줄로 —, Delete) | `app/words/page.tsx`, `app/backup-notice.tsx` |
 | **Still Learning** `/hard` | 제목과 오른쪽 [Stats] · 설명 · "Still learning N"과 검색 칸 · 최근 순 목록(각 줄: 단어, 누적 횟수·연속 횟수·날짜, 스피커 버튼(발음 듣기, 2026-10-29 UX 개선), Remove) · 비어 있으면 안내와 [Start review] | `app/hard/page.tsx` |
 | **Stats** `/stats` | 제목 "Stats" · "Day N" 머리말 · 카드 4장 2×2[Rounds this week / Active days x/28 / Knew it % / Examples shown %], 각각 목표 설명 | `app/stats/page.tsx` |
-| **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-28 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] | `app/backup/page.tsx` |
+| **Backup** `/backup` | 제목 · 설명 · 카드[Export: N words, last backup는 "N days ago (날짜)" 꼴(today/yesterday, 한국 시간 날짜 기준, 2026-10-28 UX 개선), 버튼] · 카드[Import: 파일 선택 버튼] · 빨간 테두리 카드[Delete all data…] · 맨 아래 작은 "Layout info" 한 줄(기기 화면·뷰포트·safe-area 값, 문제 확인용, 2026-10-30) | `app/backup/page.tsx`, `layout-info.tsx` |
 
 ### 0.3 데이터 흐름 — 입력 → 처리 → 출력
 
@@ -632,3 +632,4 @@ Next.js 규칙은 이 프로젝트에 설치된 버전의 문서(`node_modules/n
 | 3.0 | 2026-10-29 | 앱 틀 변경(0.2, 2장): 띠·탭 바 고정, 가운데 .shell만 스크롤. 아이폰에서 띠가 당겨지던 것과 본문 아래 빈 여백 해결 | Iron man |
 | 3.1 | 2026-10-29 | 예문 출처에 Merriam-Webster 사전 API 추가(6.1·6.2·6.3·6.6·6.7·9장·11장, 0.3·0.4), 사전 대기 6초 → 각 4초 | Iron man |
 | 3.2 | 2026-10-29 | 탭 바 홈 바 여백을 최대 20px로 제한하고 높이를 48px로(아이폰 에어·iOS 27에서 탭 아래 짙은 띠가 두꺼움) | Iron man |
+| 3.3 | 2026-10-30 | Backup 화면 맨 아래에 기기 레이아웃 정보 한 줄(화면·뷰포트 높이, safe-area, 실행 모드) — 탭 바 아래 빈 띠 원인 확인용, 원인을 찾으면 뺀다 | Iron man |

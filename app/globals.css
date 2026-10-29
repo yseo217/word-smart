@@ -8,6 +8,9 @@
   --foreground: var(--navy);
   --stripe: rgba(12, 35, 64, 0.18);
   --band-stripe: rgba(255, 255, 255, 0.12);
+  /* safe-area 값을 스크립트에서 읽기 위한 변수 (app/backup/layout-info.tsx, 2026-10-30) */
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
 }
 
 @theme inline {
