@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0c2340",
-  viewportFit: "cover", // 아이폰 홈 바 영역까지 쓰고, 탭 바는 safe-area만큼 띄운다
+  viewportFit: "cover", // 아이폰 홈 바 영역까지 쓰고, 탭 바는 safe-area만큼(최대 20px) 띄운다
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

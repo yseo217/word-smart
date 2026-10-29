@@ -70,6 +70,12 @@ h1 {
   font-weight: 700;
 }
 
+/* 하단 탭 바: 홈 바(safe-area) 여백은 20px까지만 둔다. 아이폰 에어·iOS 27 홈 화면 앱에서 env() 값이 필요 이상으로 커서
+   탭 아래에 짙은 띠가 두껍게 남았다 (2026-10-29). 20px이면 탭 글자가 홈 바 위에 있으면서 누르기에도 충분하다. */
+.tab-bar {
+  padding-bottom: min(env(safe-area-inset-bottom), 20px);
+}
+
 /* 상단 네이비 띠 */
 .band {
   background-color: var(--navy);
