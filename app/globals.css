@@ -52,6 +52,19 @@ body {
   overscroll-behavior: none;
 }
 
+/* 아이폰 홈 화면 앱(standalone)에서는 상태 표시줄을 반투명(black-translucent)으로 쓰기 때문에 100% 높이가 상태 표시줄
+   높이만큼 모자라게 계산된다. 그러면 body가 화면 끝까지 닿지 못해 탭 바 아래에 바탕색 띠가 남는다(2026-10-30, 아이폰 에어·iOS 27).
+   100vh는 홈 화면 앱에서 화면 전체 높이이므로 그때만 100vh를 쓴다. 브라우저에서는 주소창 때문에 100%를 그대로 둔다. */
+@media (display-mode: standalone) {
+  html,
+  body {
+    height: 100vh;
+  }
+  body {
+    bottom: auto;
+  }
+}
+
 body {
   position: fixed; /* iOS에서 문서 고무줄 당김을 확실히 막는다 */
   inset: 0;
